@@ -9,7 +9,7 @@ from pydantic import PositiveInt
 
 class PSRD:
     """
-    A block of Pre-Shared Random Data (PSRD).
+    Pre-Shared Random Data (PSRD).
     """
     _uuid: UUID
     _original_size: int
@@ -23,9 +23,9 @@ class PSRD:
         self._data = data
 
     @classmethod
-    def create_random_psrd_block(cls, size: PositiveInt):
+    def create_random_psrd(cls, size: PositiveInt):
         """
-        Create a random PSRD block, containing `size` random bytes.
+        Create a PSRD, containing `size` random bytes.
         """
         uuid = uuid4()
         data = os.urandom(size)
@@ -34,13 +34,13 @@ class PSRD:
     @property
     def uuid(self):
         """
-        The UUID of the PSRD block.
+        The UUID of the PSRD.
         """
         return self._uuid
 
     @property
     def remaining_size(self):
         """
-        The remaining number of bytes in the PSRD block.
+        The remaining number of bytes in the PSRD.
         """
         return self._remaining_size

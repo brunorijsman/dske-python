@@ -4,10 +4,11 @@
     ],
     "cSpell.words": [
         "DSKE",
+        "DSKEClient",
         "mwag",
         "PSRD",
+        "psrds",
         "Rijsman",
-        "urandom",
-        "DSKEClient",
+        "urandom"
     ]
 }
