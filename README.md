@@ -1,2 +1,5 @@
 # dske-python
-Distributed Symmetric Key Establishment (DSKE) implementation in Python and FastAPI
+
+This repository contains an implementation of Distributed Symmetric Key Establishment (DSKE) as specified in IETF draft
+[draft-mwag-dske-01](https://datatracker.ietf.org/doc/draft-mwag-dske/01/).
+The code is implemented in Python 3.12 and uses FastAPI.
