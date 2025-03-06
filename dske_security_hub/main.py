@@ -7,13 +7,13 @@ from fastapi import FastAPI
 app = FastAPI()
 
 
-@app.get("dske/oob/v1/pre-shared-keys")
-async def get_pre_shared_keys():
+@app.get("dske/oob/v1/register-dske-client")
+async def get_register_dske_client():
     """
-    Out of band: Get pre-shared keys.
+    Out of band: Register DSKE client.
     """
     # TODO: Implement this.
-    return {"result": "Pre-shared keys"}
+    return {"result": "DSKE client registration."}
 
 
 @app.get("dske/oob/v1/pre-shared-random-data")
