@@ -28,7 +28,9 @@ async def get_psrd(size: PositiveInt):
     """
     Out of band: Get Pre-Shared Random Data (PSRD).
     """
-    # TODO: Implement this.
+    # TODO: Add dske_client_name. Note: we don't do authentication of out-of-band requests.
+    # TODO: Add dske_client_name parameter to create_random_psrd.
+    # TODO: Error if the client was not registered.
     _psrd = DSKE_HUB.create_random_psrd(size)
     return {"result": "Pre-shared random data."}
 
