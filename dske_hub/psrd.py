@@ -3,7 +3,7 @@ Pre-Shared Random Data (PSRD) block.
 """
 
 from uuid import UUID, uuid4
-import os
+from os import urandom
 from pydantic import PositiveInt
 
 
@@ -28,7 +28,7 @@ class PSRD:
         Create a PSRD, containing `size` random bytes.
         """
         uuid = uuid4()
-        data = os.urandom(size)
+        data = urandom(size)
         return PSRD(uuid, data)
 
     @property

@@ -3,9 +3,9 @@ Main module for the DSKE security hub.
 """
 
 from base64 import b64encode
-from dske_hub import DSKEHub
 from fastapi import FastAPI
 from pydantic import PositiveInt
+from dske_hub import DSKEHub
 
 APP = FastAPI()
 
