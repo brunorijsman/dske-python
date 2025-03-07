@@ -1,11 +1,10 @@
 """
-Main module for a DSKE security hub.
+Main module for a DSKE client.
 """
 
 from base64 import b64encode
 from fastapi import FastAPI
 from pydantic import PositiveInt
-from dske_hub import DSKEHub
 
 APP = FastAPI()
 
