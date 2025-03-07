@@ -3,8 +3,9 @@ Main entry point for the topology package.
 """
 
 import argparse
-import requests
 import subprocess
+
+import requests
 
 from . import config
 

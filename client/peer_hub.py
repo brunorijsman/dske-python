@@ -26,10 +26,11 @@ class PeerHub:
         Register the peer hub.
         """
         print(f"Register peer hub at url {self._url}", flush=True)  ### DEBUG
- 
+        # TODO: Implement this
 
     async def unregister(self):
         """
         Register the peer hub.
         """
         print(f"Unregister peer hub at url {self._url}", flush=True)  ### DEBUG
+        # TODO: Implement this
