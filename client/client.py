@@ -21,6 +21,7 @@ class Client:
         """
         Register a DSKE hub.
         """
+        print(f"Register hub {hub_name}") ### DEBUG
         if hub_name in self._registered_hub:
             raise ValueError("DSKE hub already registered.")
         # TODO: Receive pre-shared key in registration reply
@@ -28,3 +29,15 @@ class Client:
         registered_hub = RegisteredHub(hub_name, pre_shared_key)
         self._registered_hub[hub_name] = registered_hub
         return registered_hub
+    
+    def register_all_hubs(self):
+        """
+        Register all DSKE hubs.
+        """
+        print("Register all hubs") ### DEBUG
+
+    def unregister_all_hubs(self):
+        """
+        Unregister all DSKE hubs.
+        """
+        print("Unregister all hubs", flush=True) ### DEBUG

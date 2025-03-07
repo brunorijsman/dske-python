@@ -3,6 +3,7 @@ Main module for a DSKE client.
 """
 
 import argparse
+import contextlib
 import os
 import signal
 
@@ -26,7 +27,18 @@ def parse_command_line_arguments():
 _ARGS = parse_command_line_arguments()
 _CLIENT_NAME = _ARGS.name
 _CLIENT = Client(_CLIENT_NAME)
-_APP = fastapi.FastAPI()
+
+@contextlib.asynccontextmanager
+async def lifespan(_app: fastapi.FastAPI):
+    """
+    Lifespan manager for the FastAPI app.
+    """
+    _CLIENT.register_all_hubs()
+    yield
+    _CLIENT.unregister_all_hubs()
+
+
+_APP = fastapi.FastAPI(lifespan=lifespan)
 
 
 @_APP.post("/dske/client/mgmt/v1/stop")

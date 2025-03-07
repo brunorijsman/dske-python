@@ -99,25 +99,30 @@ def stop_client(client_config: dict, port: int):
     """
     Stop a client.
     """
-    print(f"Stopping client {client_config['name']} on port {port}")
-    stop_node("client", port)
+    client_name = client_config["name"]
+    print(f"Stopping client {client_name} on port {port}")
+    stop_node("client", client_name, port)
 
 
 def stop_hub(hub_config: dict, port: int):
     """
     Stop a hub.
     """
-    print(f"Stopping hub {hub_config['name']} on port {port}")
-    stop_node("hub", port)
+    hub_name = hub_config["name"]
+    print(f"Stopping hub {hub_name} on port {port}")
+    stop_node("hub", hub_name, port)
 
 
-def stop_node(node_type: str, port: int):
+def stop_node(node_type: str, node_name: str, port: int):
     """
     Start a node (common processing for hubs and clients).
     """
     # TODO: Error handling
     url = f"http://localhost:{port}/dske/{node_type}/mgmt/v1/stop"
-    _response = requests.post(url)
+    try:
+        _response = requests.post(url)
+    except requests.exceptions.RequestException as exc:
+        print(f"Failed to stop {node_type} {node_name}: {exc}")
 
 
 if __name__ == "__main__":
