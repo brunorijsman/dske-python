@@ -1,8 +1,8 @@
-TODO: Add support for local distributors.
-
-TODO: Command-line argument for client for list of hub base URLs
-
 TODO: Have client register itself with all hubs when it starts up.
+
+TODO: Have client unregister itself from all hubs when it shuts down.
+
+TODO: Have a topology command line argument to start or stop a single node.
 
 TODO: Retry client registrations when they fail.
 
@@ -15,3 +15,6 @@ TODO: Add ETSI QKD 014 API to clients.
 TODO: Add status management API and topology command to query it.
 
 TODO: Add statistics management API and topology command to query it.
+
+TODO: Add support for local distributors.
+

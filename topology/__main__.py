@@ -40,11 +40,13 @@ def start_topology(parsed_config: dict):
     Start the topology.
     """
     port = _BASE_PORT
+    hub_extra_args = ["--hubs"]
     for hub_config in parsed_config["hubs"]:
         start_hub(hub_config, port)
-        port += 1
+        hub_extra_args.append(f"http://localhost:{port}")
+        port += 1    
     for client_config in parsed_config["clients"]:
-        start_client(client_config, port)
+        start_client(client_config, port, hub_extra_args)
         port += 1
 
 
@@ -57,26 +59,28 @@ def start_hub(hub_config: dict, port: int):
     start_node("hub", name, port)
 
 
-def start_client(client_config: dict, port: int):
+def start_client(client_config: dict, port: int, hub_extra_args: list):
     """
     Start a client.
     """
     name = client_config["name"]
     print(f"Starting client {name} on port {port}")
-    start_node("client", name, port)
+    start_node("client", name, port, hub_extra_args)
 
 
-def start_node(node_type: str, node_name: str, port: int):
+def start_node(node_type: str, node_name: str, port: int, extra_args=None):
     """
     Start a node (common processing for hubs and clients).
     """
+    if extra_args is None:
+        extra_args = []
     out_filename = f"{node_type}-{node_name}.out"
     # TODO: Should we be using a context manager here?
     # pylint: disable=consider-using-with
     out_file = open(out_filename, "w", encoding="utf-8")
     # TODO: Error handling (e.g., if the process fails to start)
     _process = subprocess.Popen(
-        ["python", "-m", f"{node_type}", node_name, "--port", str(port)],
+        ["python", "-m", f"{node_type}", node_name, "--port", str(port)] + extra_args,
         stdout=out_file,
         stderr=out_file,
     )

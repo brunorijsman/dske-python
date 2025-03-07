@@ -19,7 +19,8 @@ def parse_command_line_arguments():
     """
     parser = argparse.ArgumentParser(description="DSKE Client")
     parser.add_argument("name", type=str, help="Client name")
-    parser.add_argument("-p", "--port", type=int, default=8000, help="Port number")
+    parser.add_argument("--port", type=int, default=8000, help="Port number")
+    parser.add_argument("--hubs", nargs="+", type=str, help="URL for hub")
     args = parser.parse_args()
     return args
 
@@ -33,6 +34,7 @@ async def lifespan(_app: fastapi.FastAPI):
     """
     Lifespan manager for the FastAPI app.
     """
+    print(f"{_ARGS=}") ### DEBUG
     _CLIENT.register_all_hubs()
     yield
     _CLIENT.unregister_all_hubs()
