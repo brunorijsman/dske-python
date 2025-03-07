@@ -4,9 +4,13 @@ Main module for a DSKE security hub.
 
 import argparse
 import base64
+import os
+import signal
+
 import fastapi
 import pydantic
 import uvicorn
+
 from .hub import Hub
 
 
@@ -77,8 +81,8 @@ async def mgmt_stop():
     """
     Management: Stop.
     """
-    # TODO: Implement this.
-    return {"result": "Stop result."}
+    os.kill(os.getpid(), signal.SIGTERM)
+    return {"result": "Hub stopped"}
 
 
 def main():

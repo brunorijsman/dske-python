@@ -4,6 +4,7 @@
         "configfile",
         "DSKE",
         "DSKEClient",
+        "getpid",
         "mgmt",
         "mwag",
         "PSRD",

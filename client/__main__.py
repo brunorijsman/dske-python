@@ -3,8 +3,12 @@ Main module for a DSKE client.
 """
 
 import argparse
+import os
+import signal
+
 import fastapi
 import uvicorn
+
 from .client import Client
 
 
@@ -30,8 +34,8 @@ async def mgmt_stop():
     """
     Management: Stop.
     """
-    # TODO: Implement this.
-    return {"result": "Stop result."}
+    os.kill(os.getpid(), signal.SIGTERM)
+    return {"result": "Client stopped"}
 
 
 def main():
