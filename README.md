@@ -6,17 +6,38 @@ The code is implemented in Python 3.12 and uses FastAPI.
 
 **WARNING**: This project is in the extremely early stages of implementation and nowhere near usable yet.
 
-To start the DSKE security hub:
+To start the DSKE topology:
 
-```pyton
-cd dske_hub
-fastapi dev main.py
-```
+<pre>
+$ <b>python -m topology topology/topology.yaml start</b>
+Starting hub helen on port 8000
+Starting hub hank on port 8001
+Starting hub heidi on port 8002
+Starting hub harry on port 8003
+Starting hub holly on port 8004
+Starting client clarice on port 8005
+Starting client charlie on port 8006
+Starting client camila on port 8007
+Starting client colin on port 8008
+Starting client cindy on port 8009
+</pre>
 
-For DSKE security hub API, open URL `http://127.0.0.1:8000/docs` in a browser.
+Once a topology has been started, open the API in the browser at URL `http://127.0.0.1:8000/docs`.
+(Replace 8000 with the port number reported by the topology start command)
 
-TODO: Add a dske_client process.
+To stop the DSKE topology:
 
-TODO: Add a dske_distributor process.
+<pre>
+$ <b>python -m topology topology/topology.yaml stop</b>
+Stopping hub hank on port 8001
+Stopping hub heidi on port 8002
+Stopping hub harry on port 8003
+Stopping hub holly on port 8004
+Stopping client clarice on port 8005
+Stopping client charlie on port 8006
+Stopping client camila on port 8007
+Stopping client colin on port 8008
+Stopping client cindy on port 8009
+</pre>
 
-TODO: Add scripts to setup and test multi-node topologies.
+TODO: Add support for local distributors.
