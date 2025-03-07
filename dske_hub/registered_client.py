@@ -2,9 +2,9 @@
 A DSKE client.
 """
 
-class DSKEClient:
+class RegisteredClient:
     """
-    A DSKE client.
+    A registered DSKE client.
     """
     _dske_client_name: str
     _pre_shared_key: bytes
