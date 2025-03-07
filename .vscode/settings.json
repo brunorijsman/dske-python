@@ -1,7 +1,4 @@
 {
-    "editor.rulers": [
-        120
-    ],
     "cSpell.words": [
         "DSKE",
         "DSKEClient",
@@ -10,5 +7,11 @@
         "psrds",
         "Rijsman",
         "urandom"
-    ]
+    ],
+    "editor.wordWrapColumn": 100,
+    "pylint.importStrategy": "fromEnvironment",
+    "editor.rulers": [
+        100
+    ],
+    "pylint.enabled": true
 }
