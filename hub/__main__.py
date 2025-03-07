@@ -2,30 +2,48 @@
 Main module for a DSKE security hub.
 """
 
-from base64 import b64encode
-from fastapi import FastAPI
-from pydantic import PositiveInt
+import argparse
+import base64
+import fastapi
+import pydantic
+import uvicorn
 from .hub import Hub
 
-APP = FastAPI()
 
-_HUB = Hub(name="hubert", pre_shared_key_size=32)
+def parse_command_line_arguments():
+    """
+    Parse command line arguments.
+    """
+    parser = argparse.ArgumentParser(description="DSKE Hub")
+    parser.add_argument("name", type=str, help="Hub name")
+    parser.add_argument("-p", "--port", type=int, default=8000, help="Port number")
+    args = parser.parse_args()
+    return args
 
 
-@APP.get("/dske/oob/v1/register-dske-client")
-async def get_register_dske_client(dske_client_name: str):
+_ARGS = parse_command_line_arguments()
+_HUB_NAME = _ARGS.name
+# TODO: Make pre-shared key size configurable.
+_HUB = Hub(_HUB_NAME, pre_shared_key_size=32)
+_APP = fastapi.FastAPI()
+
+
+@_APP.get("/dske-hub/oob/v1/register-dske-client")
+async def oob_get_register_dske_client(dske_client_name: str):
     """
     Out of band: Register a DSKE client.
     """
-    dske_client = _HUB.register_client(dske_client_name)
-    encoded_pre_shared_key = b64encode(dske_client.pre_shared_key).decode("utf-8")
+    registered_client = _HUB.register_client(dske_client_name)
+    encoded_pre_shared_key = base64.b64encode(registered_client.pre_shared_key).decode(
+        "utf-8"
+    )
     # TODO: Return a proper error when there is an exception because the client already is
     #       registered.
     return {"preSharedKey": encoded_pre_shared_key}
 
 
-@APP.get("/dske/oob/v1/psrd")
-async def get_psrd(size: PositiveInt):
+@_APP.get("/dske-hub/oob/v1/psrd")
+async def oob_get_psrd(size: pydantic.PositiveInt):
     """
     Out of band: Get Pre-Shared Random Data (PSRD).
     """
@@ -36,8 +54,8 @@ async def get_psrd(size: PositiveInt):
     return {"result": "Pre-shared random data."}
 
 
-@APP.get("/dske/api/v1/status")
-async def get_status():
+@_APP.get("/dske-hub/api/v1/status")
+async def api_get_status():
     """
     API: Get status.
     """
@@ -45,10 +63,32 @@ async def get_status():
     return {"result": "Status."}
 
 
-@APP.post("/dske/api/v1/key-share")
-async def post_key_share():
+@_APP.post("/dske-hub/api/v1/key-share")
+async def api_post_key_share():
     """
     API: Post key share.
     """
     # TODO: Implement this.
     return {"result": "Post key-share result."}
+
+
+@_APP.post("/dske-hub/mgmt/v1/stop")
+async def mgmt_stop():
+    """
+    Management: Stop.
+    """
+    # TODO: Implement this.
+    return {"result": "Stop result."}
+
+
+def main():
+    """
+    Main entry point for the hub package.
+    """
+    config = uvicorn.Config(app=_APP, port=_ARGS.port)
+    server = uvicorn.Server(config)
+    server.run()
+
+
+if __name__ == "__main__":
+    main()

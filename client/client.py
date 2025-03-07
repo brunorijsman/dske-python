@@ -2,7 +2,7 @@
 A DSKE client.
 """
 
-from registered_hub import RegisteredHub
+from .registered_hub import RegisteredHub
 
 
 class Client:

@@ -68,16 +68,18 @@ def start_node(node_type: str, node_name: str, port: int):
     """
     Start a node (common processing for hubs and clients).
     """
-    # TODO: Error handling
+    # TODO: Error handling (e.g., if the process fails to start)
     out_filename = f"{node_type}-{node_name}.out"
     # TODO: Should we be using a context manager here?
     # pylint: disable=consider-using-with
     out_file = open(out_filename, "w", encoding="utf-8")
-    process = subprocess.Popen(["fastapi", 
-                                "run", f"{node_type}/__main__.py",
-                                "--port", str(port)],
-                                stdout=out_file,
-                                stderr=out_file)
+    # TODO: Consider starting the uvicorn server inside the Python code
+    #       See https://github.com/fastapi/fastapi/issues/5388
+    process = subprocess.Popen(
+        ["python", "-m", f"{node_type}", node_name, "--port", str(port)],
+        stdout=out_file,
+        stderr=out_file,
+    )
     print(f"{process=}")
 
 
