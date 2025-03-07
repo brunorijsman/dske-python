@@ -3,7 +3,9 @@ Main entry point for the topology package.
 """
 
 import argparse
+import requests
 import subprocess
+
 from . import config
 
 _BASE_PORT = 8000
@@ -68,19 +70,16 @@ def start_node(node_type: str, node_name: str, port: int):
     """
     Start a node (common processing for hubs and clients).
     """
-    # TODO: Error handling (e.g., if the process fails to start)
     out_filename = f"{node_type}-{node_name}.out"
     # TODO: Should we be using a context manager here?
     # pylint: disable=consider-using-with
     out_file = open(out_filename, "w", encoding="utf-8")
-    # TODO: Consider starting the uvicorn server inside the Python code
-    #       See https://github.com/fastapi/fastapi/issues/5388
-    process = subprocess.Popen(
+    # TODO: Error handling (e.g., if the process fails to start)
+    _process = subprocess.Popen(
         ["python", "-m", f"{node_type}", node_name, "--port", str(port)],
         stdout=out_file,
         stderr=out_file,
     )
-    print(f"{process=}")
 
 
 def stop_topology(parsed_config: dict):
@@ -88,11 +87,11 @@ def stop_topology(parsed_config: dict):
     Stop the topology.
     """
     port = _BASE_PORT
-    for client_config in parsed_config["clients"]:
-        stop_client(client_config, port)
-        port += 1
     for hub_config in parsed_config["hubs"]:
         stop_hub(hub_config, port)
+        port += 1
+    for client_config in parsed_config["clients"]:
+        stop_client(client_config, port)
         port += 1
 
 
@@ -101,6 +100,7 @@ def stop_client(client_config: dict, port: int):
     Stop a client.
     """
     print(f"Stopping client {client_config['name']} on port {port}")
+    stop_node("client", port)
 
 
 def stop_hub(hub_config: dict, port: int):
@@ -108,6 +108,16 @@ def stop_hub(hub_config: dict, port: int):
     Stop a hub.
     """
     print(f"Stopping hub {hub_config['name']} on port {port}")
+    stop_node("hub", port)
+
+
+def stop_node(node_type: str, port: int):
+    """
+    Start a node (common processing for hubs and clients).
+    """
+    # TODO: Error handling
+    url = f"http://localhost:{port}/dske/{node_type}/mgmt/v1/stop"
+    _response = requests.post(url)
 
 
 if __name__ == "__main__":
