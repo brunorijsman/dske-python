@@ -29,7 +29,7 @@ _CLIENT = Client(_CLIENT_NAME)
 _APP = fastapi.FastAPI()
 
 
-@_APP.post("/dske-client/mgmt/v1/stop")
+@_APP.post("/dske/client/mgmt/v1/stop")
 async def mgmt_stop():
     """
     Management: Stop.

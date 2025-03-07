@@ -32,7 +32,7 @@ _HUB = Hub(_HUB_NAME, pre_shared_key_size=32)
 _APP = fastapi.FastAPI()
 
 
-@_APP.get("/dske-hub/oob/v1/register-dske-client")
+@_APP.get("/dske/hub/oob/v1/register-dske/client")
 async def oob_get_register_dske_client(dske_client_name: str):
     """
     Out of band: Register a DSKE client.
@@ -46,7 +46,7 @@ async def oob_get_register_dske_client(dske_client_name: str):
     return {"preSharedKey": encoded_pre_shared_key}
 
 
-@_APP.get("/dske-hub/oob/v1/psrd")
+@_APP.get("/dske/hub/oob/v1/psrd")
 async def oob_get_psrd(size: pydantic.PositiveInt):
     """
     Out of band: Get Pre-Shared Random Data (PSRD).
@@ -58,7 +58,7 @@ async def oob_get_psrd(size: pydantic.PositiveInt):
     return {"result": "Pre-shared random data."}
 
 
-@_APP.get("/dske-hub/api/v1/status")
+@_APP.get("/dske/hub/api/v1/status")
 async def api_get_status():
     """
     API: Get status.
@@ -67,7 +67,7 @@ async def api_get_status():
     return {"result": "Status."}
 
 
-@_APP.post("/dske-hub/api/v1/key-share")
+@_APP.post("/dske/hub/api/v1/key-share")
 async def api_post_key_share():
     """
     API: Post key share.
@@ -76,7 +76,7 @@ async def api_post_key_share():
     return {"result": "Post key-share result."}
 
 
-@_APP.post("/dske-hub/mgmt/v1/stop")
+@_APP.post("/dske/hub/mgmt/v1/stop")
 async def mgmt_stop():
     """
     Management: Stop.
