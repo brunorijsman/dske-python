@@ -5,11 +5,11 @@ Main module for a DSKE security hub.
 from base64 import b64encode
 from fastapi import FastAPI
 from pydantic import PositiveInt
-from dske_hub import DSKEHub
+from hub import Hub
 
 APP = FastAPI()
 
-DSKE_HUB = DSKEHub(name="hubert", pre_shared_key_size=32)
+_HUB = Hub(name="hubert", pre_shared_key_size=32)
 
 
 @APP.get("/dske/oob/v1/register-dske-client")
@@ -17,9 +17,10 @@ async def get_register_dske_client(dske_client_name: str):
     """
     Out of band: Register DSKE client.
     """
-    dske_client = DSKE_HUB.register_dske_client(dske_client_name)
+    dske_client = _HUB.register_client(dske_client_name)
     encoded_pre_shared_key = b64encode(dske_client.pre_shared_key).decode('utf-8')
-    # TODO: Return a proper error when there is an exception because the client already is registered.
+    # TODO: Return a proper error when there is an exception because the client already is
+    #       registered.
     return {"preSharedKey": encoded_pre_shared_key}
 
 
@@ -31,7 +32,7 @@ async def get_psrd(size: PositiveInt):
     # TODO: Add dske_client_name. Note: we don't do authentication of out-of-band requests.
     # TODO: Add dske_client_name parameter to create_random_psrd.
     # TODO: Error if the client was not registered.
-    _psrd = DSKE_HUB.create_random_psrd(size)
+    _psrd = _HUB.create_random_psrd(size)
     return {"result": "Pre-shared random data."}
 
 
