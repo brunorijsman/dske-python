@@ -2,10 +2,12 @@
 A registered DSKE hub.
 """
 
+
 class RegisteredHub:
     """
     A registered DSKE hub.
     """
+
     _hub_name: str
     _pre_shared_key: bytes
 

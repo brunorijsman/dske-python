@@ -12,6 +12,7 @@ class Hub:
     """
     A DSKE hub.
     """
+
     _name: str
     _pre_shared_key_size: int
     _registered_clients: dict[str, RegisteredClient]  # Indexed by DSKE client name

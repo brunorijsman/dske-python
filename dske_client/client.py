@@ -4,10 +4,12 @@ A DSKE client.
 
 from registered_hub import RegisteredHub
 
+
 class Client:
     """
     A DSKE client.
     """
+
     _name: str
     _registered_hub: dict[str, RegisteredHub]  # Indexed by DSKE hub name
 

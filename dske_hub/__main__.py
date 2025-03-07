@@ -18,7 +18,7 @@ async def get_register_dske_client(dske_client_name: str):
     Out of band: Register DSKE client.
     """
     dske_client = _HUB.register_client(dske_client_name)
-    encoded_pre_shared_key = b64encode(dske_client.pre_shared_key).decode('utf-8')
+    encoded_pre_shared_key = b64encode(dske_client.pre_shared_key).decode("utf-8")
     # TODO: Return a proper error when there is an exception because the client already is
     #       registered.
     return {"preSharedKey": encoded_pre_shared_key}

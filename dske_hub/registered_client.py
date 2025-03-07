@@ -2,10 +2,12 @@
 A registered DSKE client.
 """
 
+
 class RegisteredClient:
     """
     A registered DSKE client.
     """
+
     _client_name: str
     _pre_shared_key: bytes
 

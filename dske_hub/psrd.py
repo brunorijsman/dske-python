@@ -11,6 +11,7 @@ class PSRD:
     """
     Pre-Shared Random Data (PSRD).
     """
+
     _uuid: UUID
     _original_size: int
     _remaining_size: int
