@@ -16,4 +16,5 @@
     "pylint.enabled": true,
     "gitlens.blame.highlight.enabled": false,
     "gitlens.currentLine.enabled": false,
+    "gitlens.codeLens.enabled": false,
 }
