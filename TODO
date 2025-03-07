@@ -1,0 +1,17 @@
+TODO: Add support for local distributors.
+
+TODO: Command-line argument for client for list of hub base URLs
+
+TODO: Have client register itself with all hubs when it starts up.
+
+TODO: Retry client registrations when they fail.
+
+TODO: Have clients asks for initial block of PSRD after registration.
+
+TODO: Have nodes keep PSRD database on a per-peer basis.
+
+TODO: Add ETSI QKD 014 API to clients.
+
+TODO: Add status management API and topology command to query it.
+
+TODO: Add statistics management API and topology command to query it.

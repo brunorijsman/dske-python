@@ -39,5 +39,3 @@ Stopping client camila on port 8007
 Stopping client colin on port 8008
 Stopping client cindy on port 8009
 </pre>
-
-TODO: Add support for local distributors.

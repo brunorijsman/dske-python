@@ -4,6 +4,7 @@
         "configfile",
         "DSKE",
         "DSKEClient",
+        "ETSI",
         "getpid",
         "mgmt",
         "mwag",
