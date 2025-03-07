@@ -29,6 +29,7 @@ To stop the DSKE topology:
 
 <pre>
 $ <b>python -m topology topology/topology.yaml stop</b>
+Stopping hub helen on port 8000
 Stopping hub hank on port 8001
 Stopping hub heidi on port 8002
 Stopping hub harry on port 8003
