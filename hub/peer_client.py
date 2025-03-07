@@ -1,18 +1,18 @@
 """
-A registered DSKE hub.
+A peer DSKE client.
 """
 
 
-class RegisteredHub:
+class PeerClient:
     """
-    A registered DSKE hub.
+    A peer DSKE client.
     """
 
-    _hub_name: str
+    _name: str
     _pre_shared_key: bytes
 
-    def __init__(self, hub_name: str, pre_shared_key: bytes):
-        self._hub_name = hub_name
+    def __init__(self, client_name: str, pre_shared_key: bytes):
+        self._name = client_name
         self._pre_shared_key = pre_shared_key
 
     @property

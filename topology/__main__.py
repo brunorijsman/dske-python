@@ -44,7 +44,7 @@ def start_topology(parsed_config: dict):
     for hub_config in parsed_config["hubs"]:
         start_hub(hub_config, port)
         hub_extra_args.append(f"http://localhost:{port}")
-        port += 1    
+        port += 1
     for client_config in parsed_config["clients"]:
         start_client(client_config, port, hub_extra_args)
         port += 1

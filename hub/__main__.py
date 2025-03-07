@@ -37,12 +37,12 @@ async def oob_get_register_dske_client(dske_client_name: str):
     """
     Out of band: Register a DSKE client.
     """
-    registered_client = _HUB.register_client(dske_client_name)
-    encoded_pre_shared_key = base64.b64encode(registered_client.pre_shared_key).decode(
+    peer_client = _HUB.register_client(dske_client_name)
+    encoded_pre_shared_key = base64.b64encode(peer_client.pre_shared_key).decode(
         "utf-8"
     )
     # TODO: Return a proper error when there is an exception because the client already is
-    #       registered.
+    #       peer.
     return {"preSharedKey": encoded_pre_shared_key}
 
 
@@ -53,7 +53,7 @@ async def oob_get_psrd(size: pydantic.PositiveInt):
     """
     # TODO: Add dske_client_name. Note: we don't do authentication of out-of-band requests.
     # TODO: Add dske_client_name parameter to create_random_psrd.
-    # TODO: Error if the client was not registered.
+    # TODO: Error if the client was not peer.
     _psrd = _HUB.create_random_psrd(size)
     return {"result": "Pre-shared random data."}
 
