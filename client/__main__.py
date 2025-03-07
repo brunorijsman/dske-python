@@ -39,9 +39,9 @@ async def lifespan(_app: fastapi.FastAPI):
     """
     Lifespan manager for the FastAPI app.
     """
-    _CLIENT.register_all_hubs()
+    await _CLIENT.register_all_hubs()
     yield
-    _CLIENT.unregister_all_hubs()
+    await _CLIENT.unregister_all_hubs()
 
 
 _APP = fastapi.FastAPI(lifespan=lifespan)

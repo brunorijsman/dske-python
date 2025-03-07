@@ -91,6 +91,8 @@ def stop_topology(parsed_config: dict):
     Stop the topology.
     """
     port = _BASE_PORT
+    # TODO: Stop the clients first, to make unregistering more orderly. We can't simply swap
+    #       the loops because port assignment needs to be deterministic.
     for hub_config in parsed_config["hubs"]:
         stop_hub(hub_config, port)
         port += 1
@@ -124,7 +126,7 @@ def stop_node(node_type: str, node_name: str, port: int):
     # TODO: Error handling
     url = f"http://localhost:{port}/dske/{node_type}/mgmt/v1/stop"
     try:
-        _response = requests.post(url)
+        _response = requests.post(url, timeout=1.0)
     except requests.exceptions.RequestException as exc:
         print(f"Failed to stop {node_type} {node_name}: {exc}")
 

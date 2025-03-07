@@ -21,9 +21,15 @@ class PeerHub:
         self._name = None
         self._pre_shared_key = None
 
-    @property
-    def pre_shared_key(self):
+    async def register(self):
         """
-        The pre-shared key.
+        Register the peer hub.
         """
-        return self._pre_shared_key
+        print(f"Register peer hub at url {self._url}", flush=True)  ### DEBUG
+ 
+
+    async def unregister(self):
+        """
+        Register the peer hub.
+        """
+        print(f"Unregister peer hub at url {self._url}", flush=True)  ### DEBUG
