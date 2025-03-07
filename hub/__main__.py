@@ -5,7 +5,7 @@ Main module for a DSKE security hub.
 from base64 import b64encode
 from fastapi import FastAPI
 from pydantic import PositiveInt
-from hub import Hub
+from .hub import Hub
 
 APP = FastAPI()
 
@@ -15,7 +15,7 @@ _HUB = Hub(name="hubert", pre_shared_key_size=32)
 @APP.get("/dske/oob/v1/register-dske-client")
 async def get_register_dske_client(dske_client_name: str):
     """
-    Out of band: Register DSKE client.
+    Out of band: Register a DSKE client.
     """
     dske_client = _HUB.register_client(dske_client_name)
     encoded_pre_shared_key = b64encode(dske_client.pre_shared_key).decode("utf-8")

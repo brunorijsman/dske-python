@@ -3,7 +3,8 @@ Main entry point for the topology package.
 """
 
 import argparse
-import config
+import subprocess
+from . import config
 
 _BASE_PORT = 8000
 
@@ -37,26 +38,47 @@ def start_topology(parsed_config: dict):
     Start the topology.
     """
     port = _BASE_PORT
-    for client_config in parsed_config["clients"]:
-        start_client(client_config, port)
-        port += 1
     for hub_config in parsed_config["hubs"]:
         start_hub(hub_config, port)
         port += 1
-
-
-def start_client(client_config: dict, port: int):
-    """
-    Start a client.
-    """
-    print(f"Starting client {client_config['name']} on port {port}")
+    for client_config in parsed_config["clients"]:
+        start_client(client_config, port)
+        port += 1
 
 
 def start_hub(hub_config: dict, port: int):
     """
     Start a hub.
     """
+    name = hub_config["name"]
     print(f"Starting hub {hub_config['name']} on port {port}")
+    start_node("hub", name, port)
+
+
+def start_client(client_config: dict, port: int):
+    """
+    Start a client.
+    """
+    name = client_config["name"]
+    print(f"Starting client {name} on port {port}")
+    start_node("client", name, port)
+
+
+def start_node(node_type: str, node_name: str, port: int):
+    """
+    Start a node (common processing for hubs and clients).
+    """
+    # TODO: Error handling
+    out_filename = f"{node_type}-{node_name}.out"
+    # TODO: Should we be using a context manager here?
+    # pylint: disable=consider-using-with
+    out_file = open(out_filename, "w", encoding="utf-8")
+    process = subprocess.Popen(["fastapi", 
+                                "run", f"{node_type}/__main__.py",
+                                "--port", str(port)],
+                                stdout=out_file,
+                                stderr=out_file)
+    print(f"{process=}")
 
 
 def stop_topology(parsed_config: dict):

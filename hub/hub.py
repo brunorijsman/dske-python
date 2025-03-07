@@ -4,8 +4,8 @@ A DSKE hub.
 
 from os import urandom
 from uuid import UUID
-from psrd import PSRD
-from registered_client import RegisteredClient
+from .psrd import PSRD
+from .registered_client import RegisteredClient
 
 
 class Hub:

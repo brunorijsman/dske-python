@@ -3,3 +3,6 @@ venv/
 
 # Cache
 __pycache__/
+
+# Background process output files
+*.out
