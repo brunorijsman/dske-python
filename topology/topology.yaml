@@ -1,0 +1,12 @@
+hubs:
+  - name: helen
+  - name: hank
+  - name: heidi
+  - name: harry
+  - name: holly
+clients:
+  - name: clarice
+  - name: charlie
+  - name: camila
+  - name: colin
+  - name: cindy
