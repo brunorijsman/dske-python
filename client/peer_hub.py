@@ -5,7 +5,7 @@ A peer DSKE hub.
 import base64
 import httpx
 
-from psrd import PSRDBlock
+from psrd import PSRDBlock, PSRDPool
 
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
 #       the hub decide?
@@ -20,6 +20,7 @@ class PeerHub:
     _client: "Client"  # type: ignore
     _url: str
     _registered: bool
+    _psrd_pool: PSRDPool
     # The following attributes are set after registration
     _name: None | str
     _pre_shared_key: None | bytes
@@ -31,11 +32,12 @@ class PeerHub:
             url += "/"
         url += "dske/hub"
         self._registered = False
+        self._psrd_pool = PSRDPool()
         self._url = url
         self._hub_name = None
         self._pre_shared_key = None
 
-    def management_status(self):
+    def management_status(self) -> dict:
         """
         Get the management status.
         """
@@ -47,12 +49,12 @@ class PeerHub:
             )
         return {
             "hub_name": self._hub_name,
-            # TODO: Should not report this; include it for now only for debugging
             "pre_shared_key": encoded_pre_shared_key,
             "registered": self._registered,
+            # TODO: Dump PSRD pool
         }
 
-    async def register(self):
+    async def register(self) -> None:
         """
         Register the peer hub.
         """
@@ -73,14 +75,14 @@ class PeerHub:
             self._pre_shared_key = pre_shared_key
             self._registered = True
 
-    async def unregister(self):
+    async def unregister(self) -> None:
         """
         Register the peer hub.
         """
         print(f"Unregister peer hub at url {self._url}", flush=True)  ### DEBUG
         # TODO: Implement this
 
-    async def request_psrd(self):
+    async def request_psrd(self) -> None:
         """
         Request PSRD from the peer hub.
         """
@@ -96,8 +98,8 @@ class PeerHub:
                 return
             # TODO: Error handling: handle the case that the response does not contain the expected
             #       fields (is that even possible with FastAPI?)
-            psrd_block = PSRDBlock.from_json(response.json())
+            psrd_block = PSRDBlock.from_protocol_json(response.json())
             # TODO: XXX Decode and store the received block of PSRD
             print(f"{psrd_block=}", flush=True)  ### DEBUG
             # TODO: Don't return the block; store it in a pool associated with the peer_hub
-            return psrd_block
+            self._psrd_pool.add_psrd_block(psrd_block)

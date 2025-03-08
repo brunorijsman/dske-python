@@ -51,7 +51,9 @@ class Hub:
         self._peer_clients[client_name] = peer_client
         return peer_client
 
-    def generate_psrd_for_peer_client(self, client_name: str, size: int) -> PSRDBlock:
+    def generate_psrd_block_for_peer_client(
+        self, client_name: str, size: int
+    ) -> PSRDBlock:
         """
         Generate a block of PSRD for a peer client.
         """
@@ -59,5 +61,5 @@ class Hub:
             # TODO: Not the right kind of exception
             raise ValueError(f"Client {client_name} not registered.")
         peer_client = self._peer_clients[client_name]
-        psrd = peer_client.generate_psrd(size)
+        psrd = peer_client.generate_psrd_block(size)
         return psrd

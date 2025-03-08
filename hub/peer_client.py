@@ -3,9 +3,8 @@ A peer DSKE client.
 """
 
 import base64
-import uuid
 
-from psrd import PSRDBlock
+from psrd import PSRDBlock, PSRDPool
 
 
 class PeerClient:
@@ -15,13 +14,12 @@ class PeerClient:
 
     _client_name: str
     _pre_shared_key: bytes
-    # TODO: Create classes PSRDBlock and PSRDPool
-    _psrds: dict[uuid.UUID, PSRDBlock]  # Indexed by PSRD block UUID
+    _psrd_pool: PSRDPool
 
     def __init__(self, client_name: str, pre_shared_key: bytes):
         self._client_name = client_name
         self._pre_shared_key = pre_shared_key
-        self._psrds = {}  # TODO: Create class to model a pool of PSRDs
+        self._psrd_pool = PSRDPool()
 
     @property
     def pre_shared_key(self):
@@ -37,15 +35,14 @@ class PeerClient:
         encoded_pre_shared_key = base64.b64encode(self._pre_shared_key).decode("utf-8")
         return {
             "client_name": self._client_name,
-            # TODO: Should not report this; include it for now only for debugging
             "pre_shared_key": encoded_pre_shared_key,
+            # TODO: XXX Dump the PSRDPool
         }
 
-    def generate_psrd(self, size: int) -> PSRDBlock:
+    def generate_psrd_block(self, size: int) -> PSRDBlock:
         """
         Generate a block of PSRD.
         """
-        psrd = PSRDBlock.create_random_psrd_block(size)
-        assert psrd.uuid not in self._psrds
-        self._psrds[psrd.uuid] = psrd
-        return psrd
+        psrd_block = PSRDBlock.create_random_psrd_block(size)
+        self._psrd_pool.add_psrd_block(psrd_block)
+        return psrd_block
