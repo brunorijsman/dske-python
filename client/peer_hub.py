@@ -29,7 +29,6 @@ class PeerHub:
         self._hub_name = None
         self._pre_shared_key = None
 
-
     def management_status(self):
         """
         Get the management status.
