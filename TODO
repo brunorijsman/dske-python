@@ -25,8 +25,6 @@ TODO: Add support for local distributors.
 
 TODO: Add log messages
 
-TODO: Automatically run Black formatting on save
-
 TODO: Add unit tests
 
 TODO: Pre-commit checks (lint, unit tests)

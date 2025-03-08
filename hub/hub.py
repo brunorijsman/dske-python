@@ -25,6 +25,19 @@ class Hub:
         self._peer_clients = {}
         self._psrds = {}
 
+    def management_status(self):
+        """
+        Get the management status.
+        """
+        peer_clients_status = [
+            peer_client.management_status() for peer_client in self._peer_clients
+        ]
+        return {
+            "hub_name": self._hub_name,
+            "pre_shared_key_size": self._pre_shared_key_size,
+            "peer_hubs": peer_hubs_status,
+        }
+
     def register_peer_client(self, client_name: str) -> PeerClient:
         """
         Register a peer client.
