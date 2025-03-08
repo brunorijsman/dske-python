@@ -36,7 +36,7 @@ class PeerClient:
         return {
             "client_name": self._client_name,
             "pre_shared_key": encoded_pre_shared_key,
-            # TODO: XXX Dump the PSRDPool
+            "psrd_pool": self._psrd_pool.management_status(),
         }
 
     def generate_psrd_block(self, size: int) -> PSRDBlock:

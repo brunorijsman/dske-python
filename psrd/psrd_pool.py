@@ -17,6 +17,17 @@ class PSRDPool:
         self._remaining_size = 0
         self._psrd_blocks = []
 
+    def management_status(self) -> dict:
+        """
+        Get the management status.
+        """
+        return {
+            "remaining_size": self._remaining_size,
+            "psrd_blocks": [
+                psrd_block.management_status() for psrd_block in self._psrd_blocks
+            ],
+        }
+
     def add_psrd_block(self, psrd_block: PSRDBlock):
         """
         Add a PSRD block to the PSRD pool.

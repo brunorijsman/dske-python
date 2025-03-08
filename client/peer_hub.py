@@ -51,7 +51,7 @@ class PeerHub:
             "hub_name": self._hub_name,
             "pre_shared_key": encoded_pre_shared_key,
             "registered": self._registered,
-            # TODO: Dump PSRD pool
+            "psrd_pool": self._psrd_pool.management_status(),
         }
 
     async def register(self) -> None:
@@ -79,7 +79,6 @@ class PeerHub:
         """
         Register the peer hub.
         """
-        print(f"Unregister peer hub at url {self._url}", flush=True)  ### DEBUG
         # TODO: Implement this
 
     async def request_psrd(self) -> None:
@@ -99,7 +98,4 @@ class PeerHub:
             # TODO: Error handling: handle the case that the response does not contain the expected
             #       fields (is that even possible with FastAPI?)
             psrd_block = PSRDBlock.from_protocol_json(response.json())
-            # TODO: XXX Decode and store the received block of PSRD
-            print(f"{psrd_block=}", flush=True)  ### DEBUG
-            # TODO: Don't return the block; store it in a pool associated with the peer_hub
             self._psrd_pool.add_psrd_block(psrd_block)
