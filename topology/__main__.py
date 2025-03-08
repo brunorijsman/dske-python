@@ -3,6 +3,7 @@ Main entry point for the topology package.
 """
 
 import argparse
+import json
 import subprocess
 
 import requests
@@ -23,6 +24,8 @@ def main():
             start_topology(parsed_config)
         case "stop":
             stop_topology(parsed_config)
+        case "status":
+            status_topology(parsed_config)
 
 
 def parse_command_line_arguments():
@@ -31,7 +34,7 @@ def parse_command_line_arguments():
     """
     parser = argparse.ArgumentParser(description="DSKE Topology")
     parser.add_argument("configfile", help="Configuration filename")
-    parser.add_argument("command", choices=["start", "stop"])
+    parser.add_argument("command", choices=["start", "stop", "status"])
     args = parser.parse_args()
     return args
 
@@ -48,6 +51,34 @@ def start_topology(parsed_config: dict):
         port += 1
     for client_config in parsed_config["clients"]:
         start_client(client_config, port, hub_extra_args)
+        port += 1
+
+
+def stop_topology(parsed_config: dict):
+    """
+    Stop the topology.
+    """
+    port = _BASE_PORT
+    # TODO: Stop the clients first, to make unregistering more orderly. We can't simply swap
+    #       the loops because port assignment needs to be deterministic.
+    for hub_config in parsed_config["hubs"]:
+        stop_hub(hub_config, port)
+        port += 1
+    for client_config in parsed_config["clients"]:
+        stop_client(client_config, port)
+        port += 1
+
+
+def status_topology(parsed_config: dict):
+    """
+    Report status for the entire topology.
+    """
+    port = _BASE_PORT
+    for hub_config in parsed_config["hubs"]:
+        status_hub(hub_config, port)
+        port += 1
+    for client_config in parsed_config["clients"]:
+        status_client(client_config, port)
         port += 1
 
 
@@ -87,21 +118,6 @@ def start_node(node_type: str, node_name: str, port: int, extra_args=None):
     )
 
 
-def stop_topology(parsed_config: dict):
-    """
-    Stop the topology.
-    """
-    port = _BASE_PORT
-    # TODO: Stop the clients first, to make unregistering more orderly. We can't simply swap
-    #       the loops because port assignment needs to be deterministic.
-    for hub_config in parsed_config["hubs"]:
-        stop_hub(hub_config, port)
-        port += 1
-    for client_config in parsed_config["clients"]:
-        stop_client(client_config, port)
-        port += 1
-
-
 def stop_client(client_config: dict, port: int):
     """
     Stop a client.
@@ -130,6 +146,37 @@ def stop_node(node_type: str, node_name: str, port: int):
         _response = requests.post(url, timeout=1.0)
     except requests.exceptions.RequestException as exc:
         print(f"Failed to stop {node_type} {node_name}: {exc}")
+
+
+def status_client(client_config: dict, port: int):
+    """
+    Report status for a client.
+    """
+    client_name = client_config["name"]
+    print(f"Status for client {client_name} on port {port}")
+    status_node("client", client_name, port)
+
+
+def status_hub(hub_config: dict, port: int):
+    """
+    Reports status for a hub.
+    """
+    hub_name = hub_config["name"]
+    print(f"Status for hub {hub_name} on port {port}")
+    status_node("hub", hub_name, port)
+
+
+def status_node(node_type: str, node_name: str, port: int):
+    """
+    Report status for a node (common processing for hubs and clients).
+    """
+    # TODO: Error handling
+    url = f"http://localhost:{port}/dske/{node_type}/mgmt/v1/status"
+    try:
+        response = requests.get(url, timeout=1.0)
+    except requests.exceptions.RequestException as exc:
+        print(f"Failed get status for {node_type} {node_name}: {exc}")
+    print(json.dumps(response.json(), indent=2))
 
 
 if __name__ == "__main__":
