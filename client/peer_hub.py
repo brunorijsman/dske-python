@@ -5,6 +5,7 @@ A peer DSKE hub.
 import base64
 import httpx
 
+from psrd import PSRDBlock
 
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
 #       the hub decide?
@@ -93,7 +94,10 @@ class PeerHub:
                     f"Error: {response.status_code=}, {response.content=}", flush=True
                 )
                 return
-            # TODO: Handle the case that the response does not contain the expected fields
-            data = response.json()
+            # TODO: Error handling: handle the case that the response does not contain the expected
+            #       fields (is that even possible with FastAPI?)
+            psrd_block = PSRDBlock.from_json(response.json())
             # TODO: XXX Decode and store the received block of PSRD
-            print(f"{data=}", flush=True)  ### DEBUG
+            print(f"{psrd_block=}", flush=True)  ### DEBUG
+            # TODO: Don't return the block; store it in a pool associated with the peer_hub
+            return psrd_block
