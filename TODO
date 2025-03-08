@@ -4,8 +4,6 @@ TODO: Have client unregister itself from all hubs when it shuts down.
 
 TODO: Have a topology command line argument to start or stop a single node.
 
-TODO: Move PSRD classes to separate (shared) package
-
 TODO: Retry client registrations when they fail.
       Perhaps use tenacity
       See https://medium.com/@benshearlaw/how-to-use-httpx-request-client-with-fastapi-16255a9984a4
