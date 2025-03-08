@@ -1,10 +1,10 @@
-TODO: Have client register itself with all hubs when it starts up.
-
 TODO: Have client unregister itself from all hubs when it shuts down.
 
 TODO: Have a topology command line argument to start or stop a single node.
 
 TODO: Retry client registrations when they fail.
+      Perhaps use tenacity
+      See https://medium.com/@benshearlaw/how-to-use-httpx-request-client-with-fastapi-16255a9984a4
 
 TODO: Have clients asks for initial block of PSRD after registration.
 
@@ -18,3 +18,4 @@ TODO: Add statistics management API and topology command to query it.
 
 TODO: Add support for local distributors.
 
+TODO: Add log messages

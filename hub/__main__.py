@@ -32,18 +32,18 @@ _HUB = Hub(_HUB_NAME, pre_shared_key_size=32)
 _APP = fastapi.FastAPI()
 
 
-@_APP.get("/dske/hub/oob/v1/register-dske/client")
-async def oob_get_register_dske_client(dske_client_name: str):
+@_APP.get("/dske/hub/oob/v1/register-client")
+async def oob_get_register_dske_client(client_name: str):
     """
     Out of band: Register a DSKE client.
     """
-    peer_client = _HUB.register_client(dske_client_name)
+    peer_client = _HUB.register_peer_client(client_name)
     encoded_pre_shared_key = base64.b64encode(peer_client.pre_shared_key).decode(
         "utf-8"
     )
     # TODO: Return a proper error when there is an exception because the client already is
     #       peer.
-    return {"preSharedKey": encoded_pre_shared_key}
+    return {"hub_name": _HUB_NAME, "pre_shared_key": encoded_pre_shared_key}
 
 
 @_APP.get("/dske/hub/oob/v1/psrd")

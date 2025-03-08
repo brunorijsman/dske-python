@@ -10,27 +10,33 @@ class Client:
     A DSKE client.
     """
 
-    _name: str
+    _client_name: str
     _peer_hubs: list[PeerHub]
 
     def __init__(self, name: str, peer_hub_urls: list[str]):
-        self._name = name
+        self._client_name = name
         self._peer_hubs = []
         for peer_hub_url in peer_hub_urls:
-            peer_hub = PeerHub(peer_hub_url)
+            peer_hub = PeerHub(self, peer_hub_url)
             self._peer_hubs.append(peer_hub)
 
-    async def register_all_hubs(self):
+    async def register_with_all_peer_hubs(self):
         """
-        Register all DSKE hubs.
+        Register to all peer hubs.
         """
         for peer_hub in self._peer_hubs:
             await peer_hub.register()
 
-
-    async def unregister_all_hubs(self):
+    async def unregister_from_all_peer_hubs(self):
         """
-        Unregister all DSKE hubs.
+        Unregister from all peer hubs.
         """
         for peer_hub in self._peer_hubs:
             await peer_hub.unregister()
+
+    @property
+    def name(self):
+        """
+        Get the client name.
+        """
+        return self._client_name

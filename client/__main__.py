@@ -31,7 +31,10 @@ def parse_command_line_arguments():
 
 
 _ARGS = parse_command_line_arguments()
-_CLIENT = Client(_ARGS.name, _ARGS.hubs)
+peer_hub_urls = _ARGS.hubs
+if peer_hub_urls is None:
+    peer_hub_urls = []
+_CLIENT = Client(_ARGS.name, peer_hub_urls)
 
 
 @contextlib.asynccontextmanager
@@ -39,9 +42,9 @@ async def lifespan(_app: fastapi.FastAPI):
     """
     Lifespan manager for the FastAPI app.
     """
-    await _CLIENT.register_all_hubs()
+    await _CLIENT.register_with_all_peer_hubs()
     yield
-    await _CLIENT.unregister_all_hubs()
+    await _CLIENT.unregister_from_all_peer_hubs()
 
 
 _APP = fastapi.FastAPI(lifespan=lifespan)
