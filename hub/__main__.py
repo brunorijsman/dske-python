@@ -55,9 +55,8 @@ async def oob_get_psrd(client_name: str, size: pydantic.PositiveInt):
     # TODO: Error if the client was not peer.
     # TODO: Allow size to be None (use default size decided by hub).
     psrd_block = _HUB.generate_psrd_for_peer_client(client_name, size)
-    # TODO: XXX Encode response
     print(f"{psrd_block=}", flush=True)  ### DEBUG
-    return psrd_block.json()
+    return psrd_block.to_json()
 
 
 @_APP.get("/dske/hub/api/v1/status")

@@ -8,7 +8,7 @@ import httpx
 
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
 #       the hub decide?
-_PSRD_BLOCK_SIZE_IN_BYTES = 100000
+_PSRD_BLOCK_SIZE_IN_BYTES = 200
 
 
 class PeerHub:
