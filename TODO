@@ -1,3 +1,7 @@
+TODO: Make client ask for first PSRD block after registration
+
+TODO: Add ETSI QKD API to client
+
 TODO: Have client unregister itself from all hubs when it shuts down.
 
 TODO: Have a topology command line argument to start or stop a single node.
