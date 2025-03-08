@@ -22,4 +22,6 @@
     "gitlens.blame.highlight.enabled": false,
     "gitlens.currentLine.enabled": false,
     "gitlens.codeLens.enabled": false,
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
 }
