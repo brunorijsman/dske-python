@@ -1,5 +1,3 @@
-TODO: Make client ask for first PSRD block after registration
-
 TODO: Add ETSI QKD API to client
 
 TODO: Have client unregister itself from all hubs when it shuts down.
@@ -11,10 +9,6 @@ TODO: Move PSRD classes to separate (shared) package
 TODO: Retry client registrations when they fail.
       Perhaps use tenacity
       See https://medium.com/@benshearlaw/how-to-use-httpx-request-client-with-fastapi-16255a9984a4
-
-TODO: Have clients asks for initial block of PSRD after registration.
-
-TODO: Have nodes keep PSRD database on a per-peer basis.
 
 TODO: Add ETSI QKD 014 API to clients.
 
