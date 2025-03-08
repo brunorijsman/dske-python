@@ -16,6 +16,22 @@ TODO: PSRDPool: function to consume set number of bytes; uses multiple blocks if
 
 TODO: Add ETSI QKD API to client
 
+TODO: Add a Key class to keep track of the key logic (separate class for initiator and
+      responder?)
+
+TODO: Key has unique key UUID
+
+TODO: Key initiator: Select N peer hub (initially: all peer hubs)
+
+TODO: Key initiator: Allocate PSRD bytes for each peer hub
+
+TODO: In key-share message: encrypted key-share
+
+TODO: In key-share message: none + HMAC over encrypted key-share + nonce + shared secret (+ more?)
+
+TODO: Create an sae class to test requesting keys (first request alice, then request bob, make sure
+      they are the same)
+
 TODO: Have client unregister itself from all hubs when it shuts down.
 
 TODO: Have a topology command line argument to start or stop a single node.
