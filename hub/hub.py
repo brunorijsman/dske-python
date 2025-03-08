@@ -23,19 +23,21 @@ class Hub:
         self._hub_name = name
         self._pre_shared_key_size = pre_shared_key_size
         self._peer_clients = {}
-        self._psrds = {}
+        self._psrds = {}  # TODO: Create class to model a pool of PSRDs
 
     def management_status(self):
         """
         Get the management status.
         """
         peer_clients_status = [
-            peer_client.management_status() for peer_client in self._peer_clients
+            peer_client.management_status()
+            for peer_client in self._peer_clients.values()
         ]
         return {
             "hub_name": self._hub_name,
             "pre_shared_key_size": self._pre_shared_key_size,
-            "peer_hubs": peer_hubs_status,
+            "peer_clients": peer_clients_status,
+            # TODO: Add PSRDs
         }
 
     def register_peer_client(self, client_name: str) -> PeerClient:

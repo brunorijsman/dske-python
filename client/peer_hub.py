@@ -2,7 +2,7 @@
 A peer DSKE hub.
 """
 
-
+import base64
 import httpx
 
 
@@ -16,7 +16,7 @@ class PeerHub:
     _registered: bool
     # The following attributes are set after registration
     _name: None | str
-    _pre_shared_key: None | str
+    _pre_shared_key: None | bytes
 
     def __init__(self, client, base_url):
         self._client = client
@@ -33,10 +33,16 @@ class PeerHub:
         """
         Get the management status.
         """
+        if self._pre_shared_key is None:
+            encoded_pre_shared_key = None
+        else:
+            encoded_pre_shared_key = base64.b64encode(self._pre_shared_key).decode(
+                "utf-8"
+            )
         return {
             "hub_name": self._hub_name,
             # TODO: Should not report this; include it for now only for debugging
-            "pre_shared_key": self._pre_shared_key,
+            "pre_shared_key": encoded_pre_shared_key,
             "registered": self._registered,
         }
 
@@ -56,7 +62,9 @@ class PeerHub:
             # TODO: Handle the case that the response does not contain the expected fields
             data = response.json()
             self._hub_name = data["hub_name"]
-            self._pre_shared_key = data["pre_shared_key"]
+            encoded_pre_shared_key = data["pre_shared_key"]
+            pre_shared_key = base64.b64decode(encoded_pre_shared_key.encode("utf-8"))
+            self._pre_shared_key = pre_shared_key
             self._registered = True
 
     async def unregister(self):

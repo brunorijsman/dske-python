@@ -76,6 +76,16 @@ async def api_post_key_share():
     return {"result": "Post key-share result."}
 
 
+@_APP.get("/dske/hub/mgmt/v1/status")
+async def mgmt_():
+    """
+    Management: Get status.
+    """
+    status = _HUB.management_status()
+    print(f"status: {status}", flush=True)  ### DEBUG
+    return status
+
+
 @_APP.post("/dske/hub/mgmt/v1/stop")
 async def mgmt_post_stop():
     """
