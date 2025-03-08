@@ -50,12 +50,21 @@ async def lifespan(_app: fastapi.FastAPI):
 _APP = fastapi.FastAPI(lifespan=lifespan)
 
 
-@_APP.post("/dske/client/mgmt/v1/stop")
-async def mgmt_stop():
+@_APP.get("/dske/client/mgmt/v1/status")
+async def mgmt_():
     """
-    Management: Stop.
+    Management: Get status.
+    """
+    return _CLIENT.management_status()
+
+
+@_APP.post("/dske/client/mgmt/v1/stop")
+async def mgmt_post_stop():
+    """
+    Management: Post stop.
     """
     os.kill(os.getpid(), signal.SIGTERM)
+    # TODO: Better result
     return {"result": "Client stopped"}
 
 

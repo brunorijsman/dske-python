@@ -20,6 +20,14 @@ class Client:
             peer_hub = PeerHub(self, peer_hub_url)
             self._peer_hubs.append(peer_hub)
 
+    def management_status(self):
+        """
+        Get the management status.
+        """
+        peer_hubs_status = [peer_hub.management_status() for peer_hub in self._peer_hubs]
+        return {"client_name": self._client_name, "peer_hubs": peer_hubs_status}
+    
+
     async def register_with_all_peer_hubs(self):
         """
         Register to all peer hubs.

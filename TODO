@@ -1,3 +1,7 @@
+TODO: Add status management API for hub.
+
+TODO: Add status command line option to topology command.
+
 TODO: Have client unregister itself from all hubs when it shuts down.
 
 TODO: Have a topology command line argument to start or stop a single node.
@@ -12,7 +16,6 @@ TODO: Have nodes keep PSRD database on a per-peer basis.
 
 TODO: Add ETSI QKD 014 API to clients.
 
-TODO: Add status management API and topology command to query it.
 
 TODO: Add statistics management API and topology command to query it.
 

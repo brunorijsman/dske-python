@@ -77,9 +77,9 @@ async def api_post_key_share():
 
 
 @_APP.post("/dske/hub/mgmt/v1/stop")
-async def mgmt_stop():
+async def mgmt_post_stop():
     """
-    Management: Stop.
+    Management: Post stop.
     """
     os.kill(os.getpid(), signal.SIGTERM)
     return {"result": "Hub stopped"}
