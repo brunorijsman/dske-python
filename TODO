@@ -6,6 +6,8 @@ TODO: Have client unregister itself from all hubs when it shuts down.
 
 TODO: Have a topology command line argument to start or stop a single node.
 
+TODO: Move PSRD classes to separate (shared) package
+
 TODO: Retry client registrations when they fail.
       Perhaps use tenacity
       See https://medium.com/@benshearlaw/how-to-use-httpx-request-client-with-fastapi-16255a9984a4
@@ -22,3 +24,11 @@ TODO: Add statistics management API and topology command to query it.
 TODO: Add support for local distributors.
 
 TODO: Add log messages
+
+TODO: Automatically run Black formatting on save
+
+TODO: Add unit tests
+
+TODO: Pre-commit checks (lint, unit tests)
+
+TODO: Setup CI/CD environment
