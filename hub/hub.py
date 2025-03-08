@@ -2,9 +2,10 @@
 A DSKE hub.
 """
 
-from os import urandom
-from uuid import UUID
-from .psrd import PSRD
+import os
+
+from psrd import PSRDBlock
+
 from .peer_client import PeerClient
 
 
@@ -16,14 +17,11 @@ class Hub:
     _hub_name: str
     _pre_shared_key_size: int
     _peer_clients: dict[str, PeerClient]  # Indexed by DSKE client name
-    # TODO: _psrds are per client, not global for hub
-    _psrds: dict[UUID, PSRD]  # Indexed by PSRD UUID
 
     def __init__(self, name: str, pre_shared_key_size: int):
         self._hub_name = name
         self._pre_shared_key_size = pre_shared_key_size
         self._peer_clients = {}
-        self._psrds = {}  # TODO: Create class to model a pool of PSRDs
 
     def management_status(self):
         """
@@ -45,17 +43,21 @@ class Hub:
         Register a peer client.
         """
         if client_name in self._peer_clients:
-            raise ValueError("Peer client already registered.")
-        pre_shared_key = urandom(self._pre_shared_key_size)
+            # TODO: Not the right kind of exception
+            raise ValueError(f"Client {client_name} already registered.")
+        # TODO: Choose pre-shared key in PeerClient constructor?
+        pre_shared_key = os.urandom(self._pre_shared_key_size)
         peer_client = PeerClient(client_name, pre_shared_key)
         self._peer_clients[client_name] = peer_client
         return peer_client
 
-    def create_random_psrd(self, size: int):
+    def generate_psrd_for_peer_client(self, client_name: str, size: int) -> PSRDBlock:
         """
-        Create a PSRD, containing `size` random bytes.
+        Generate a block of PSRD for a peer client.
         """
-        psrd = PSRD.create_random_psrd(size)
-        assert psrd.uuid not in self._psrds
-        self._psrds[psrd.uuid] = psrd
+        if client_name not in self._peer_clients:
+            # TODO: Not the right kind of exception
+            raise ValueError(f"Client {client_name} not registered.")
+        peer_client = self._peer_clients[client_name]
+        psrd = peer_client.generate_psrd(size)
         return psrd

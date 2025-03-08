@@ -42,7 +42,13 @@ async def lifespan(_app: fastapi.FastAPI):
     """
     Lifespan manager for the FastAPI app.
     """
+    # TODO: We need a formal Finite State Machine (FSM) for each peer hub, running independently
+    #       from the FSMs of other peer hubs.
     await _CLIENT.register_with_all_peer_hubs()
+    # TODO: For now, we just request one block of PSRD from each peer hub. Once we have FSMs,
+    #       we need to request new blocks of PSRD as the random data is consumed and falls below
+    #       some defined threshold.
+    await _CLIENT.request_psrd_from_all_peer_hubs()
     yield
     await _CLIENT.unregister_from_all_peer_hubs()
 

@@ -32,6 +32,7 @@ _HUB = Hub(_HUB_NAME, pre_shared_key_size=32)
 _APP = fastapi.FastAPI()
 
 
+# This should be a POST instead of a GET
 @_APP.get("/dske/hub/oob/v1/register-client")
 async def oob_get_register_dske_client(client_name: str):
     """
@@ -47,15 +48,16 @@ async def oob_get_register_dske_client(client_name: str):
 
 
 @_APP.get("/dske/hub/oob/v1/psrd")
-async def oob_get_psrd(size: pydantic.PositiveInt):
+async def oob_get_psrd(client_name: str, size: pydantic.PositiveInt):
     """
-    Out of band: Get Pre-Shared Random Data (PSRD).
+    Out of band: Get a block of Pre-Shared Random Data (PSRD).
     """
-    # TODO: Add dske_client_name. Note: we don't do authentication of out-of-band requests.
-    # TODO: Add dske_client_name parameter to create_random_psrd.
     # TODO: Error if the client was not peer.
-    _psrd = _HUB.create_random_psrd(size)
-    return {"result": "Pre-shared random data."}
+    # TODO: Allow size to be None (use default size decided by hub).
+    psrd_block = _HUB.generate_psrd_for_peer_client(client_name, size)
+    # TODO: XXX Encode response
+    print(f"{psrd_block=}", flush=True)  ### DEBUG
+    return psrd_block.json()
 
 
 @_APP.get("/dske/hub/api/v1/status")

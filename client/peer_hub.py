@@ -6,6 +6,11 @@ import base64
 import httpx
 
 
+# TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
+#       the hub decide?
+_PSRD_BLOCK_SIZE_IN_BYTES = 100000
+
+
 class PeerHub:
     """
     A peer DSKE hub.
@@ -73,3 +78,22 @@ class PeerHub:
         """
         print(f"Unregister peer hub at url {self._url}", flush=True)  ### DEBUG
         # TODO: Implement this
+
+    async def request_psrd(self):
+        """
+        Request PSRD from the peer hub.
+        """
+        async with httpx.AsyncClient() as httpx_client:
+            size = _PSRD_BLOCK_SIZE_IN_BYTES
+            url = f"{self._url}/oob/v1/psrd?client_name={self._client.name}&size={size}"
+            response = await httpx_client.get(url)
+            if response.status_code != 200:
+                # TODO: Error handling (throw an exception? retry?)
+                print(
+                    f"Error: {response.status_code=}, {response.content=}", flush=True
+                )
+                return
+            # TODO: Handle the case that the response does not contain the expected fields
+            data = response.json()
+            # TODO: XXX Decode and store the received block of PSRD
+            print(f"{data=}", flush=True)  ### DEBUG

@@ -43,6 +43,13 @@ class Client:
         for peer_hub in self._peer_hubs:
             await peer_hub.unregister()
 
+    async def request_psrd_from_all_peer_hubs(self):
+        """
+        Request PSRD from all peer hubs.
+        """
+        for peer_hub in self._peer_hubs:
+            await peer_hub.request_psrd()
+
     @property
     def name(self):
         """
