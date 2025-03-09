@@ -6,6 +6,7 @@
         "DSKEClient",
         "ETSI",
         "getpid",
+        "HMAC",
         "mgmt",
         "mwag",
         "PSRD",
