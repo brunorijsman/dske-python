@@ -4,12 +4,13 @@ Main entry point for the topology package.
 
 import argparse
 import json
+import pprint
 import subprocess
-import typing
+import sys
 
+import cerberus
 import requests
-
-from . import config_parser
+import yaml
 
 
 class Manager:
@@ -56,7 +57,46 @@ class Manager:
         """
         Parse the configuration file.
         """
-        self._config = config_parser.parse_config(self._args.configfile)
+        hub_schema = {
+            "type": "dict",
+            "schema": {
+                "name": {"type": "string"},
+            },
+        }
+        client_schema = {
+            "type": "dict",
+            "schema": {
+                "name": {"type": "string"},
+            },
+        }
+        schema = {
+            "hubs": {"type": "list", "schema": hub_schema},
+            "clients": {"type": "list", "schema": client_schema},
+        }
+        filename = self._args.configfile
+        try:
+            with open(filename, "r", encoding="utf-8") as file:
+                try:
+                    config = yaml.safe_load(file)
+                except yaml.YAMLError as err:
+                    print(
+                        f"Could not load configuration file {filename}: {str(err)}",
+                        file=sys.stderr,
+                    )
+                    sys.exit(1)
+        except (OSError, IOError) as err:
+            print(
+                f"Could not open configuration file {filename} ({err})", file=sys.stderr
+            )
+            sys.exit(1)
+        validator = cerberus.Validator()
+        if not validator.validate(config, schema):
+            print(f"Could not parse configuration file {filename}", file=sys.stderr)
+            pretty_printer = pprint.PrettyPrinter()
+            pretty_printer.pprint(validator.errors)
+            sys.exit(1)
+        config = validator.normalized(config)
+        self._config = config
 
     def assign_ports(self):
         """
