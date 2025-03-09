@@ -48,7 +48,7 @@ class Manager:
         """
         Parse command line arguments.
         """
-        parser = argparse.ArgumentParser(description="DSKE Topology")
+        parser = argparse.ArgumentParser(description="DSKE Manager")
         parser.add_argument("configfile", help="Configuration filename")
         subparsers = parser.add_subparsers(dest="command")
         _start_parser = subparsers.add_parser(
