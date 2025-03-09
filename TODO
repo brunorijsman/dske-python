@@ -61,3 +61,10 @@ TODO: Remark about ETSI QKD API
       SAE ID is the same as the name of the DSKE client. Generalize this to allow any number of SAEs
       to be attached to DSKE client, and to allows the SAE IDs to be different from the DSKE client
       name (this will require the SAE to be authenticated).
+
+TODO: Remark about ETSI QKD API
+      For now, we only support GET (and not yet POST) for the ETSI QKD Get Key and Get Key with IDs
+      APIs.
+
+TODO: Remark about ETSI QKD API
+      For now, we do not yet support the number or size parameters for the ETSI QKD Get Key API.
