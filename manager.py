@@ -231,7 +231,6 @@ class Manager:
             _response = requests.post(url, timeout=1.0)
         except requests.exceptions.RequestException as exc:
             print(f"Failed to stop {node_type} {node_name}: {exc}")
-            return
         # TODO: Check response (error handling)
 
     def status(self):
@@ -268,14 +267,11 @@ class Manager:
             case "status":
                 self.etsi_qkd_status()
             case "get-key":
-                # TODO
-                pass
+                self.etsi_qkd_get_key()
             case "get-key-with-ids":
-                # TODO
-                pass
+                self.etsi_qkd_get_key_with_key_ids()
             case "get-key-pair":
-                # TODO
-                pass
+                self.etsi_qkd_get_key_pair()
 
     def etsi_qkd_status(self):
         """
@@ -296,6 +292,21 @@ class Manager:
             print(f"Failed to invoke ETSI QKD Status API: {exc}")
             return
         print(json.dumps(response.json(), indent=2))
+
+    def etsi_qkd_get_key(self):
+        """
+        Invoke the ETSI QKD Get Key API.
+        """
+
+    def etsi_qkd_get_key_with_key_ids(self):
+        """
+        Invoke the ETSI QKD Get Key with Key IDs API.
+        """
+
+    def etsi_qkd_get_key_pair(self):
+        """
+        Invoke the ETSI QKD Get Key API on master, followed by Get Key with Key IDs API on slave.
+        """
 
 
 if __name__ == "__main__":

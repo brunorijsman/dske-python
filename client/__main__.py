@@ -56,12 +56,12 @@ async def lifespan(_app: fastapi.FastAPI):
 _APP = fastapi.FastAPI(lifespan=lifespan)
 
 
-@_APP.get("/dske/client/etsi/api/v1/keys/{slave_SAE_ID}/status")
-async def api_get_etsi_status(slave_SAE_ID: str):
+@_APP.get("/dske/client/etsi/api/v1/keys/{slave_sae_id}/status")
+async def api_get_etsi_status(slave_sae_id: str):
     """
     API: Get status.
     """
-    return _CLIENT.etsi_status(slave_SAE_ID)
+    return _CLIENT.etsi_status(slave_sae_id)
 
 
 @_APP.get("/dske/client/mgmt/v1/status")
