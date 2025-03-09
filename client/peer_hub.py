@@ -5,7 +5,7 @@ A peer DSKE hub.
 import base64
 import httpx
 
-from psrd import PSRDBlock, PSRDPool
+from psrd import Block, Pool
 
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
 #       the hub decide?
@@ -20,7 +20,7 @@ class PeerHub:
     _client: "Client"  # type: ignore
     _url: str
     _registered: bool
-    _psrd_pool: PSRDPool
+    _psrd_pool: Pool
     # The following attributes are set after registration
     _name: None | str
     _pre_shared_key: None | bytes
@@ -32,7 +32,7 @@ class PeerHub:
             url += "/"
         url += "dske/hub"
         self._registered = False
-        self._psrd_pool = PSRDPool()
+        self._psrd_pool = Pool()
         self._url = url
         self._hub_name = None
         self._pre_shared_key = None
@@ -97,5 +97,5 @@ class PeerHub:
                 return
             # TODO: Error handling: handle the case that the response does not contain the expected
             #       fields (is that even possible with FastAPI?)
-            psrd_block = PSRDBlock.from_protocol_json(response.json())
+            psrd_block = Block.from_protocol_json(response.json())
             self._psrd_pool.add_psrd_block(psrd_block)

@@ -2,16 +2,16 @@
 A Pre-Shared Random Data (PSRD) pool.
 """
 
-from .psrd_block import PSRDBlock
+from .block import Block
 
 
-class PSRDPool:
+class Pool:
     """
     A Pre-Shared Random Data (PSRD) pool.
     """
 
     _remaining_size: int
-    _psrd_blocks: list[PSRDBlock]
+    _psrd_blocks: list[Block]
 
     def __init__(self):
         self._remaining_size = 0
@@ -28,7 +28,7 @@ class PSRDPool:
             ],
         }
 
-    def add_psrd_block(self, psrd_block: PSRDBlock):
+    def add_psrd_block(self, psrd_block: Block):
         """
         Add a PSRD block to the PSRD pool.
         """

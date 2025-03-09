@@ -4,7 +4,7 @@ A peer DSKE client.
 
 import base64
 
-from psrd import PSRDBlock, PSRDPool
+from psrd import Block, Pool
 
 
 class PeerClient:
@@ -14,12 +14,12 @@ class PeerClient:
 
     _client_name: str
     _pre_shared_key: bytes
-    _psrd_pool: PSRDPool
+    _psrd_pool: Pool
 
     def __init__(self, client_name: str, pre_shared_key: bytes):
         self._client_name = client_name
         self._pre_shared_key = pre_shared_key
-        self._psrd_pool = PSRDPool()
+        self._psrd_pool = Pool()
 
     @property
     def pre_shared_key(self):
@@ -39,10 +39,10 @@ class PeerClient:
             "psrd_pool": self._psrd_pool.management_status(),
         }
 
-    def generate_psrd_block(self, size: int) -> PSRDBlock:
+    def generate_psrd_block(self, size: int) -> Block:
         """
         Generate a block of PSRD.
         """
-        psrd_block = PSRDBlock.create_random_psrd_block(size)
+        psrd_block = Block.create_random_psrd_block(size)
         self._psrd_pool.add_psrd_block(psrd_block)
         return psrd_block

@@ -2,5 +2,5 @@
 The classes and functions for the PSRD package.
 """
 
-from .psrd_block import PSRDBlock
-from .psrd_pool import PSRDPool
+from .block import Block
+from .pool import Pool

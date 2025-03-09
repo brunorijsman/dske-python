@@ -8,7 +8,7 @@ from os import urandom
 from pydantic import PositiveInt
 
 
-class PSRDBlock:
+class Block:
     """
     A Pre-Shared Random Data (PSRD) block.
     """
@@ -72,7 +72,7 @@ class PSRDBlock:
         uuid = json["uuid"]
         encoded_data = json["data"]
         data = base64.b64decode(encoded_data.encode("utf-8"))
-        return PSRDBlock(uuid, data)
+        return Block(uuid, data)
 
     @classmethod
     def create_random_psrd_block(cls, size: PositiveInt):
@@ -81,4 +81,4 @@ class PSRDBlock:
         """
         uuid = uuid4()
         data = urandom(size)
-        return PSRDBlock(uuid, data)
+        return Block(uuid, data)

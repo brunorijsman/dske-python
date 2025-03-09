@@ -4,7 +4,7 @@ A DSKE hub.
 
 import os
 
-from psrd import PSRDBlock
+from psrd import Block
 
 from .peer_client import PeerClient
 
@@ -51,9 +51,7 @@ class Hub:
         self._peer_clients[client_name] = peer_client
         return peer_client
 
-    def generate_psrd_block_for_peer_client(
-        self, client_name: str, size: int
-    ) -> PSRDBlock:
+    def generate_psrd_block_for_peer_client(self, client_name: str, size: int) -> Block:
         """
         Generate a block of PSRD for a peer client.
         """
