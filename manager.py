@@ -84,10 +84,11 @@ class Manager:
             "get-key",
             help="Invoke ETSI QKD Get Key API",
         )
-        _etsi_get_key_with_id_parser = etsi_qkd_subparsers.add_parser(
-            "get-key-with-ids",
+        etsi_get_key_with_id_parser = etsi_qkd_subparsers.add_parser(
+            "get-key-with-key-ids",
             help="Invoke ETSI QKD Get Key with Key IDs API",
         )
+        etsi_get_key_with_id_parser.add_argument("key_id", help="Key ID")
         _etsi_get_key_pair_parser = etsi_qkd_subparsers.add_parser(
             "get-key-pair",
             help="Invoke ETSI QKD Get Key and Get Key with Key IDs APIs",
@@ -268,7 +269,7 @@ class Manager:
                 self.etsi_qkd_status()
             case "get-key":
                 self.etsi_qkd_get_key()
-            case "get-key-with-ids":
+            case "get-key-with-key-ids":
                 self.etsi_qkd_get_key_with_key_ids()
             case "get-key-pair":
                 self.etsi_qkd_get_key_pair()
@@ -310,7 +311,6 @@ class Manager:
         )
         print(f"{master_sae_id=} {slave_sae_id=}")
         url = f"{self.etsi_url("client", master_client_name)}/{slave_sae_id}/enc_keys"
-        print(f"{url=}")
         try:
             response = requests.get(url, timeout=1.0)
             # TODO: Check response (error handling)
@@ -323,6 +323,30 @@ class Manager:
         """
         Invoke the ETSI QKD Get Key with Key IDs API.
         """
+        # TODO: There is common code with the other ETSI API calls
+        master_sae_id = self._args.master_sae_id
+        slave_sae_id = self._args.slave_sae_id
+        # See remark about ETSI QKD API in file TODO
+        master_client_name = master_sae_id
+        port = self.node_port("client", master_client_name)
+        print(
+            f"Invoke ETSI QKD Get Key with Key IDs API for client {master_client_name} "
+            f"on port {port}"
+        )
+        key_id = self._args.key_id
+        print(f"{master_sae_id=} {slave_sae_id=} {key_id}")
+        url = (
+            f"{self.etsi_url("client", master_client_name)}/{slave_sae_id}/dec_keys"
+            f"?key_ID={key_id}"
+        )
+        print(f"{url=}")  # TODO: DEBUG
+        try:
+            response = requests.get(url, timeout=1.0)
+            # TODO: Check response (error handling)
+        except requests.exceptions.RequestException as exc:
+            print(f"Failed to invoke ETSI QKD Get Key API: {exc}")
+            return
+        print(json.dumps(response.json(), indent=2))
 
     def etsi_qkd_get_key_pair(self):
         """

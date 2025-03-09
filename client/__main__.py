@@ -59,7 +59,7 @@ _APP = fastapi.FastAPI(lifespan=lifespan)
 @_APP.get("/dske/client/etsi/api/v1/keys/{slave_sae_id}/status")
 async def api_get_etsi_status(slave_sae_id: str):
     """
-    API: Get status.
+    ETSI QKD 014 API: Status.
     """
     return _CLIENT.etsi_status(slave_sae_id)
 
@@ -67,9 +67,17 @@ async def api_get_etsi_status(slave_sae_id: str):
 @_APP.get("/dske/client/etsi/api/v1/keys/{slave_sae_id}/enc_keys")
 async def api_get_etsi_get_key(slave_sae_id: str):
     """
-    API: Get status.
+    ETSI QKD 014 API: Get Key.
     """
     return _CLIENT.etsi_get_key(slave_sae_id)
+
+
+@_APP.get("/dske/client/etsi/api/v1/keys/{slave_sae_id}/dec_keys")
+async def api_get_etsi_get_key_with_key_ids(slave_sae_id: str, key_ID: str):
+    """
+    ETSI QKD 014 API: Get Key with Key IDs.
+    """
+    return _CLIENT.etsi_get_key_with_key_ids(slave_sae_id, key_id=key_ID)
 
 
 @_APP.get("/dske/client/mgmt/v1/status")

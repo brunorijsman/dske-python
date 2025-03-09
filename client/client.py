@@ -84,6 +84,24 @@ class Client:
             }
         }
 
+    def etsi_get_key_with_key_ids(self, _slave_sae_id: str, key_id: str):
+        """
+        ETSI QKD 014 V1.1.1 Get Key API.
+        """
+        # See remark about ETSI QKD API in file TODO
+        # TODO: For now, we return a random key UUID and a random key value. We need to implement
+        #       the actual key generation using DSKE.
+        assert self._default_key_size_in_bits % 8 == 0
+        size_in_bytes = self._default_key_size_in_bits // 8
+        key_value = os.urandom(size_in_bytes)
+        encoded_key_value = base64.b64encode(key_value).decode("utf-8")
+        return {
+            "keys": {
+                "key_ID": key_id,
+                "key_value": encoded_key_value,
+            }
+        }
+
     async def register_with_all_peer_hubs(self):
         """
         Register to all peer hubs.
