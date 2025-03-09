@@ -289,7 +289,6 @@ class Manager:
         print(f"Invoke ETSI QKD API for client {master_client_name} on port {port}")
         print(f"{master_sae_id=} {slave_sae_id=}")
         url = f"{self.etsi_url("client", master_client_name)}/{slave_sae_id}/status"
-        print(f"{url=}")
         try:
             response = requests.get(url, timeout=1.0)
             # TODO: Check response (error handling)
