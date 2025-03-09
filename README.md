@@ -9,7 +9,7 @@ The code is implemented in Python 3.12 and uses FastAPI.
 To start the DSKE topology:
 
 <pre>
-$ <b>python -m topology topology/topology.yaml start</b>
+$ <b>./manager.py topology.yaml start</b>
 Starting hub helen on port 8000
 Starting hub hank on port 8001
 Starting hub heidi on port 8002
@@ -28,15 +28,15 @@ Once a topology has been started, open the API in the browser at URL `http://127
 To stop the DSKE topology:
 
 <pre>
-$ <b>python -m topology topology/topology.yaml stop</b>
-Stopping hub helen on port 8000
-Stopping hub hank on port 8001
-Stopping hub heidi on port 8002
-Stopping hub harry on port 8003
-Stopping hub holly on port 8004
+$ <b>./manager.py topology.yaml stop</b>
 Stopping client clarice on port 8005
 Stopping client charlie on port 8006
 Stopping client camila on port 8007
 Stopping client colin on port 8008
 Stopping client cindy on port 8009
+Stopping hub helen on port 8000
+Stopping hub hank on port 8001
+Stopping hub heidi on port 8002
+Stopping hub harry on port 8003
+Stopping hub holly on port 8004
 </pre>
