@@ -61,8 +61,7 @@ async def api_get_etsi_status(slave_SAE_ID: str):
     """
     API: Get status.
     """
-    # TODO: Implement this.
-    return {"result": "Status."}
+    return _CLIENT.etsi_status(slave_SAE_ID)
 
 
 @_APP.get("/dske/client/mgmt/v1/status")
