@@ -50,7 +50,19 @@ class Manager:
         """
         parser = argparse.ArgumentParser(description="DSKE Topology")
         parser.add_argument("configfile", help="Configuration filename")
-        parser.add_argument("command", choices=["start", "stop", "status"])
+        subparsers = parser.add_subparsers(dest="command")
+        _start_parser = subparsers.add_parser(
+            "start",
+            help="Start all hubs and clients",
+        )
+        _stop_parser = subparsers.add_parser(
+            "stop",
+            help="Stop all hubs and clients",
+        )
+        _status_parser = subparsers.add_parser(
+            "status",
+            help="Report status for all hubs and clients",
+        )
         self._args = parser.parse_args()
 
     def parse_configuration(self):
