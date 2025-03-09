@@ -53,3 +53,11 @@ TODO: Add unit tests
 TODO: Pre-commit checks (lint, unit tests)
 
 TODO: Setup CI/CD environment
+
+TODO: Implement mTLS authentication of SAEs on the ETSI QKD interface.
+
+TODO: Remark about ETSI QKD API
+      For now, we assumed that there is exactly one SAE attached to every DSKE client, and that the
+      SAE ID is the same as the name of the DSKE client. Generalize this to allow any number of SAEs
+      to be attached to DSKE client, and to allows the SAE IDs to be different from the DSKE client
+      name (this will require the SAE to be authenticated).

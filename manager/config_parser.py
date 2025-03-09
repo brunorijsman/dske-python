@@ -7,6 +7,8 @@ import sys
 import cerberus
 import yaml
 
+# TODO: Move this into Manager class
+
 _HUB_SCHEMA = {
     "type": "dict",
     "schema": {
@@ -27,7 +29,7 @@ _SCHEMA = {
 }
 
 
-def parse_configuration(filename: str) -> dict:
+def parse_config(filename: str) -> dict:
     """
     Parse the configuration file and return the configuration.
     """
