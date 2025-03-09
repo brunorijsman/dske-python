@@ -14,8 +14,6 @@ TODO: PSRDBlock: function to consume a given allocation
 
 TODO: PSRDPool: function to consume set number of bytes; uses multiple blocks if needed
 
-TODO: Add ETSI QKD API to client
-
 TODO: Add a Key class to keep track of the key logic (separate class for initiator and
       responder?)
 
