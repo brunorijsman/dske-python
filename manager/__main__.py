@@ -63,6 +63,29 @@ class Manager:
             "status",
             help="Report status for all hubs and clients",
         )
+        etsi_qkd_parser = subparsers.add_parser(
+            "etsi-qkd",
+            help="ETSI QKD operations",
+        )
+        etsi_qkd_parser.add_argument("master_sae_id", help="Master SAE ID")
+        etsi_qkd_parser.add_argument("slave_sae_id", help="Slave SAE ID")
+        etsi_qkd_subparsers = etsi_qkd_parser.add_subparsers(dest="etsi_qkd_command")
+        _etsi_status_parser = etsi_qkd_subparsers.add_parser(
+            "status",
+            help="Invoke ETSI QKD Status API",
+        )
+        _etsi_get_key_parser = etsi_qkd_subparsers.add_parser(
+            "get-key",
+            help="Invoke ETSI QKD Get Key API",
+        )
+        _etsi_get_key_with_id_parser = etsi_qkd_subparsers.add_parser(
+            "get-key-with-ids",
+            help="Invoke ETSI QKD Get Key with Key IDs API",
+        )
+        _etsi_get_key_pair_parser = etsi_qkd_subparsers.add_parser(
+            "get-key-pair",
+            help="Invoke ETSI QKD Get Key and Get Key with Key IDs APIs",
+        )
         self._args = parser.parse_args()
 
     def parse_configuration(self):
