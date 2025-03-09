@@ -80,7 +80,7 @@ class Client:
         return {
             "keys": {
                 "key_ID": key_id,
-                "key_value": encoded_key_value,
+                "key": encoded_key_value,
             }
         }
 
@@ -98,7 +98,7 @@ class Client:
         return {
             "keys": {
                 "key_ID": key_id,
-                "key_value": encoded_key_value,
+                "key": encoded_key_value,
             }
         }
 

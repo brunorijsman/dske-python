@@ -339,7 +339,6 @@ class Manager:
             f"{self.etsi_url("client", master_client_name)}/{slave_sae_id}/dec_keys"
             f"?key_ID={key_id}"
         )
-        print(f"{url=}")  # TODO: DEBUG
         try:
             response = requests.get(url, timeout=1.0)
             # TODO: Check response (error handling)
@@ -352,6 +351,47 @@ class Manager:
         """
         Invoke the ETSI QKD Get Key API on master, followed by Get Key with Key IDs API on slave.
         """
+        # TODO: There is common code with the other ETSI API calls
+        master_sae_id = self._args.master_sae_id
+        slave_sae_id = self._args.slave_sae_id
+        # See remark about ETSI QKD API in file TODO
+        master_client_name = master_sae_id
+        port = self.node_port("client", master_client_name)
+        print(
+            f"Invoke ETSI QKD Get Key API for client {master_client_name} on port {port}"
+        )
+        print(f"{master_sae_id=} {slave_sae_id=}")
+        url = f"{self.etsi_url("client", master_client_name)}/{slave_sae_id}/enc_keys"
+        try:
+            get_key_response = requests.get(url, timeout=1.0)
+            # TODO: Check response (error handling)
+        except requests.exceptions.RequestException as exc:
+            print(f"Failed to invoke ETSI QKD Get Key API: {exc}")
+            return
+        print(json.dumps(get_key_response.json(), indent=2))
+        print(
+            f"Invoke ETSI QKD Get Key with Key IDs API for client {master_client_name} "
+            f"on port {port}"
+        )
+        key_id = get_key_response.json()["keys"]["key_ID"]
+        key_value_1 = get_key_response.json()["keys"]["key"]
+        print(f"{master_sae_id=} {slave_sae_id=} {key_id}")
+        url = (
+            f"{self.etsi_url("client", master_client_name)}/{slave_sae_id}/dec_keys"
+            f"?key_ID={key_id}"
+        )
+        try:
+            get_key_with_key_ids_response = requests.get(url, timeout=1.0)
+            # TODO: Check response (error handling)
+        except requests.exceptions.RequestException as exc:
+            print(f"Failed to invoke ETSI QKD Get Key API: {exc}")
+            return
+        print(json.dumps(get_key_with_key_ids_response.json(), indent=2))
+        key_value_2 = get_key_with_key_ids_response.json()["keys"]["key"]
+        if key_value_1 == key_value_2:
+            print("Key values match")
+        else:
+            print("Key values do not match")
 
 
 if __name__ == "__main__":
