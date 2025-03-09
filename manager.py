@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Main entry point for the topology package.
 """
@@ -43,6 +45,8 @@ class Manager:
                 self.stop()
             case "status":
                 self.status()
+            case "etsi-qkd":
+                self.etsi_qkd()
 
     def parse_command_line_arguments(self):
         """
@@ -51,6 +55,7 @@ class Manager:
         parser = argparse.ArgumentParser(description="DSKE Manager")
         parser.add_argument("configfile", help="Configuration filename")
         subparsers = parser.add_subparsers(dest="command")
+        subparsers.required = True
         _start_parser = subparsers.add_parser(
             "start",
             help="Start all hubs and clients",
@@ -70,6 +75,7 @@ class Manager:
         etsi_qkd_parser.add_argument("master_sae_id", help="Master SAE ID")
         etsi_qkd_parser.add_argument("slave_sae_id", help="Slave SAE ID")
         etsi_qkd_subparsers = etsi_qkd_parser.add_subparsers(dest="etsi_qkd_command")
+        etsi_qkd_subparsers.required = True
         _etsi_status_parser = etsi_qkd_subparsers.add_parser(
             "status",
             help="Invoke ETSI QKD Status API",
@@ -245,6 +251,13 @@ class Manager:
             print(f"Failed get status for {node_type} {node_name}: {exc}")
         # TODO: Check response (error handling)
         print(json.dumps(response.json(), indent=2))
+
+    def etsi_qkd(self):
+        """
+        ETSI QKD operations.
+        """
+        # TODO: Implement this
+        print(f"ETSI QKD operations {self._args=}")
 
 
 if __name__ == "__main__":
