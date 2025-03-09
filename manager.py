@@ -157,14 +157,20 @@ class Manager:
         """
         return self._port_assignments[(node_type, node_name)]
 
-    def node_url(self, node_type: str, node_name: str) -> int:
+    def node_url(self, node_type: str, node_name: str) -> str:
         """
-        Determine the HTTP URL number for a given node.
+        The HTTP base URL for a given node.
         """
         port = self.node_port(node_type, node_name)
         # TODO: Perhaps include the node name as well, so that they can all be hosted on the same
         #       server, which something like Nginx routing requests to the appropriate process.
         return f"http://localhost:{port}/dske/{node_type}"
+
+    def etsi_url(self, node_type: str, node_name: str) -> str:
+        """
+        The HTTP URL for the ETSI QKD API for a given node.
+        """
+        return f"{self.node_url(node_type, node_name)}/etsi/api/v1/keys"
 
     def start(self):
         """
@@ -225,6 +231,7 @@ class Manager:
             _response = requests.post(url, timeout=1.0)
         except requests.exceptions.RequestException as exc:
             print(f"Failed to stop {node_type} {node_name}: {exc}")
+            return
         # TODO: Check response (error handling)
 
     def status(self):
@@ -249,6 +256,7 @@ class Manager:
             response = requests.get(url, timeout=1.0)
         except requests.exceptions.RequestException as exc:
             print(f"Failed get status for {node_type} {node_name}: {exc}")
+            return
         # TODO: Check response (error handling)
         print(json.dumps(response.json(), indent=2))
 
@@ -256,8 +264,39 @@ class Manager:
         """
         ETSI QKD operations.
         """
-        # TODO: Implement this
-        print(f"ETSI QKD operations {self._args=}")
+        match self._args.etsi_qkd_command:
+            case "status":
+                self.etsi_qkd_status()
+            case "get-key":
+                # TODO
+                pass
+            case "get-key-with-ids":
+                # TODO
+                pass
+            case "get-key-pair":
+                # TODO
+                pass
+
+    def etsi_qkd_status(self):
+        """
+        Invoke the ETSI QKD Status API.
+        """
+        master_sae_id = self._args.master_sae_id
+        slave_sae_id = self._args.slave_sae_id
+        # See remark about ETSI QKD API in file TODO
+        master_client_name = master_sae_id
+        port = self.node_port("client", master_client_name)
+        print(f"Invoke ETSI QKD API for client {master_client_name} on port {port}")
+        print(f"{master_sae_id=} {slave_sae_id=}")
+        url = f"{self.etsi_url("client", master_client_name)}/{slave_sae_id}/status"
+        print(f"{url=}")
+        try:
+            response = requests.get(url, timeout=1.0)
+            # TODO: Check response (error handling)
+        except requests.exceptions.RequestException as exc:
+            print(f"Failed to invoke ETSI QKD Status API: {exc}")
+            return
+        print(json.dumps(response.json(), indent=2))
 
 
 if __name__ == "__main__":
