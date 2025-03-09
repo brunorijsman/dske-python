@@ -64,6 +64,14 @@ async def api_get_etsi_status(slave_sae_id: str):
     return _CLIENT.etsi_status(slave_sae_id)
 
 
+@_APP.get("/dske/client/etsi/api/v1/keys/{slave_sae_id}/enc_keys")
+async def api_get_etsi_get_key(slave_sae_id: str):
+    """
+    API: Get status.
+    """
+    return _CLIENT.etsi_get_key(slave_sae_id)
+
+
 @_APP.get("/dske/client/mgmt/v1/status")
 async def mgmt_():
     """
