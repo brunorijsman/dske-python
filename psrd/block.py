@@ -122,7 +122,7 @@ class Block:
         # Allocation object.
         end_byte = fragment.start_byte + fragment.size
         self._allocated[fragment.start_byte : end_byte] = False
-        self._remaining_size += fragment
+        self._remaining_size += fragment.size
 
     def allocate_psrd_allocation(self, desired_size: PositiveInt) -> Allocation | None:
         """

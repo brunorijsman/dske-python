@@ -152,3 +152,44 @@ def test_try_allocate_fragment_from_block_with_insufficient_space():
     assert fragment_b.size == block_size - fragment_a_size
     assert fragment_b.consumed is False
     assert block.remaining_size == 0
+
+
+def test_deallocate_psrd_fragment():
+    """
+    Deallocate a fragment from a block.
+    """
+    block_size = 100
+    fragment_a_size = 10
+    fragment_b_size = 20
+    fragment_c_size = 30
+    # Some conditions to make the test case work as intended
+    assert fragment_a_size + fragment_b_size <= block_size
+    assert fragment_c_size > fragment_a_size
+    # The sequence of actions is:
+    # 1. Allocate fragment a.
+    # 2. Allocate fragment b.
+    # 3. Deallocate fragment a.
+    # 4. Allocate fragment c. Note that it does *not* fit in the gap left by fragment a.
+    #    So we get less than we asked for.
+    block = _create_test_block(block_size)
+    # Allocate fragment a
+    fragment_a = block.allocate_psrd_fragment(fragment_a_size)
+    assert fragment_a.start_byte == 0
+    assert fragment_a.size == fragment_a_size
+    assert fragment_a.consumed is False
+    assert block.remaining_size == block_size - fragment_a_size
+    # Allocate fragment b
+    fragment_b = block.allocate_psrd_fragment(fragment_b_size)
+    assert fragment_b.start_byte == fragment_a_size
+    assert fragment_b.size == fragment_b_size
+    assert fragment_b.consumed is False
+    assert block.remaining_size == block_size - fragment_a_size - fragment_b_size
+    # Deallocate fragment a
+    block.deallocate_psrd_fragment(fragment_a)
+    assert block.remaining_size == block_size - fragment_b_size
+    # Attempt to allocate fragment c; we get less than we asked for
+    fragment_c = block.allocate_psrd_fragment(fragment_c_size)
+    assert fragment_c.start_byte == 0
+    assert fragment_c.size == fragment_a_size
+    assert fragment_c.consumed is False
+    assert block.remaining_size == block_size - fragment_a_size - fragment_b_size
