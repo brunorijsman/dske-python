@@ -29,11 +29,28 @@ MODULE_DIRS="client common hub psrd"
 ALL_OK=$TRUE
 ISSUES=""
 
+ACTION="all"
+
 fatal_error ()
 {
     local message="$1"
     echo "${RED}Error:${NORMAL} ${message}" >&2
     exit 1
+}
+
+usage ()
+{
+    command=$(basename $0)
+    echo "Usage: $command [OPTIONS] [ACTION]"  >&2
+    echo  >&2
+    echo "Positional arguments:"  >&2
+    echo "  ACTION:"  >&2
+    echo "    lint           Lint the code"  >&2
+    echo "    format-check   Check code formatting"  >&2
+    echo "    test           Run unit tests (including code coverage)"  >&2
+    echo  >&2
+    echo "OPTIONS:"  >&2
+    echo "  -h, --help: Display this help message"  >&2
 }
 
 progress ()
@@ -46,6 +63,27 @@ issue ()
 {
     local message="$1"
     echo "${RED}Issue:${NORMAL} ${message}" >&2
+}
+
+parse_command_line_arguments ()
+{
+    # TODO - error if more than one action
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            *)
+                ACTION="$1"
+                ;;
+        esac
+        shift
+    done
+    case $ACTION in
+        all|lint|format-check|test) ;;
+        *) fatal_error "Invalid action: $ACTION"
+    esac    
 }
 
 check_virtual_environment ()
@@ -137,10 +175,17 @@ not_okay_to_commit ()
 
 main ()
 {
+    parse_command_line_arguments "$@"
     check_virtual_environment
-    lint_all_code
-    unit_test_all_code
-    format_check_all_code
+    case $ACTION in
+        all|lint) lint_all_code ;;
+    esac    
+    case $ACTION in
+        all|test) unit_test_all_code ;;
+    esac    
+    case $ACTION in
+        all|format-check) format_check_all_code ;;
+    esac
     if [ $ALL_OK == $TRUE ]; then
         okay_to_commit
     else
@@ -148,4 +193,4 @@ main ()
     fi
 }
 
-main
+main $@
