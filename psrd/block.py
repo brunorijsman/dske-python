@@ -4,8 +4,13 @@ A Pre-Shared Random Data (PSRD) block.
 
 import base64
 from uuid import UUID, uuid4
-from os import urandom
+import os
+
+from bitarray import bitarray
 from pydantic import PositiveInt
+
+from .allocation import Allocation
+from .fragment import Fragment
 
 
 class Block:
@@ -17,6 +22,7 @@ class Block:
     _original_size: int  # In bytes
     _remaining_size: int  # In bytes
     _data: bytes
+    _allocated: bitarray
 
     def __init__(self, uuid: UUID, data: bytes):
         self._uuid = uuid
@@ -24,6 +30,7 @@ class Block:
         self._original_size = len(data)
         self._remaining_size = self._original_size
         self._data = data
+        self._allocated = bitarray(self._original_size)
 
     @property
     def uuid(self):
@@ -80,5 +87,57 @@ class Block:
         Create a PSRD block, containing `size` random bytes.
         """
         uuid = uuid4()
-        data = urandom(size)
+        data = os.urandom(size)
         return Block(uuid, data)
+
+    def allocate_psrd_fragment(self, desired_size: PositiveInt) -> Fragment | None:
+        """
+        Allocate a PSRD fragment from the block. We try to allocate `desired_size` bytes from the
+        block, but we accept a smaller fragment if there is not enough data left in the block. We a
+        fragment for the first unallocated set of bytes in the block (i.e. we don't try to search
+        further for a larger gap).
+        """
+        try:
+            found_start = self._allocated.index(False)
+        except ValueError:
+            return None
+        try:
+            found_end = self._allocated.index(True, found_start)
+        except ValueError:
+            found_end = self._original_size
+        found_size = found_end - found_start
+        if found_size > desired_size:
+            found_end = found_start + desired_size
+            found_size = desired_size
+        self._allocated[found_start:found_end] = True
+        self._remaining_size -= found_size
+        return Fragment(self, found_start, found_size)
+
+    def deallocate_psrd_fragment(self, fragment: Fragment):
+        """
+        Deallocate a PSRD fragment from the block.
+        """
+        end_byte = fragment.start_byte + fragment.size
+        self._allocated[fragment.start_byte : end_byte] = False
+        self._remaining_size += fragment
+
+    def allocate_psrd_allocation(self, desired_size: PositiveInt) -> Allocation | None:
+        """
+        Allocate a PSRD allocation from the block. An allocation consists of one or more fragments.
+        This either returns an allocation for the full `desired_size` or None if there is not enough
+        unallocated data left in the block.
+        """
+        fragments = []
+        remaining_size = desired_size
+        while remaining_size > 0:
+            fragment = self.allocate_psrd_fragment(remaining_size)
+            if fragment is None:
+                break
+            fragments.append(fragment)
+            remaining_size -= fragment.size
+        if remaining_size > 0:
+            # We didn't allocate the full desired size, deallocate the fragments we did allocate.
+            for fragment in fragments:
+                self.deallocate_psrd_fragment(fragment)
+            return None
+        return Allocation(fragments)
