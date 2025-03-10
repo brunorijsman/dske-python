@@ -127,6 +127,7 @@ class Block:
         This either returns an allocation for the full `desired_size` or None if there is not enough
         unallocated data left in the block.
         """
+        # TODO: This does not belong here -- it needs to span across multiple blocks if needed.
         fragments = []
         remaining_size = desired_size
         while remaining_size > 0:

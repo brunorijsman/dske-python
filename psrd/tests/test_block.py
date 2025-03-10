@@ -85,7 +85,7 @@ def test_create_random_psrd_block():
 
 def test_allocate_psrd_fragment_from_fresh_block():
     """
-    Allocate some bytes from a block that has not had any bytes allocated yet.
+    Allocate one fragment from a block that has not had any bytes allocated yet.
     """
     block_size = 100
     fragment_size = 10
@@ -94,3 +94,18 @@ def test_allocate_psrd_fragment_from_fresh_block():
     assert fragment.start_byte == 0
     assert fragment.size == fragment_size
     assert fragment.consumed is False
+
+
+def test_allocate_multiple_psrd_fragments_from_fresh_block():
+    """
+    Allocate multiple fragments from a block that has not had any bytes allocated yet.
+    """
+    block_size = 100
+    nr_fragments = 3
+    fragment_size = 10
+    block = _create_test_block(block_size)
+    for fragment_nr in range(nr_fragments):
+        fragment = block.allocate_psrd_fragment(fragment_size)
+        assert fragment.start_byte == fragment_nr * fragment_size
+        assert fragment.size == fragment_size
+        assert fragment.consumed is False
