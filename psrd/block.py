@@ -64,6 +64,8 @@ class Block:
         Get a JSON representation of the PSRD block, for the purpose of sending it in a protocol
         message.
         """
+        # Blocks should only be sent over protocol message before any bytes are allocated.
+        assert self._remaining_size == self._original_size
         return {
             "uuid": str(self._uuid),
             "data": common.bytes_to_str(self._data),

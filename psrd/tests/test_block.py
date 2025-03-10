@@ -33,10 +33,21 @@ def test_block_to_management_json():
     uuid = uuid4()
     data = _bytes_test_pattern(20)
     block = Block(uuid, data)
-    to_management_json = block.to_management_json()
-    assert to_management_json == {
+    management_json = block.to_management_json()
+    assert management_json == {
         "uuid": str(uuid),
         "original_size": 20,
         "remaining_size": 20,
         "data": common.bytes_to_str(data, truncate=True),
+    }
+
+
+def test_block_to_protocol_json():
+    uuid = uuid4()
+    data = _bytes_test_pattern(20)
+    block = Block(uuid, data)
+    protocol_json = block.to_protocol_json()
+    assert protocol_json == {
+        "uuid": str(uuid),
+        "data": common.bytes_to_str(data),
     }
