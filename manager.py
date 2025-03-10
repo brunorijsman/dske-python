@@ -168,13 +168,15 @@ class Manager:
         port = self.node_port(node_type, node_name)
         # TODO: Perhaps include the node name as well, so that they can all be hosted on the same
         #       server, which something like Nginx routing requests to the appropriate process.
-        return f"http://localhost:{port}/dske/{node_type}"
+        return f"http://localhost:{port}"
 
     def etsi_url(self, node_type: str, node_name: str) -> str:
         """
         The HTTP URL for the ETSI QKD API for a given node.
         """
-        return f"{self.node_url(node_type, node_name)}/etsi/api/v1/keys"
+        return (
+            f"{self.node_url(node_type, node_name)}/dske/{node_type}/etsi/api/v1/keys"
+        )
 
     def is_node_filtered(self, node_type: str, node_name: str) -> bool:
         """
@@ -256,7 +258,7 @@ class Manager:
         """
         port = self.node_port(node_type, node_name)
         print(f"Stopping {node_type} {node_name} on port {port}")
-        url = f"{self.node_url(node_type, node_name)}/mgmt/v1/stop"
+        url = f"{self.node_url(node_type, node_name)}/dske/{node_type}/mgmt/v1/stop"
         try:
             _response = requests.post(url, timeout=1.0)
         except requests.exceptions.RequestException as exc:
@@ -284,7 +286,7 @@ class Manager:
         """
         port = self.node_port(node_type, node_name)
         print(f"Status for {node_type} {node_name} on port {port}")
-        url = f"{self.node_url(node_type, node_name)}/mgmt/v1/status"
+        url = f"{self.node_url(node_type, node_name)}/dske/{node_type}/mgmt/v1/status"
         try:
             response = requests.get(url, timeout=1.0)
         except requests.exceptions.RequestException as exc:

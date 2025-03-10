@@ -80,6 +80,7 @@ class PeerHub:
         async with httpx.AsyncClient() as httpx_client:
             size = _PSRD_BLOCK_SIZE_IN_BYTES
             url = f"{self._url}/oob/v1/psrd?client_name={self._client.name}&size={size}"
+            print(f"{url=}", flush=True)
             response = await httpx_client.get(url)
             if response.status_code != 200:
                 # TODO: Error handling (throw an exception? retry?)
