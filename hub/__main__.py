@@ -34,7 +34,7 @@ _APP = fastapi.FastAPI()
 
 # This should be a POST instead of a GET
 @_APP.get("/dske/hub/oob/v1/register-client")
-async def oob_get_register_dske_client(client_name: str):
+async def get_oob_register_dske_client(client_name: str):
     """
     Out of band: Register a DSKE client.
     """
@@ -48,7 +48,7 @@ async def oob_get_register_dske_client(client_name: str):
 
 
 @_APP.get("/dske/hub/oob/v1/psrd")
-async def oob_get_psrd(client_name: str, size: pydantic.PositiveInt):
+async def get_oob_psrd(client_name: str, size: pydantic.PositiveInt):
     """
     Out of band: Get a block of Pre-Shared Random Data (PSRD).
     """
@@ -59,7 +59,7 @@ async def oob_get_psrd(client_name: str, size: pydantic.PositiveInt):
 
 
 @_APP.get("/dske/hub/api/v1/status")
-async def api_get_status():
+async def get_api_status():
     """
     API: Get status.
     """
@@ -68,7 +68,7 @@ async def api_get_status():
 
 
 @_APP.post("/dske/hub/api/v1/key-share")
-async def api_post_key_share():
+async def post_api_key_share():
     """
     API: Post key share.
     """
@@ -77,7 +77,7 @@ async def api_post_key_share():
 
 
 @_APP.get("/dske/hub/mgmt/v1/status")
-async def mgmt_get_status():
+async def get_mgmt_status():
     """
     Management: Get status.
     """
@@ -86,7 +86,7 @@ async def mgmt_get_status():
 
 
 @_APP.post("/dske/hub/mgmt/v1/stop")
-async def mgmt_post_stop():
+async def post_mgmt_stop():
     """
     Management: Post stop.
     """

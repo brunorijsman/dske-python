@@ -47,7 +47,7 @@ class Client:
         ]
         return {"client_name": self._client_name, "peer_hubs": peer_hubs_status}
 
-    def etsi_status(self, slave_sae_id: str):
+    async def etsi_status(self, slave_sae_id: str):
         """
         ETSI QKD 014 V1.1.1 Status API.
         """
@@ -66,7 +66,7 @@ class Client:
             "max_sae_id_count": 0,  # TODO: Add support for key multicast
         }
 
-    def etsi_get_key(self, _slave_sae_id: str):
+    async def etsi_get_key(self, _slave_sae_id: str):
         """
         ETSI QKD 014 V1.1.1 Get Key API.
         """
@@ -84,7 +84,7 @@ class Client:
             }
         }
 
-    def etsi_get_key_with_key_ids(self, _slave_sae_id: str, key_id: str):
+    async def etsi_get_key_with_key_ids(self, _slave_sae_id: str, key_id: str):
         """
         ETSI QKD 014 V1.1.1 Get Key API.
         """
