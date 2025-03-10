@@ -54,6 +54,9 @@ class Manager:
         """
         parser = argparse.ArgumentParser(description="DSKE Manager")
         parser.add_argument("configfile", help="Configuration filename")
+        client_xor_hub_group = parser.add_mutually_exclusive_group()
+        client_xor_hub_group.add_argument("--client", help="Filter on client name")
+        client_xor_hub_group.add_argument("--hub", help="Filter on hub name")
         subparsers = parser.add_subparsers(dest="command")
         subparsers.required = True
         _start_parser = subparsers.add_parser(
@@ -173,6 +176,24 @@ class Manager:
         """
         return f"{self.node_url(node_type, node_name)}/etsi/api/v1/keys"
 
+    def is_node_filtered(self, node_type: str, node_name: str) -> bool:
+        """
+        Determine if a node should be filtered out.
+        """
+        if self._args.client is not None:
+            match node_type:
+                case "client":
+                    return node_name != self._args.client
+                case "hub":
+                    return True
+        if self._args.hub is not None:
+            match node_type:
+                case "client":
+                    return True
+                case "hub":
+                    return node_name != self._args.hub
+        return False
+
     def start(self):
         """
         Start all hubs and clients.
@@ -180,11 +201,15 @@ class Manager:
         client_extra_args = ["--hubs"]
         for hub_config in self._config["hubs"]:
             hub_name = hub_config["name"]
+            if self.is_node_filtered("hub", hub_name):
+                continue
             self.start_node("hub", hub_name)
             hub_url = self.node_url("hub", hub_name)
             client_extra_args.append(hub_url)
         for client_config in self._config["clients"]:
             client_name = client_config["name"]
+            if self.is_node_filtered("client", client_name):
+                continue
             self.start_node("client", client_name, client_extra_args)
 
     def start_node(
@@ -216,9 +241,13 @@ class Manager:
         # Stop the clients first, so that they can cleanly unregister from the hubs.
         for client_config in self._config["clients"]:
             client_name = client_config["name"]
+            if self.is_node_filtered("client", client_name):
+                continue
             self.stop_node("client", client_name)
         for hub_config in self._config["hubs"]:
             hub_name = hub_config["name"]
+            if self.is_node_filtered("hub", hub_name):
+                continue
             self.stop_node("hub", hub_name)
 
     def stop_node(self, node_type: str, node_name: str):
@@ -240,9 +269,13 @@ class Manager:
         """
         for hub_config in self._config["hubs"]:
             hub_name = hub_config["name"]
+            if self.is_node_filtered("hub", hub_name):
+                continue
             self.status_node("hub", hub_name)
         for client_config in self._config["clients"]:
             client_name = client_config["name"]
+            if self.is_node_filtered("client", client_name):
+                continue
             self.status_node("client", client_name)
 
     def status_node(self, node_type: str, node_name: str):
