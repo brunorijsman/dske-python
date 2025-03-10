@@ -32,3 +32,10 @@ class Fragment:
         The size of the fragment in bytes.
         """
         return self._size
+
+    @property
+    def consumed(self):
+        """
+        Whether the fragment is consumed.
+        """
+        return self._consumed

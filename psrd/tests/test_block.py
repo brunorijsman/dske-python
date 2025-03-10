@@ -15,6 +15,13 @@ def _bytes_test_pattern(size):
     return bytes([i % 255 for i in range(size)])
 
 
+def _create_test_block(size):
+    uuid = uuid4()
+    data = _bytes_test_pattern(size)
+    block = Block(uuid, data)
+    return block
+
+
 def test_block_init():
     size = 1000
     uuid = uuid4()
@@ -74,3 +81,16 @@ def test_create_random_psrd_block():
     size = 100
     block = Block.create_random_psrd_block(size)
     assert block.remaining_size == size
+
+
+def test_allocate_psrd_fragment_from_fresh_block():
+    """
+    Allocate some bytes from a block that has not had any bytes allocated yet.
+    """
+    block_size = 100
+    fragment_size = 10
+    block = _create_test_block(block_size)
+    fragment = block.allocate_psrd_fragment(fragment_size)
+    assert fragment.start_byte == 0
+    assert fragment.size == fragment_size
+    assert fragment.consumed is False
