@@ -14,8 +14,8 @@ class Block:
     """
 
     _uuid: UUID
-    _original_size: int
-    _remaining_size: int
+    _original_size: int  # In bytes
+    _remaining_size: int  # In bytes
     _data: bytes
 
     def __init__(self, uuid: UUID, data: bytes):
