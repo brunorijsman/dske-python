@@ -10,7 +10,6 @@ from pydantic import PositiveInt
 
 import common
 
-from .allocation import Allocation
 from .fragment import Fragment
 
 
@@ -123,25 +122,3 @@ class Block:
         end_byte = fragment.start_byte + fragment.size
         self._allocated[fragment.start_byte : end_byte] = False
         self._remaining_size += fragment.size
-
-    def allocate_psrd_allocation(self, desired_size: PositiveInt) -> Allocation | None:
-        """
-        Allocate a PSRD allocation from the block. An allocation consists of one or more fragments.
-        This either returns an allocation for the full `desired_size` or None if there is not enough
-        unallocated data left in the block.
-        """
-        # TODO: This does not belong here -- it needs to span across multiple blocks if needed.
-        fragments = []
-        remaining_size = desired_size
-        while remaining_size > 0:
-            fragment = self.allocate_psrd_fragment(remaining_size)
-            if fragment is None:
-                break
-            fragments.append(fragment)
-            remaining_size -= fragment.size
-        if remaining_size > 0:
-            # We didn't allocate the full desired size, deallocate the fragments we did allocate.
-            for fragment in fragments:
-                self.deallocate_psrd_fragment(fragment)
-            return None
-        return Allocation(fragments)

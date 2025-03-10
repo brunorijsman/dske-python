@@ -2,6 +2,9 @@
 A Pre-Shared Random Data (PSRD) pool.
 """
 
+from pydantic import PositiveInt
+
+from .allocation import Allocation
 from .block import Block
 
 
@@ -11,11 +14,11 @@ class Pool:
     """
 
     _remaining_size: int
-    _psrd_blocks: list[Block]
+    _blocks: list[Block]
 
     def __init__(self):
         self._remaining_size = 0
-        self._psrd_blocks = []
+        self._blocks = []
 
     def to_management_json(self) -> dict:
         """
@@ -24,7 +27,7 @@ class Pool:
         return {
             "remaining_size": self._remaining_size,
             "psrd_blocks": [
-                psrd_block.to_management_json() for psrd_block in self._psrd_blocks
+                psrd_block.to_management_json() for psrd_block in self._blocks
             ],
         }
 
@@ -32,5 +35,35 @@ class Pool:
         """
         Add a PSRD block to the PSRD pool.
         """
-        self._psrd_blocks.append(psrd_block)
+        self._blocks.append(psrd_block)
         self._remaining_size += psrd_block.remaining_size
+
+    def allocate_psrd_allocation(self, desired_size: PositiveInt) -> Allocation | None:
+        """
+        Allocate a PSRD allocation from the pool. An allocation consists of one or more fragments.
+        This either returns an Allocation object for the full `desired_size` or None if there is not
+        enough unallocated data left in the pool.
+        """
+        # Collect fragments until we have what we need or until we have exhausted all blocks.
+        fragments = []
+        remaining_size = desired_size
+        for block in self._blocks:
+            while remaining_size > 0:
+                fragment = block.allocate_psrd_fragment(remaining_size)
+                if fragment is None:
+                    # The current block is exhausted, move on to the next block, if any.
+                    break
+                fragments.append(fragment)
+                remaining_size -= fragment.size
+            if remaining_size == 0:
+                # We have allocated the full desired size; don't need to look at any more blocks.
+                break
+        if remaining_size > 0:
+            # We didn't allocate the full desired size, deallocate the fragments we did allocate.
+            for fragment in fragments:
+                fragment.block.deallocate_psrd_fragment(fragment)
+            return None
+        # TODO: Purge any blocks that are now fully allocated. But....
+        #       1. The fragments still have a back-reference to the block.
+        #       2. What if the allocation is deallocated? Do we even ever allow that?
+        return Allocation(fragments)
