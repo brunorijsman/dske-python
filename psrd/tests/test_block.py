@@ -4,6 +4,7 @@ Unit tests for the Block class.
 
 from uuid import uuid4
 
+import common
 from psrd.block import Block
 
 
@@ -37,5 +38,5 @@ def test_block_management_status():
         "uuid": str(uuid),
         "original_size": 20,
         "remaining_size": 20,
-        "data": data,
+        "data": common.bytes_to_str(data, truncate=True),
     }
