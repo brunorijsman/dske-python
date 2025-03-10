@@ -109,3 +109,20 @@ def test_allocate_multiple_psrd_fragments_from_fresh_block():
         assert fragment.start_byte == fragment_nr * fragment_size
         assert fragment.size == fragment_size
         assert fragment.consumed is False
+
+
+def test_try_allocate_fragment_from_empty_block():
+    """
+    Try to allocate a fragment from a block that has no bytes left.
+    """
+    block_size = 100
+    block = _create_test_block(block_size)
+    additional_fragment_size = 1
+    # Allocate a fragment that allocates all bytes in the block.
+    fragment_a = block.allocate_psrd_fragment(block_size)
+    assert fragment_a.start_byte == 0
+    assert fragment_a.size == block_size
+    assert fragment_a.consumed is False
+    # Try to allocate another fragment, but there are no bytes left.
+    fragment_b = block.allocate_psrd_fragment(additional_fragment_size)
+    assert fragment_b is None
