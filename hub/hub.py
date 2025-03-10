@@ -23,12 +23,12 @@ class Hub:
         self._pre_shared_key_size = pre_shared_key_size
         self._peer_clients = {}
 
-    def management_status(self):
+    def to_management_json(self):
         """
         Get the management status.
         """
         peer_clients_status = [
-            peer_client.management_status()
+            peer_client.to_management_json()
             for peer_client in self._peer_clients.values()
         ]
         return {

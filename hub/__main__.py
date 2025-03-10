@@ -81,7 +81,7 @@ async def mgmt_get_status():
     """
     Management: Get status.
     """
-    status = _HUB.management_status()
+    status = _HUB.to_management_json()
     return status
 
 

@@ -17,14 +17,14 @@ class Pool:
         self._remaining_size = 0
         self._psrd_blocks = []
 
-    def management_status(self) -> dict:
+    def to_management_json(self) -> dict:
         """
         Get the management status.
         """
         return {
             "remaining_size": self._remaining_size,
             "psrd_blocks": [
-                psrd_block.management_status() for psrd_block in self._psrd_blocks
+                psrd_block.to_management_json() for psrd_block in self._psrd_blocks
             ],
         }
 

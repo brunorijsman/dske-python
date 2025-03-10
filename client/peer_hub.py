@@ -37,7 +37,7 @@ class PeerHub:
         self._hub_name = None
         self._pre_shared_key = None
 
-    def management_status(self) -> dict:
+    def to_management_json(self) -> dict:
         """
         Get the management status.
         """
@@ -45,7 +45,7 @@ class PeerHub:
             "hub_name": self._hub_name,
             "pre_shared_key": common.bytes_to_str(self._pre_shared_key),
             "registered": self._registered,
-            "psrd_pool": self._psrd_pool.management_status(),
+            "psrd_pool": self._psrd_pool.to_management_json(),
         }
 
     async def register(self) -> None:

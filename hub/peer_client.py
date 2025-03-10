@@ -27,14 +27,14 @@ class PeerClient:
         """
         return self._pre_shared_key
 
-    def management_status(self):
+    def to_management_json(self):
         """
         Get the management status.
         """
         return {
             "client_name": self._client_name,
             "pre_shared_key": common.bytes_to_str(self._pre_shared_key),
-            "psrd_pool": self._psrd_pool.management_status(),
+            "psrd_pool": self._psrd_pool.to_management_json(),
         }
 
     def generate_psrd_block(self, size: int) -> psrd.Block:

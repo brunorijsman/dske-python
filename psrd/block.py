@@ -47,9 +47,10 @@ class Block:
         """
         return self._remaining_size
 
-    def management_status(self):
+    def to_management_json(self):
         """
-        Get the management status.
+        Get a JSON representation of the PSRD block, for the purpose of sending it to the management
+        interface.
         """
         return {
             "uuid": str(self._uuid),

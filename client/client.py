@@ -38,12 +38,12 @@ class Client:
         """
         return self._client_name
 
-    def management_status(self):
+    def to_management_json(self):
         """
         Get the management status.
         """
         peer_hubs_status = [
-            peer_hub.management_status() for peer_hub in self._peer_hubs
+            peer_hub.to_management_json() for peer_hub in self._peer_hubs
         ]
         return {"client_name": self._client_name, "peer_hubs": peer_hubs_status}
 

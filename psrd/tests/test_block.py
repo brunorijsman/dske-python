@@ -29,12 +29,12 @@ def test_block_properties():
     assert block.remaining_size == 1000
 
 
-def test_block_management_status():
+def test_block_to_management_json():
     uuid = uuid4()
     data = _bytes_test_pattern(20)
     block = Block(uuid, data)
-    management_status = block.management_status()
-    assert management_status == {
+    to_management_json = block.to_management_json()
+    assert to_management_json == {
         "uuid": str(uuid),
         "original_size": 20,
         "remaining_size": 20,
