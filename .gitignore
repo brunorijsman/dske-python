@@ -6,3 +6,7 @@ __pycache__/
 
 # Background process output files
 *.out
+
+# Code coverage
+.coverage
+htmlcov/

@@ -86,11 +86,15 @@ lint_all_code ()
 
 unit_test_all_code_using_pytest ()
 {
+    cov_modules=""
+    for dir in $MODULE_DIRS; do
+        cov_modules="$cov_modules --cov=${dir}"
+    done    
     # TODO: So far, we only have tests for the psrd module.
     # for DIR in $MODULE_DIRS; do
     for DIR in psrd; do
         progress "Unit test $DIR using pytest"
-        output=$(pytest ${DIR} 2>&1)
+        output=$(pytest ${cov_modules} --cov-report=html --cov-report=term ${DIR} 2>&1)
         if [ "$?" -ne 0 ]; then
             record_problem "$output"
         fi
