@@ -24,7 +24,7 @@ FALSE=0
 REPO_ROOT_DIR="${VIRTUAL_ENV}/.."
 cd $REPO_ROOT_DIR
 
-LINTED_DIRS="client common hub psrd"
+MODULE_DIRS="client common hub psrd"
 
 ALL_OK=$TRUE
 ISSUES=""
@@ -65,7 +65,7 @@ record_problem ()
 lint_all_code_using_pylint ()
 {
     # TODO: Do we need the find command below? Can't we just pylint the directory?
-    for DIR in $LINTED_DIRS; do
+    for DIR in $MODULE_DIRS; do
         progress "Lint $DIR using pylint"
         output=$( \
             pylint \
@@ -84,9 +84,27 @@ lint_all_code ()
     lint_all_code_using_pylint
 }
 
-format_all_code_using_black ()
+unit_test_all_code_using_pytest ()
 {
-    for DIR in $LINTED_DIRS; do
+    # TODO: So far, we only have tests for the psrd module.
+    # for DIR in $MODULE_DIRS; do
+    for DIR in psrd; do
+        progress "Unit test $DIR using pytest"
+        output=$(pytest ${DIR} 2>&1)
+        if [ "$?" -ne 0 ]; then
+            record_problem "$output"
+        fi
+    done
+}
+
+unit_test_all_code ()
+{
+    unit_test_all_code_using_pytest
+}
+
+format_check_all_code_using_black ()
+{
+    for DIR in $MODULE_DIRS; do
         progress "Format $DIR using black"
         output=$(black --check ${REPO_ROOT_DIR}/${DIR} 2>&1)
         if [ "$?" -ne 0 ]; then
@@ -95,9 +113,9 @@ format_all_code_using_black ()
     done
 }
 
-format_all_code ()
+format_check_all_code ()
 {
-    format_all_code_using_black
+    format_check_all_code_using_black
 }
 
 okay_to_commit ()
@@ -117,7 +135,8 @@ main ()
 {
     check_virtual_environment
     lint_all_code
-    format_all_code
+    unit_test_all_code
+    format_check_all_code
     if [ $ALL_OK == $TRUE ]; then
         okay_to_commit
     else

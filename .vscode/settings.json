@@ -13,6 +13,7 @@
         "psrds",
         "pylint",
         "pylintrc",
+        "pytest",
         "Rijsman",
         "setaf",
         "urandom"
