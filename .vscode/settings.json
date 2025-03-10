@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
+        "accum",
         "camila",
+        "coeff",
         "configfile",
         "DSKE",
         "DSKEClient",
@@ -8,6 +10,7 @@
         "getpid",
         "HMAC",
         "htmlcov",
+        "Mersenne",
         "mgmt",
         "mwag",
         "PSRD",
@@ -17,7 +20,9 @@
         "pylintrc",
         "pytest",
         "Rijsman",
+        "RINT",
         "setaf",
+        "Shamir",
         "urandom"
     ],
     "editor.wordWrapColumn": 100,

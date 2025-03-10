@@ -60,8 +60,7 @@ class Block:
 
     def to_protocol_json(self):
         """
-        Get a JSON representation of the PSRD block, for the purpose of sending it in a protocol
-        message.
+        Convert to JSON representation as used in the DSKE protocol.
         """
         # Blocks should only be sent over protocol message before any bytes are allocated.
         assert self._remaining_size == self._original_size
@@ -71,14 +70,15 @@ class Block:
         }
 
     @classmethod
-    def from_protocol_json(cls, json):
+    def from_protocol_json(cls, json: dict):
         """
-        Create a PSRD block from the JSON representation.
+        Convert from JSON representation as used in the DSKE protocol.
         """
         # TODO: Error handling
-        uuid = UUID(json["uuid"])
-        data = common.str_to_bytes(json["data"])
-        return Block(uuid, data)
+        return Block(
+            UUID(json["uuid"]),
+            common.str_to_bytes(json["data"]),
+        )
 
     @classmethod
     def create_random_psrd_block(cls, size: PositiveInt):
