@@ -156,7 +156,7 @@ def test_try_allocate_fragment_from_block_with_insufficient_space():
 
 def test_deallocate_psrd_fragment():
     """
-    Deallocate a fragment from a block.
+    Deallocate a fragment from a block. Test re-allocating from a gap in a block.
     """
     block_size = 100
     fragment_a_size = 10
