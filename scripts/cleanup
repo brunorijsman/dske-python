@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+REPO_ROOT_DIR="${VIRTUAL_ENV}/.."
+cd $REPO_ROOT_DIR
+
+rm -f *.out
+for module in common client hub psrd; do
+    rm -rf $module/__pycache__
+done
+
