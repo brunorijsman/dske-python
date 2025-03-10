@@ -117,6 +117,9 @@ class Block:
         """
         Deallocate a PSRD fragment from the block.
         """
+        # Once a fragment is consumed, it cannot be deallocated anymore. This is intended for
+        # returning already allocated fragments if cannot gather enough fragments to form an
+        # Allocation object.
         end_byte = fragment.start_byte + fragment.size
         self._allocated[fragment.start_byte : end_byte] = False
         self._remaining_size += fragment
