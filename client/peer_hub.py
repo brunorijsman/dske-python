@@ -2,9 +2,9 @@
 A peer DSKE hub.
 """
 
-import base64
 import httpx
 
+import common
 import psrd
 
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
@@ -41,15 +41,9 @@ class PeerHub:
         """
         Get the management status.
         """
-        if self._pre_shared_key is None:
-            encoded_pre_shared_key = None
-        else:
-            encoded_pre_shared_key = base64.b64encode(self._pre_shared_key).decode(
-                "utf-8"
-            )
         return {
             "hub_name": self._hub_name,
-            "pre_shared_key": encoded_pre_shared_key,
+            "pre_shared_key": common.bytes_to_str(self._pre_shared_key),
             "registered": self._registered,
             "psrd_pool": self._psrd_pool.management_status(),
         }
@@ -70,9 +64,7 @@ class PeerHub:
             # TODO: Handle the case that the response does not contain the expected fields
             data = response.json()
             self._hub_name = data["hub_name"]
-            encoded_pre_shared_key = data["pre_shared_key"]
-            pre_shared_key = base64.b64decode(encoded_pre_shared_key.encode("utf-8"))
-            self._pre_shared_key = pre_shared_key
+            self._pre_shared_key = common.str_to_bytes(data["pre_shared_key"])
             self._registered = True
 
     async def unregister(self) -> None:

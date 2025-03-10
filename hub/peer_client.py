@@ -2,8 +2,7 @@
 A peer DSKE client.
 """
 
-import base64
-
+import common
 import psrd
 
 
@@ -32,10 +31,9 @@ class PeerClient:
         """
         Get the management status.
         """
-        encoded_pre_shared_key = base64.b64encode(self._pre_shared_key).decode("utf-8")
         return {
             "client_name": self._client_name,
-            "pre_shared_key": encoded_pre_shared_key,
+            "pre_shared_key": common.bytes_to_str(self._pre_shared_key),
             "psrd_pool": self._psrd_pool.management_status(),
         }
 

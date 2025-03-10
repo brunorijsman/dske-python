@@ -3,7 +3,6 @@ Main module for a DSKE security hub.
 """
 
 import argparse
-import base64
 import os
 import signal
 
@@ -11,6 +10,7 @@ import fastapi
 import pydantic
 import uvicorn
 
+import common
 from .hub import Hub
 
 
@@ -39,12 +39,12 @@ async def oob_get_register_dske_client(client_name: str):
     Out of band: Register a DSKE client.
     """
     peer_client = _HUB.register_peer_client(client_name)
-    encoded_pre_shared_key = base64.b64encode(peer_client.pre_shared_key).decode(
-        "utf-8"
-    )
     # TODO: Return a proper error when there is an exception because the client already is
     #       peer.
-    return {"hub_name": _HUB_NAME, "pre_shared_key": encoded_pre_shared_key}
+    return {
+        "hub_name": _HUB_NAME,
+        "pre_shared_key": common.bytes_to_str(peer_client.pre_shared_key),
+    }
 
 
 @_APP.get("/dske/hub/oob/v1/psrd")

@@ -2,9 +2,10 @@
 A DSKE client.
 """
 
-import base64
 import os
 import uuid
+
+import common
 
 from .peer_hub import PeerHub
 
@@ -76,11 +77,10 @@ class Client:
         assert self._default_key_size_in_bits % 8 == 0
         size_in_bytes = self._default_key_size_in_bits // 8
         key_value = os.urandom(size_in_bytes)
-        encoded_key_value = base64.b64encode(key_value).decode("utf-8")
         return {
             "keys": {
                 "key_ID": key_id,
-                "key": encoded_key_value,
+                "key": common.bytes_to_str(key_value),
             }
         }
 
@@ -94,11 +94,10 @@ class Client:
         assert self._default_key_size_in_bits % 8 == 0
         size_in_bytes = self._default_key_size_in_bits // 8
         key_value = os.urandom(size_in_bytes)
-        encoded_key_value = base64.b64encode(key_value).decode("utf-8")
         return {
             "keys": {
                 "key_ID": key_id,
-                "key": encoded_key_value,
+                "key": common.bytes_to_str(key_value),
             }
         }
 

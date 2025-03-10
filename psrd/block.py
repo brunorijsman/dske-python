@@ -2,12 +2,13 @@
 A Pre-Shared Random Data (PSRD) block.
 """
 
-import base64
 from uuid import UUID, uuid4
 import os
 
 from bitarray import bitarray
 from pydantic import PositiveInt
+
+import common
 
 from .allocation import Allocation
 from .fragment import Fragment
@@ -50,13 +51,11 @@ class Block:
         """
         Get the management status.
         """
-        encoded_data = base64.b64encode(self._data).decode("utf-8")
-        # TODO: Truncate data with "..." if longer than some length
         return {
-            "uuid": self._uuid,
+            "uuid": str(self._uuid),
             "original_size": self._original_size,
             "remaining_size": self._remaining_size,
-            "data": encoded_data,
+            "data": common.bytes_to_str(self._data, truncate=True),
         }
 
     def to_protocol_json(self):
@@ -64,10 +63,9 @@ class Block:
         Get a JSON representation of the PSRD block, for the purpose of sending it in a protocol
         message.
         """
-        encoded_data = base64.b64encode(self._data).decode("utf-8")
         return {
-            "uuid": self._uuid,
-            "data": encoded_data,
+            "uuid": str(self._uuid),
+            "data": common.bytes_to_str(self._data),
         }
 
     @classmethod
@@ -77,8 +75,7 @@ class Block:
         """
         # TODO: Error handling
         uuid = json["uuid"]
-        encoded_data = json["data"]
-        data = base64.b64decode(encoded_data.encode("utf-8"))
+        data = common.str_to_bytes(json["data"])
         return Block(uuid, data)
 
     @classmethod
