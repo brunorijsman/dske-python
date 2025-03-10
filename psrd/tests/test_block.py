@@ -90,7 +90,7 @@ def test_allocate_psrd_fragment_from_fresh_block():
     block_size = 100
     fragment_size = 10
     block = _create_test_block(block_size)
-    fragment = block.allocate_psrd_fragment(fragment_size)
+    fragment = block.allocate_fragment(fragment_size)
     assert fragment.start_byte == 0
     assert fragment.size == fragment_size
     assert fragment.consumed is False
@@ -106,7 +106,7 @@ def test_allocate_multiple_psrd_fragments_from_fresh_block():
     fragment_size = 10
     block = _create_test_block(block_size)
     for fragment_nr in range(nr_fragments):
-        fragment = block.allocate_psrd_fragment(fragment_size)
+        fragment = block.allocate_fragment(fragment_size)
         assert fragment.start_byte == fragment_nr * fragment_size
         assert fragment.size == fragment_size
         assert fragment.consumed is False
@@ -121,13 +121,13 @@ def test_try_allocate_fragment_from_empty_block():
     block = _create_test_block(block_size)
     additional_fragment_size = 1
     # Allocate a fragment that allocates all bytes in the block.
-    fragment_a = block.allocate_psrd_fragment(block_size)
+    fragment_a = block.allocate_fragment(block_size)
     assert fragment_a.start_byte == 0
     assert fragment_a.size == block_size
     assert fragment_a.consumed is False
     assert block.remaining_size == 0
     # Try to allocate another fragment, but there are no bytes left.
-    fragment_b = block.allocate_psrd_fragment(additional_fragment_size)
+    fragment_b = block.allocate_fragment(additional_fragment_size)
     assert fragment_b is None
 
 
@@ -140,14 +140,14 @@ def test_try_allocate_fragment_from_block_with_insufficient_space():
     fragment_a_size = 90
     fragment_b_size = 20
     # Allocate a fragment that allocates all bytes in the block.
-    fragment_a = block.allocate_psrd_fragment(fragment_a_size)
+    fragment_a = block.allocate_fragment(fragment_a_size)
     assert fragment_a.start_byte == 0
     assert fragment_a.size == fragment_a_size
     assert fragment_a.consumed is False
     assert block.remaining_size == block_size - fragment_a_size
     # Try to allocate another fragment, but we have fewer bytes left than asked for.
     # We should still get a fragment, just with fewer bytes.
-    fragment_b = block.allocate_psrd_fragment(fragment_b_size)
+    fragment_b = block.allocate_fragment(fragment_b_size)
     assert fragment_b.start_byte == fragment_a_size
     assert fragment_b.size == block_size - fragment_a_size
     assert fragment_b.consumed is False
@@ -173,22 +173,22 @@ def test_deallocate_psrd_fragment():
     #    So we get less than we asked for.
     block = _create_test_block(block_size)
     # Allocate fragment a
-    fragment_a = block.allocate_psrd_fragment(fragment_a_size)
+    fragment_a = block.allocate_fragment(fragment_a_size)
     assert fragment_a.start_byte == 0
     assert fragment_a.size == fragment_a_size
     assert fragment_a.consumed is False
     assert block.remaining_size == block_size - fragment_a_size
     # Allocate fragment b
-    fragment_b = block.allocate_psrd_fragment(fragment_b_size)
+    fragment_b = block.allocate_fragment(fragment_b_size)
     assert fragment_b.start_byte == fragment_a_size
     assert fragment_b.size == fragment_b_size
     assert fragment_b.consumed is False
     assert block.remaining_size == block_size - fragment_a_size - fragment_b_size
     # Deallocate fragment a
-    block.deallocate_psrd_fragment(fragment_a)
+    block.deallocate_fragment(fragment_a)
     assert block.remaining_size == block_size - fragment_b_size
     # Attempt to allocate fragment c; we get less than we asked for
-    fragment_c = block.allocate_psrd_fragment(fragment_c_size)
+    fragment_c = block.allocate_fragment(fragment_c_size)
     assert fragment_c.start_byte == 0
     assert fragment_c.size == fragment_a_size
     assert fragment_c.consumed is False

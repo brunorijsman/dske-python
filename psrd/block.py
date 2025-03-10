@@ -89,7 +89,7 @@ class Block:
         data = os.urandom(size)
         return Block(uuid, data)
 
-    def allocate_psrd_fragment(self, desired_size: PositiveInt) -> Fragment | None:
+    def allocate_fragment(self, desired_size: PositiveInt) -> Fragment | None:
         """
         Allocate a PSRD fragment from the block. We try to allocate `desired_size` bytes from the
         block, but we accept a smaller fragment if there is not enough data left in the block. We a
@@ -112,7 +112,7 @@ class Block:
         self._remaining_size -= found_size
         return Fragment(self, found_start, found_size)
 
-    def deallocate_psrd_fragment(self, fragment: Fragment):
+    def deallocate_fragment(self, fragment: Fragment):
         """
         Deallocate a PSRD fragment from the block.
         """
