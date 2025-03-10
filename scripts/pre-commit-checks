@@ -1,0 +1,128 @@
+#!/bin/bash
+
+if [[ $TERM == "" || $TERM == "dumb" ]]; then
+    NORMAL=""
+    RED=""
+    GREEN=""
+    YELLOW=""
+    BLUE=""
+    MAGENTA=""
+    BEEP=""
+else
+    NORMAL=$(tput sgr0)
+    RED=$(tput setaf 1)
+    GREEN=$(tput setaf 2)
+    YELLOW=$(tput setaf 3)
+    BLUE=$(tput setaf 4)
+    MAGENTA=$(tput setaf 5)
+    BEEP=$(tput bel)
+fi
+
+TRUE=1
+FALSE=0
+
+REPO_ROOT_DIR="${VIRTUAL_ENV}/.."
+cd $REPO_ROOT_DIR
+
+LINTED_DIRS="client common hub psrd"
+
+ALL_OK=$TRUE
+ISSUES=""
+
+fatal_error ()
+{
+    local message="$1"
+    echo "${RED}Error:${NORMAL} ${message}" >&2
+    exit 1
+}
+
+progress ()
+{
+    local message="$1"
+    echo "${NORMAL}${message}"
+}
+
+issue ()
+{
+    local message="$1"
+    echo "${RED}Issue:${NORMAL} ${message}" >&2
+}
+
+check_virtual_environment ()
+{
+    if [[ -z "${VIRTUAL_ENV}" ]]; then
+        fatal_error "Virtual deployment not activated"
+    fi
+}
+
+record_problem ()
+{
+    local output="$1"
+    echo "${MAGENTA}${output}${NORMAL}"
+    ALL_OK=$FALSE
+}
+
+lint_all_code_using_pylint ()
+{
+    # TODO: Do we need the find command below? Can't we just pylint the directory?
+    for DIR in $LINTED_DIRS; do
+        progress "Lint $DIR using pylint"
+        output=$( \
+            pylint \
+            --rcfile $REPO_ROOT_DIR/pylintrc \
+            $(find ${DIR} -name \*.py) \
+            2>&1 \
+        )
+        if [ "$?" -ne 0 ]; then
+            record_problem "$output"
+        fi
+    done
+}
+
+lint_all_code ()
+{
+    lint_all_code_using_pylint
+}
+
+format_all_code_using_black ()
+{
+    for DIR in $LINTED_DIRS; do
+        progress "Format $DIR using black"
+        output=$(black --check ${REPO_ROOT_DIR}/${DIR} 2>&1)
+        if [ "$?" -ne 0 ]; then
+            record_problem "$output"
+        fi
+    done
+}
+
+format_all_code ()
+{
+    format_all_code_using_black
+}
+
+okay_to_commit ()
+{
+    echo "${GREEN}All good; you can commit."
+    exit 0
+
+}
+
+not_okay_to_commit ()
+{
+    echo "${RED}There was at least one issue; do not commit."
+    exit 1
+}
+
+main ()
+{
+    check_virtual_environment
+    lint_all_code
+    format_all_code
+    if [ $ALL_OK == $TRUE ]; then
+        okay_to_commit
+    else
+        not_okay_to_commit
+    fi
+}
+
+main

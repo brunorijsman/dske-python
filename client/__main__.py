@@ -77,6 +77,7 @@ async def api_get_etsi_get_key_with_key_ids(slave_sae_id: str, key_ID: str):
     """
     ETSI QKD 014 API: Get Key with Key IDs.
     """
+    # pylint: disable=invalid-name
     return _CLIENT.etsi_get_key_with_key_ids(slave_sae_id, key_id=key_ID)
 
 

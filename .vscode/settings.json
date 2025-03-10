@@ -11,7 +11,10 @@
         "mwag",
         "PSRD",
         "psrds",
+        "pylint",
+        "pylintrc",
         "Rijsman",
+        "setaf",
         "urandom"
     ],
     "editor.wordWrapColumn": 100,
