@@ -77,7 +77,7 @@ class Block:
         Create a PSRD block from the JSON representation.
         """
         # TODO: Error handling
-        uuid = json["uuid"]
+        uuid = UUID(json["uuid"])
         data = common.str_to_bytes(json["data"])
         return Block(uuid, data)
 

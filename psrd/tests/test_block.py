@@ -51,3 +51,15 @@ def test_block_to_protocol_json():
         "uuid": str(uuid),
         "data": common.bytes_to_str(data),
     }
+
+
+def test_block_from_protocol_json():
+    uuid = uuid4()
+    data = _bytes_test_pattern(20)
+    protocol_json = {
+        "uuid": str(uuid),
+        "data": common.bytes_to_str(data),
+    }
+    block = Block.from_protocol_json(protocol_json)
+    assert block.uuid == uuid
+    assert block.remaining_size == 20
