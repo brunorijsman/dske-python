@@ -1,5 +1,5 @@
 """
-The classes and functions for the PSRD package.
+The classes and functions exported by the PSRD package.
 """
 
 from .allocation import Allocation

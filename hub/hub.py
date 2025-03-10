@@ -61,5 +61,5 @@ class Hub:
             # TODO: Not the right kind of exception
             raise ValueError(f"Client {client_name} not registered.")
         peer_client = self._peer_clients[client_name]
-        psrd_block = peer_client.generate_psrd_block(size)
+        psrd_block = peer_client.create_random_psrd_block(size)
         return psrd_block
