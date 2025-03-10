@@ -126,3 +126,24 @@ def test_try_allocate_fragment_from_empty_block():
     # Try to allocate another fragment, but there are no bytes left.
     fragment_b = block.allocate_psrd_fragment(additional_fragment_size)
     assert fragment_b is None
+
+
+def test_try_allocate_fragment_from_block_with_insufficient_space():
+    """
+    Try to allocate a fragment from a block that has insufficient space.
+    """
+    block_size = 100
+    block = _create_test_block(block_size)
+    fragment_a_size = 90
+    fragment_b_size = 20
+    # Allocate a fragment that allocates all bytes in the block.
+    fragment_a = block.allocate_psrd_fragment(fragment_a_size)
+    assert fragment_a.start_byte == 0
+    assert fragment_a.size == fragment_a_size
+    assert fragment_a.consumed is False
+    # Try to allocate another fragment, but we have fewer bytes left than asked for.
+    # We should still get a fragment, just with fewer bytes.
+    fragment_b = block.allocate_psrd_fragment(fragment_b_size)
+    assert fragment_b.start_byte == fragment_a_size
+    assert fragment_b.size == block_size - fragment_a_size
+    assert fragment_b.consumed is False
