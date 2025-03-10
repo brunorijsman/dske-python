@@ -1,18 +1,8 @@
-TODO: PSRDBlock: map (or some other data structure) to keep track of which bytes are or are not
-      already allocated
-
-TODO: PSRDBlock: function to consume a set number of bytes (returns allocation and bytes themselves)
-
-TODO: PSRDAllocation: identifies a range of bytes in a block (uuid of block, start, length)
-      List of this
+TODO: Test case to get familiar with 
 
 TODO: Zero out bytes when they are allocated
 
 TODO: Remove block from pool when it is completely allocated
-
-TODO: PSRDBlock: function to consume a given allocation
-
-TODO: PSRDPool: function to consume set number of bytes; uses multiple blocks if needed
 
 TODO: Add a Key class to keep track of the key logic (separate class for initiator and
       responder?)
@@ -27,28 +17,17 @@ TODO: In key-share message: encrypted key-share
 
 TODO: In key-share message: none + HMAC over encrypted key-share + nonce + shared secret (+ more?)
 
-TODO: Create an sae class to test requesting keys (first request alice, then request bob, make sure
-      they are the same)
-
 TODO: Have client unregister itself from all hubs when it shuts down.
-
-TODO: Have a topology command line argument to start or stop a single node.
 
 TODO: Retry client registrations when they fail.
       Perhaps use tenacity
       See https://medium.com/@benshearlaw/how-to-use-httpx-request-client-with-fastapi-16255a9984a4
-
-TODO: Add ETSI QKD 014 API to clients.
 
 TODO: Add statistics management API and topology command to query it.
 
 TODO: Add support for local distributors.
 
 TODO: Add log messages
-
-TODO: Add unit tests
-
-TODO: Pre-commit checks (lint, unit tests)
 
 TODO: Setup CI/CD environment
 
@@ -71,3 +50,5 @@ TODO: Make registration more REST-like
       POST registration resource to register
       DELETE registration resource to unregister
       GET registration resource to query registration status
+
+TODO: More unit test cases to get code coverage up
