@@ -9,4 +9,6 @@ rm -f *.out
 for module in common client hub psrd; do
     rm -rf $module/__pycache__
 done
-
+rm -rf .pytest_cache
+rm -rf .coverage
+rm -rf htmlcov
