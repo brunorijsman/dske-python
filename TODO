@@ -58,3 +58,6 @@ TODO: Have the hub assign an ID to each peer client; we don't really need it but
 
 TODO: Perhaps move all of the common packages (psrd, key) to a single package, namely package
       "common"?
+
+TODO: Add Sphinx documentation
+      Use https://github.com/tox-dev/sphinx-autodoc-typehints 

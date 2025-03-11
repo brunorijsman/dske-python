@@ -157,26 +157,29 @@ def recover_secret(shares, prime=_PRIME):
 # TODO: Remove the main function
 
 
-def main():
-    """Main function"""
-    secret = 1234
-    shares = make_random_shares(secret, minimum=3, shares=6)
-
-    print("Secret:                                                     ", secret)
-    print("Shares:")
-    if shares:
-        for share in shares:
-            print("  ", share)
-
-    print(
-        "Secret recovered from minimum subset of shares:             ",
-        recover_secret(shares[:3]),
-    )
-    print(
-        "Secret recovered from a different minimum subset of shares: ",
-        recover_secret(shares[-3:]),
-    )
+def split_secret_into_shares(
+    secret: bin,
+    nr_shares: int,
+    _min_nr_shares: int,
+) -> list[(int, bin)]:
+    """
+    Split a binary into `nr_shares` shares. The minimum number of shares required to reconstruct the
+    binary is `min_nr_shares`.
+    """
+    # TODO: Implement this for real. For now, this is just a dummy implementation: each share
+    #       contains a copy of the original secret. So, it's trivial to reconstruct the original
+    #       secret from any single share.
+    shares = []
+    for share_index in range(nr_shares):
+        share = (share_index, secret)
+        shares.append(share)
+    return shares
 
 
-if __name__ == "__main__":
-    main()
+def reconstruct_secret_from_shares(shares: list[(int, bin)]) -> bin:
+    """
+    Reconstruct a binary from shares.
+    """
+    # TODO: Same dummy implementation as described above.
+    # TODO: Throw an exception if the secret cannot be reconstructed.
+    return shares[0][1]

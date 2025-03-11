@@ -38,15 +38,15 @@ class Pool:
         self._blocks.append(psrd_block)
         self._remaining_size += psrd_block.remaining_size
 
-    def allocate_allocation(self, desired_size: PositiveInt) -> Allocation | None:
+    def allocate_allocation(self, size: PositiveInt) -> Allocation | None:
         """
         Allocate a PSRD allocation from the pool. An allocation consists of one or more fragments.
-        This either returns an Allocation object for the full `desired_size` or None if there is not
-        enough unallocated data left in the pool.
+        This either returns an Allocation object for the full reqquested `size` or None if there is
+        not enough unallocated data left in the pool.
         """
         # Collect fragments until we have what we need or until we have exhausted all blocks.
         fragments = []
-        remaining_size = desired_size
+        remaining_size = size
         for block in self._blocks:
             while remaining_size > 0:
                 fragment = block.allocate_fragment(remaining_size)
