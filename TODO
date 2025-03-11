@@ -55,3 +55,6 @@ TODO: More unit test cases to get code coverage up
 
 TODO: Have the hub assign an ID to each peer client; we don't really need it but the draft talks
       about it a lot.
+
+TODO: Perhaps move all of the common packages (psrd, key) to a single package, namely package
+      "common"?

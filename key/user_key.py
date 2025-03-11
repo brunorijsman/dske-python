@@ -8,17 +8,6 @@ from uuid import UUID, uuid4
 from .user_key_share import UserKeyShare
 
 
-# TODO: Get rid of this class? We have to clearly distinguish between:
-#       - Keys produced for the user and delivered over the ETSI QKD 014 interface (user_key)
-#       - Keys consumed from PSRD and used to encrypt key-shares using one-time pads
-#         (key_share_encryption_key)
-#       - Keys consumed from PSRD and used to sign key-shares (key_share_signature_key)
-
-
-# TODO: Perhaps move all of the common packages (psrd, key) to a single package, namely package
-#       "common"?
-
-
 class UserKey:
     """
     A key for the user, delivered over the ETSI QKD 014 interface.
