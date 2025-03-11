@@ -15,7 +15,7 @@ class PeerClient:
     _client_name: str
     _pre_shared_key: bytes
     _psrd_pool: psrd.Pool
-    _received_key_shares: dict[str, key.KeyShare]  # client name -> KeyShare
+    _received_key_shares: dict[str, key.UserKeyShare]  # client name -> KeyShare
 
     def __init__(self, client_name: str, pre_shared_key: bytes):
         self._client_name = client_name

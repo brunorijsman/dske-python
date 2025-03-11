@@ -7,7 +7,7 @@ import uuid
 
 import common
 
-import key
+from key import UserKey, UserKeyShare
 from .peer_hub import PeerHub
 
 # TODO: Make this configurable
@@ -74,18 +74,16 @@ class Client:
         """
         ETSI QKD 014 V1.1.1 Get Key API.
         """
-        # See remark about ETSI QKD API in file TODO
-        # TODO: For now, we return a random key UUID and a random key value. We need to implement
-        #       the actual key generation using DSKE.
-        key_id = uuid.uuid4()
+        # See remarks about ETSI QKD API in file TODO
         assert self._default_key_size_in_bits % 8 == 0
         size_in_bytes = self._default_key_size_in_bits // 8
-        key_value = os.urandom(size_in_bytes)
-        self.send_key_shares_to_all_peer_hubs(key_id, key_value)
+        user_key = UserKey.create_random_user_key(size_in_bytes)
+        # TODO: Error handling; this the sharing amongst peer hubs could fail.
+        self.share_user_key_amongst_peer_hubs(user_key)
         return {
             "keys": {
-                "key_ID": key_id,
-                "key": common.bytes_to_str(key_value),
+                "key_ID": user_key.uuid,
+                "key": common.bytes_to_str(user_key.value),
             }
         }
 
@@ -127,22 +125,15 @@ class Client:
         for peer_hub in self._peer_hubs:
             await peer_hub.request_psrd()
 
-    def send_key_shares_to_all_peer_hubs(self, key_id: int, key_value: bytes):
+    def share_user_key_amongst_peer_hubs(self, user_key: UserKey):
         """
-        Split the key up into key shares, and send each key share to a peer hub. The key shares
-        are encrypted and signed using PSRD shared with that peer hub.
+        Share the user key amongst the peer hubs.
         """
-        # Split the key up into key shares; at this point the key shares are not yet encrypted or
-        # signed.
-        # TODO: CONTINUE-FROM-HERE
-        print("send_key_shares_to_all_peer_hubs", flush=True)  ### DEBUG
+        print("share_user_key_amongst_peer_hubs", flush=True)  ### DEBUG
+
+        print("split into shares", flush=True)  ### DEBUG
         nr_shares = len(self._peer_hubs)
-        assert nr_shares >= _MIN_NR_SHARES
-        # TODO: Be consistent in naming: key or key_value
-        key_shares = key.KeyShare.split_key_into_shares(
-            key_id,
-            key_value,
-            nr_shares,
-            _MIN_NR_SHARES,
-        )
-        print(f"{key_shares=}", flush=True)  ### DEBUG
+        print(f"{nr_shares=}", flush=True)  ### DEBUG
+        print(f"{_MIN_NR_SHARES=}", flush=True)  ### DEBUG
+        user_key_shares = user_key.split_into_shares(nr_shares, _MIN_NR_SHARES)
+        print(f"{user_key_shares=}", flush=True)  ### DEBUG

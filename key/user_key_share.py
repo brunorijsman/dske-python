@@ -1,16 +1,16 @@
 """
-A key share.
+A share of a user key.
 """
 
 from uuid import UUID
 
-import key
 import psrd
 
 
-class KeyShare:
+class UserKeyShare:
     """
-    A key share.
+    A share of a user key. A user key is split up into multiple (`nr_shares`) key shares. The user
+    key can be reconstructed from a subset (`min_nr_shares`) of these key shares.
     """
 
     def __init__(self, key_id: UUID, share_index: int, data: bin):
@@ -40,7 +40,7 @@ class KeyShare:
         cls,
         json: dict,
         _psrd_pool: psrd.Pool,
-    ) -> "KeyShare":
+    ) -> "UserKeyShare":
         """
         Convert from JSON representation as used in the DSKE protocol.
         """
@@ -53,7 +53,7 @@ class KeyShare:
         # TODO: Consume keys from pool using allocations
         # TODO: Decrypt data
         # TODO: Verify signature
-        return KeyShare(
+        return UserKeyShare(
             key_id=UUID(json["key_id"]),
             share_index=json["share_index"],
             data=json["encrypted_data"],
