@@ -136,4 +136,12 @@ class Client:
         print(f"{_MIN_NR_SHARES=}", flush=True)  ### DEBUG
         user_key_shares = user_key.split_into_user_key_shares(nr_shares, _MIN_NR_SHARES)
         print(f"{user_key_shares=}", flush=True)  ### DEBUG
+
+        for peer_hub, user_key_share in zip(self._peer_hubs, user_key_shares):
+            peer_hub.allocate_encryption_and_authentication_psrd_keys_for_user_key_share(
+                user_key_share
+            )
+
         ### TODO: Continue from here
+        #    - Consume the encryption and authentication keys that were just allocated
+        #    - Send the user key shares to the peer hubs

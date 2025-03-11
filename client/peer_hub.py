@@ -5,6 +5,7 @@ A peer DSKE hub.
 import httpx
 
 import common
+import key
 import psrd
 
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
@@ -91,3 +92,14 @@ class PeerHub:
             #       fields (is that even possible with FastAPI?)
             psrd_block = psrd.Block.from_protocol_json(response.json())
             self._psrd_pool.add_psrd_block(psrd_block)
+
+    def allocate_encryption_and_authentication_psrd_keys_for_user_key_share(
+        self,
+        user_key_share: key.UserKeyShare,
+    ):
+        """
+        Allocate encryption and authentication PSRD keys for a user key share.
+        """
+        ### TODO: Continue from here
+        #   - Allocate from pool
+        #   - Add type hints
