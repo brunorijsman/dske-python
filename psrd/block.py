@@ -19,18 +19,20 @@ class Block:
     """
 
     _uuid: UUID
-    _original_size: int  # In bytes
+    _size: int  # In bytes
     _remaining_size: int  # In bytes
     _data: bytes
     _allocated: bitarray
+    _consumed: bitarray
 
     def __init__(self, uuid: UUID, data: bytes):
         self._uuid = uuid
-        # TODO: Do we need original size? Isn't this just the size of the data field?
-        self._original_size = len(data)
-        self._remaining_size = self._original_size
+        self._size = len(data)
+        self._remaining_size = self._size
+        # TODO: Use consistent naming: data or value
         self._data = data
-        self._allocated = bitarray(self._original_size)
+        self._allocated = bitarray(self._size)
+        self._consumed = bitarray(self._size)
 
     @property
     def uuid(self):
@@ -53,7 +55,7 @@ class Block:
         """
         return {
             "uuid": str(self._uuid),
-            "original_size": self._original_size,
+            "original_size": self._size,
             "remaining_size": self._remaining_size,
             "data": common.bytes_to_str(self._data, truncate=True),
         }
@@ -63,7 +65,7 @@ class Block:
         Convert to JSON representation as used in the DSKE protocol.
         """
         # Blocks should only be sent over protocol message before any bytes are allocated.
-        assert self._remaining_size == self._original_size
+        assert self._remaining_size == self._size
         return {
             "uuid": str(self._uuid),
             "data": common.bytes_to_str(self._data),
@@ -103,7 +105,7 @@ class Block:
         try:
             found_end = self._allocated.index(True, found_start)
         except ValueError:
-            found_end = self._original_size
+            found_end = self._size
         found_size = found_end - found_start
         if found_size > desired_size:
             found_end = found_start + desired_size
@@ -116,9 +118,20 @@ class Block:
         """
         Deallocate a PSRD fragment from the block.
         """
-        # Once a fragment is consumed, it cannot be deallocated anymore. This is intended for
-        # returning already allocated fragments if cannot gather enough fragments to form an
-        # Allocation object.
         end_byte = fragment.start_byte + fragment.size
         self._allocated[fragment.start_byte : end_byte] = False
         self._remaining_size += fragment.size
+
+    def consume_fragment(self, fragment: Fragment):
+        """
+        Consume a PSRD fragment from the block.
+        """
+        start = fragment.start_byte
+        end = start + fragment.size
+        assert self._allocated[start:end].all()
+        assert not self._consumed[start:end].any()
+        self._consumed[start:end] = True
+        consumed_data = self._data[start:end]
+        # Zero out allocated bytes in block
+        self._data = self._data[:start] + b"\x00" * fragment.size + self._data[end:]
+        return consumed_data

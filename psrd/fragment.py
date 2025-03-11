@@ -2,6 +2,8 @@
 A Pre-Shared Random Data (PSRD) fragment.
 """
 
+import common
+
 
 class Fragment:
     """
@@ -17,6 +19,7 @@ class Fragment:
         self._block = block
         self._start_byte = start_byte
         self._size = length
+        self._value = None
         self._consumed = False
 
     @property
@@ -48,5 +51,18 @@ class Fragment:
             "block_uuid": str(self._block.uuid),
             "start_byte": self._start_byte,
             "size": self._size,
+            "value": common.bytes_to_str(self._value, truncate=True),
             "consumed": self._consumed,
         }
+
+    def consume(self) -> bytes:
+        """
+        Consume the PSRD fragment. This requires that the fragment was previously allocated.
+        Since the allocation was successful, consuming the data cannot fail. Once the data has
+        consumed, it cannot be un-consumed.
+        """
+        assert not self._consumed
+        assert self._value is None
+        self._value = self._block.consume_fragment(self)
+        self._consumed = True
+        return self._value

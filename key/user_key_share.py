@@ -19,6 +19,7 @@ class UserKeyShare:
     def __init__(self, user_key_uuid: UUID, share_index: int, value: bytes):
         self._user_key_uuid = user_key_uuid
         self._share_index = share_index
+        self._size = len(value)
         self._value = value  # Not encrypted
         self._encryption_key_psrd_allocation = None
         self._signature_key_psrd_allocation = None
@@ -30,6 +31,7 @@ class UserKeyShare:
         return {
             "user_key_uuid": str(self._user_key_uuid),
             "share_index": self._share_index,
+            "size": self._size,
             "value": common.bytes_to_str(self._value, truncate=True),
             "encryption_key_psrd_allocation": common.to_mgmt_dict(
                 self._encryption_key_psrd_allocation
@@ -103,3 +105,13 @@ class UserKeyShare:
         self._signature_key_psrd_allocation = psrd_pool.allocate_allocation(
             self._AUTHENTICATION_KEY_SIZE_IN_BYTES
         )
+
+    def consume_encryption_and_authentication_psrd_keys(self):
+        """
+        Consume the encryption and authentication PSRD keys. This cannot fail since they were
+        allocated successfully allocated.
+        """
+        assert self._encryption_key_psrd_allocation is not None
+        self._encryption_key_psrd_allocation.consume()
+        assert self._signature_key_psrd_allocation is not None
+        self._signature_key_psrd_allocation.consume()

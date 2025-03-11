@@ -135,13 +135,24 @@ class Client:
         user_key_shares = user_key.split_into_user_key_shares(nr_shares, _MIN_NR_SHARES)
         print(f"{user_key_shares=}", flush=True)  ### DEBUG
 
-        print("allocate encryption and authentication keys", flush=True)  ### DEBUG
-        for peer_hub, user_key_share in zip(self._peer_hubs, user_key_shares):
+        # Assign each share to a peer hub
+        peer_hubs_and_user_key_shares = zip(self._peer_hubs, user_key_shares)
+
+        # Allocate encryption and authentication keys for share
+        for peer_hub, user_key_share in peer_hubs_and_user_key_shares:
             peer_hub.allocate_encryption_and_authentication_psrd_keys_for_user_key_share(
                 user_key_share
             )
+
+        # TODO: Error handling. If there was an issue allocating any one of the encryption or
+        #       authentication keys, deallocate all of the ones that were allocated, and return
+        #       and error to the caller.
+
+        print("consume encryption and authentication keys", flush=True)  ### DEBUG
+        for user_key_share in user_key_shares:
+            user_key_share.consume_encryption_and_authentication_psrd_keys()
         print(f"{user_key_shares=}", flush=True)  ### DEBUG
 
         ### TODO: Continue from here
-        #    - Consume the encryption and authentication keys that were just allocated
         #    - Send the user key shares to the peer hubs
+        #    - Flush fully consumed blocks from pool
