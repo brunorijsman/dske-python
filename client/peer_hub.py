@@ -108,7 +108,7 @@ class PeerHub:
         """
         Post a user key share to the peer hub.
         """
-        async with httpx.AsyncClient() as httpx_client:
+        async with httpx.AsyncClient() as _httpx_client:
             ### TODO: Continue from here
             print(f"POST {user_key_share=} to hub {self._hub_name}", flush=True)
             # size = _PSRD_BLOCK_SIZE_IN_BYTES
@@ -120,7 +120,7 @@ class PeerHub:
             #         f"Error: {response.status_code=}, {response.content=}", flush=True
             #     )
             #     return
-            # # TODO: Error handling: handle the case that the response does not contain the expected
-            # #       fields (is that even possible with FastAPI?)
+            # # TODO: Error handling: handle the case that the response does not contain the
+            # # expected fields (is that even possible with FastAPI?)
             # psrd_block = psrd.Block.from_protocol_json(response.json())
             # self._psrd_pool.add_psrd_block(psrd_block)
