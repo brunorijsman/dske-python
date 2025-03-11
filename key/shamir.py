@@ -10,6 +10,7 @@ Copied fom https://en.wikipedia.org/wiki/Shamir on 10-Mar-2025
 Modified by Bruno Rijsman
 """
 
+# pylint: disable=line-too-long
 # TODO: draft-mwag-dske-01 appendix A defines the following Galois fields:
 #       (1) GF(2^128) expressed in a polynomial basis modulo the irreducible polynomial
 #           1 + x + x^2 + x^7 + x^128
@@ -157,18 +158,19 @@ def recover_secret(shares, prime=_PRIME):
 # TODO: Remove the main function
 
 
-def split_secret_into_shares(
-    secret: bin,
+def split_binary_secret_into_shares(
+    secret: bytes,
     nr_shares: int,
-    _min_nr_shares: int,
-) -> list[(int, bin)]:
+    min_nr_shares: int,
+) -> list[(int, bytes)]:
     """
-    Split a binary into `nr_shares` shares. The minimum number of shares required to reconstruct the
-    binary is `min_nr_shares`.
+    Split a binary secret into `nr_shares` shares. The minimum number of shares required to
+    reconstruct the binary is `min_nr_shares`.
     """
     # TODO: Implement this for real. For now, this is just a dummy implementation: each share
     #       contains a copy of the original secret. So, it's trivial to reconstruct the original
     #       secret from any single share.
+    assert nr_shares >= min_nr_shares
     shares = []
     for share_index in range(nr_shares):
         share = (share_index, secret)
@@ -176,9 +178,9 @@ def split_secret_into_shares(
     return shares
 
 
-def reconstruct_secret_from_shares(shares: list[(int, bin)]) -> bin:
+def reconstruct_binary_secret_from_shares(shares: list[(int, bytes)]) -> bytes:
     """
-    Reconstruct a binary from shares.
+    Reconstruct a binary secret from shares.
     """
     # TODO: Same dummy implementation as described above.
     # TODO: Throw an exception if the secret cannot be reconstructed.

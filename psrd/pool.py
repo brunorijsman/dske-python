@@ -41,7 +41,7 @@ class Pool:
     def allocate_allocation(self, size: PositiveInt) -> Allocation | None:
         """
         Allocate a PSRD allocation from the pool. An allocation consists of one or more fragments.
-        This either returns an Allocation object for the full reqquested `size` or None if there is
+        This either returns an Allocation object for the full requested `size` or None if there is
         not enough unallocated data left in the pool.
         """
         # Collect fragments until we have what we need or until we have exhausted all blocks.

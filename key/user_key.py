@@ -6,6 +6,7 @@ import os
 from uuid import UUID, uuid4
 
 from .user_key_share import UserKeyShare
+from .shamir import split_binary_secret_into_shares
 
 
 class UserKey:
@@ -13,24 +14,24 @@ class UserKey:
     A key for the user, delivered over the ETSI QKD 014 interface.
     """
 
-    _uuid: UUID
+    _user_key_uuid: UUID
     _value: bytes
 
-    def __init__(self, uuid: UUID, value: bytes):
-        self._uuid = uuid
+    def __init__(self, user_key_uuid: UUID, value: bytes):
+        self._user_key_uuid = user_key_uuid
         self._value = value
 
     @property
-    def uuid(self) -> UUID:
+    def user_key_uuid(self) -> UUID:
         """
-        The UUID of the key.
+        The UUID of the user key.
         """
-        return self._uuid
+        return self._user_key_uuid
 
     @property
     def value(self) -> bytes:
         """
-        The value of the key.
+        The value of the user key.
         """
         return self._value
 
@@ -41,7 +42,7 @@ class UserKey:
         """
         return UserKey(uuid4(), os.urandom(size_in_bytes))
 
-    def split_into_shares(
+    def split_into_user_key_shares(
         self,
         nr_shares: int,
         min_nr_shares: int,
@@ -49,15 +50,16 @@ class UserKey:
         """
         Split a user key into `nr_shares` shares. The minimum number of shares required to
         reconstruct the user key is `min_nr_shares`.
+
+        The shares do *not* yet have an encryption key or a signature key allocated. This is done
+        later when each share is associated with a peer node.
         """
-        assert nr_shares >= min_nr_shares
-        # TODO: Implement Shamir's Secret Sharing algorithm
-        shares = []
-        for share_index in range(nr_shares):
-            share = UserKeyShare(
-                key_id=self._uuid,
-                share_index=share_index,
-                data=b"This is a share",  # TODO: Use share as produced by SSS algorithm
-            )
-            shares.append(share)
-        return shares
+        binary_shares = split_binary_secret_into_shares(
+            self._value, nr_shares, min_nr_shares
+        )
+        user_key_shares = []
+        for share_index, share_value in binary_shares:
+            # TODO: Error handling?
+            user_key_share = UserKeyShare(self._user_key_uuid, share_index, share_value)
+            user_key_shares.append(user_key_share)
+        return user_key_shares

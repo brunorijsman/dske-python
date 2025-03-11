@@ -15,8 +15,8 @@ class PSRDKey:
     either encrypt or sign a user key share (UserKeyShare).
     """
 
-    def __init__(self, uuid: UUID, allocation: psrd.Allocation):
-        self._uuid = uuid
+    def __init__(self, psrd_key_uuid: UUID, allocation: psrd.Allocation):
+        self._psrd_key_uuid = psrd_key_uuid
         self._allocation = allocation
 
     @classmethod

@@ -3,11 +3,10 @@ A DSKE client.
 """
 
 import os
-import uuid
 
 import common
 
-from key import UserKey, UserKeyShare
+from key import UserKey
 from .peer_hub import PeerHub
 
 # TODO: Make this configurable
@@ -82,7 +81,7 @@ class Client:
         self.share_user_key_amongst_peer_hubs(user_key)
         return {
             "keys": {
-                "key_ID": user_key.uuid,
+                "key_ID": user_key.user_key_uuid,
                 "key": common.bytes_to_str(user_key.value),
             }
         }
@@ -135,5 +134,6 @@ class Client:
         nr_shares = len(self._peer_hubs)
         print(f"{nr_shares=}", flush=True)  ### DEBUG
         print(f"{_MIN_NR_SHARES=}", flush=True)  ### DEBUG
-        user_key_shares = user_key.split_into_shares(nr_shares, _MIN_NR_SHARES)
+        user_key_shares = user_key.split_into_user_key_shares(nr_shares, _MIN_NR_SHARES)
         print(f"{user_key_shares=}", flush=True)  ### DEBUG
+        ### TODO: Continue from here
