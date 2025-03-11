@@ -66,7 +66,7 @@ class KeyShare:
         _key: bin,
         nr_shares: int,
         _min_nr_shares: int,
-    ) -> list[key.KeyShare]:
+    ) -> list["KeyShare"]:
         """
         Split a key into key shares.
         """

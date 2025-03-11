@@ -137,3 +137,4 @@ class Client:
 
         nr_shares = len(self._peer_hubs)
         assert nr_shares >= _MIN_NR_SHARES
+        print("send_key_shares_to_all_peer_hubs", flush=True)  ### DEBUG

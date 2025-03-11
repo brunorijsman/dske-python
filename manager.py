@@ -391,9 +391,11 @@ class Manager:
         slave_sae_id = self._args.slave_sae_id
         # See remark about ETSI QKD API in file TODO
         master_client_name = master_sae_id
-        port = self.node_port("client", master_client_name)
+        slave_client_name = slave_sae_id
+        master_port = self.node_port("client", master_client_name)
+        slave_port = self.node_port("client", slave_client_name)
         print(
-            f"Invoke ETSI QKD Get Key API for client {master_client_name} on port {port}"
+            f"Invoke ETSI QKD Get Key API for client {master_client_name} on port {master_port}"
         )
         print(f"{master_sae_id=} {slave_sae_id=}")
         url = f"{self.etsi_url("client", master_client_name)}/{slave_sae_id}/enc_keys"
@@ -405,14 +407,14 @@ class Manager:
             return
         print(json.dumps(get_key_response.json(), indent=2))
         print(
-            f"Invoke ETSI QKD Get Key with Key IDs API for client {master_client_name} "
-            f"on port {port}"
+            f"Invoke ETSI QKD Get Key with Key IDs API for client {slave_client_name} "
+            f"on port {slave_port}"
         )
         key_id = get_key_response.json()["keys"]["key_ID"]
         key_value_1 = get_key_response.json()["keys"]["key"]
         print(f"{master_sae_id=} {slave_sae_id=} {key_id}")
         url = (
-            f"{self.etsi_url("client", master_client_name)}/{slave_sae_id}/dec_keys"
+            f"{self.etsi_url("client", slave_client_name)}/{master_sae_id}/dec_keys"
             f"?key_ID={key_id}"
         )
         try:
