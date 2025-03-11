@@ -7,6 +7,7 @@ import uuid
 
 import common
 
+import key
 from .peer_hub import PeerHub
 
 # TODO: Make this configurable
@@ -126,7 +127,7 @@ class Client:
         for peer_hub in self._peer_hubs:
             await peer_hub.request_psrd()
 
-    def send_key_shares_to_all_peer_hubs(self, _key_id: int, _key_value: bytes):
+    def send_key_shares_to_all_peer_hubs(self, key_id: int, key_value: bytes):
         """
         Split the key up into key shares, and send each key share to a peer hub. The key shares
         are encrypted and signed using PSRD shared with that peer hub.
@@ -134,7 +135,14 @@ class Client:
         # Split the key up into key shares; at this point the key shares are not yet encrypted or
         # signed.
         # TODO: CONTINUE-FROM-HERE
-
+        print("send_key_shares_to_all_peer_hubs", flush=True)  ### DEBUG
         nr_shares = len(self._peer_hubs)
         assert nr_shares >= _MIN_NR_SHARES
-        print("send_key_shares_to_all_peer_hubs", flush=True)  ### DEBUG
+        # TODO: Be consistent in naming: key or key_value
+        key_shares = key.KeyShare.split_key_into_shares(
+            key_id,
+            key_value,
+            nr_shares,
+            _MIN_NR_SHARES,
+        )
+        print(f"{key_shares=}", flush=True)  ### DEBUG
