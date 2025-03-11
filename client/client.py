@@ -71,12 +71,15 @@ class Client:
         """
         ETSI QKD 014 V1.1.1 Get Key API.
         """
+        # TODO: Store the _slave_sae_id somewhere. It should be used to determine who is allowed
+        #       to retrieve the key on the other side by calling Get Key with Key IDs.
+        #       Perhaps also store the master_sae_id to keep track of who the initiator/master is.
         # See remarks about ETSI QKD API in file TODO
         assert self._default_key_size_in_bits % 8 == 0
         size_in_bytes = self._default_key_size_in_bits // 8
         user_key = UserKey.create_random_user_key(size_in_bytes)
         # TODO: Error handling; this the sharing amongst peer hubs could fail.
-        self.share_user_key_amongst_peer_hubs(user_key)
+        await self.share_user_key_amongst_peer_hubs(user_key)
         return {
             "keys": {
                 "key_ID": user_key.user_key_uuid,
@@ -122,24 +125,17 @@ class Client:
         for peer_hub in self._peer_hubs:
             await peer_hub.request_psrd()
 
-    def share_user_key_amongst_peer_hubs(self, user_key: UserKey):
+    async def share_user_key_amongst_peer_hubs(self, user_key: UserKey):
         """
         Share the user key amongst the peer hubs.
         """
-        print("share_user_key_amongst_peer_hubs", flush=True)  ### DEBUG
 
-        print("split into shares", flush=True)  ### DEBUG
+        # Split user key into shares
         nr_shares = len(self._peer_hubs)
-        print(f"{nr_shares=}", flush=True)  ### DEBUG
-        print(f"{_MIN_NR_SHARES=}", flush=True)  ### DEBUG
         user_key_shares = user_key.split_into_user_key_shares(nr_shares, _MIN_NR_SHARES)
-        print(f"{user_key_shares=}", flush=True)  ### DEBUG
 
-        # Assign each share to a peer hub
-        peer_hubs_and_user_key_shares = zip(self._peer_hubs, user_key_shares)
-
-        # Allocate encryption and authentication keys for share
-        for peer_hub, user_key_share in peer_hubs_and_user_key_shares:
+        # Allocate encryption and authentication keys for each share
+        for peer_hub, user_key_share in zip(self._peer_hubs, user_key_shares):
             peer_hub.allocate_encryption_and_authentication_psrd_keys_for_user_key_share(
                 user_key_share
             )
@@ -148,11 +144,15 @@ class Client:
         #       authentication keys, deallocate all of the ones that were allocated, and return
         #       and error to the caller.
 
-        print("consume encryption and authentication keys", flush=True)  ### DEBUG
+        # Consume the allocated encryption and authentication keys for each share
         for user_key_share in user_key_shares:
             user_key_share.consume_encryption_and_authentication_psrd_keys()
-        print(f"{user_key_shares=}", flush=True)  ### DEBUG
+
+        # POST the user key shares to the peer hubs
+        for peer_hub, user_key_share in zip(self._peer_hubs, user_key_shares):
+            await peer_hub.post_key_share(user_key_share)
 
         ### TODO: Continue from here
+        print(f"{user_key_shares=}", flush=True)  ### DEBUG
         #    - Send the user key shares to the peer hubs
         #    - Flush fully consumed blocks from pool
