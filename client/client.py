@@ -41,13 +41,11 @@ class Client:
         """
         return self._client_name
 
-    def to_management_json(self):
+    def to_mgmt_dict(self):
         """
         Get the management status.
         """
-        peer_hubs_status = [
-            peer_hub.to_management_json() for peer_hub in self._peer_hubs
-        ]
+        peer_hubs_status = [peer_hub.to_mgmt_dict() for peer_hub in self._peer_hubs]
         return {"client_name": self._client_name, "peer_hubs": peer_hubs_status}
 
     async def etsi_status(self, slave_sae_id: str):
@@ -137,10 +135,12 @@ class Client:
         user_key_shares = user_key.split_into_user_key_shares(nr_shares, _MIN_NR_SHARES)
         print(f"{user_key_shares=}", flush=True)  ### DEBUG
 
+        print("allocate encryption and authentication keys", flush=True)  ### DEBUG
         for peer_hub, user_key_share in zip(self._peer_hubs, user_key_shares):
             peer_hub.allocate_encryption_and_authentication_psrd_keys_for_user_key_share(
                 user_key_share
             )
+        print(f"{user_key_shares=}", flush=True)  ### DEBUG
 
         ### TODO: Continue from here
         #    - Consume the encryption and authentication keys that were just allocated

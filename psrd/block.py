@@ -46,7 +46,7 @@ class Block:
         """
         return self._remaining_size
 
-    def to_management_json(self):
+    def to_mgmt_dict(self):
         """
         Get a JSON representation of the PSRD block, for the purpose of sending it to the management
         interface.
@@ -58,7 +58,7 @@ class Block:
             "data": common.bytes_to_str(self._data, truncate=True),
         }
 
-    def to_protocol_json(self):
+    def to_protocol_dict(self):
         """
         Convert to JSON representation as used in the DSKE protocol.
         """

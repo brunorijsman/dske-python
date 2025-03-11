@@ -20,16 +20,21 @@ class Pool:
         self._remaining_size = 0
         self._blocks = []
 
-    def to_management_json(self) -> dict:
+    def to_mgmt_dict(self) -> dict:
         """
         Get the management status.
         """
         return {
             "remaining_size": self._remaining_size,
-            "psrd_blocks": [
-                psrd_block.to_management_json() for psrd_block in self._blocks
-            ],
+            "psrd_blocks": [psrd_block.to_mgmt_dict() for psrd_block in self._blocks],
         }
+
+    def to_protocol_dict(self) -> dict:
+        """
+        Convert to JSON representation as used in the DSKE protocol.
+        """
+        # TODO
+        assert False
 
     def add_psrd_block(self, psrd_block: Block):
         """

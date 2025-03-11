@@ -38,12 +38,12 @@ def test_block_properties():
     assert block.remaining_size == size
 
 
-def test_block_to_management_json():
+def test_block_to_mgmt_dict():
     size = 20
     uuid = uuid4()
     data = _bytes_test_pattern(size)
     block = Block(uuid, data)
-    management_json = block.to_management_json()
+    management_json = block.to_mgmt_dict()
     assert management_json == {
         "uuid": str(uuid),
         "original_size": size,
@@ -52,12 +52,12 @@ def test_block_to_management_json():
     }
 
 
-def test_block_to_protocol_json():
+def test_block_to_protocol_dict():
     size = 20
     uuid = uuid4()
     data = _bytes_test_pattern(size)
     block = Block(uuid, data)
-    protocol_json = block.to_protocol_json()
+    protocol_json = block.to_protocol_dict()
     assert protocol_json == {
         "uuid": str(uuid),
         "data": common.bytes_to_str(data),

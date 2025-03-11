@@ -39,3 +39,14 @@ class Fragment:
         Whether the fragment is consumed.
         """
         return self._consumed
+
+    def to_mgmt_dict(self) -> dict:
+        """
+        Get the management status.
+        """
+        return {
+            "block_uuid": str(self._block.uuid),
+            "start_byte": self._start_byte,
+            "size": self._size,
+            "consumed": self._consumed,
+        }

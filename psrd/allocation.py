@@ -14,3 +14,11 @@ class Allocation:
 
     def __init__(self, fragments: list[Fragment]):
         self._fragments = fragments
+
+    def to_mgmt_dict(self) -> dict:
+        """
+        Get the management status.
+        """
+        return {
+            "fragments": [fragment.to_mgmt_dict() for fragment in self._fragments],
+        }

@@ -30,3 +30,21 @@ def str_to_bytes(string: str | None) -> bytes | None:
     if string is None:
         return None
     return base64.b64decode(string)
+
+
+def to_mgmt_dict(obj: object) -> dict | None:
+    """
+    Return the management status of an object. But None gets converted to None.
+    """
+    if obj is None:
+        return None
+    return obj.to_mgmt_dict()
+
+
+def to_protocol_dict(obj: object) -> dict | None:
+    """
+    Return the encoding for the object as used in the DSKE protocol.
+    """
+    if obj is None:
+        return None
+    return obj.to_protocol_dict()

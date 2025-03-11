@@ -10,7 +10,7 @@ import psrd
 
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
 #       the hub decide?
-_PSRD_BLOCK_SIZE_IN_BYTES = 200
+_PSRD_BLOCK_SIZE_IN_BYTES = 1000
 
 
 class PeerHub:
@@ -38,7 +38,7 @@ class PeerHub:
         self._hub_name = None
         self._pre_shared_key = None
 
-    def to_management_json(self) -> dict:
+    def to_mgmt_dict(self) -> dict:
         """
         Get the management status.
         """
@@ -46,7 +46,7 @@ class PeerHub:
             "hub_name": self._hub_name,
             "pre_shared_key": common.bytes_to_str(self._pre_shared_key),
             "registered": self._registered,
-            "psrd_pool": self._psrd_pool.to_management_json(),
+            "psrd_pool": self._psrd_pool.to_mgmt_dict(),
         }
 
     async def register(self) -> None:
@@ -100,6 +100,6 @@ class PeerHub:
         """
         Allocate encryption and authentication PSRD keys for a user key share.
         """
-        ### TODO: Continue from here
-        #   - Allocate from pool
-        #   - Add type hints
+        user_key_share.allocate_encryption_and_authentication_psrd_keys_from_pool(
+            self._psrd_pool
+        )

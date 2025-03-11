@@ -86,7 +86,7 @@ async def get_mgmt_status():
     """
     Management: Get status.
     """
-    return _CLIENT.to_management_json()
+    return _CLIENT.to_mgmt_dict()
 
 
 @_APP.post("/dske/client/mgmt/v1/stop")
