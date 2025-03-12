@@ -2,8 +2,6 @@
 A DSKE client.
 """
 
-import os
-
 import common
 
 from key import UserKey
@@ -87,7 +85,7 @@ class Client:
             }
         }
 
-    async def etsi_get_key_with_key_ids(self, _slave_sae_id: str, key_id: str):
+    async def etsi_get_key_with_key_ids(self, _slave_sae_id: str, _key_id: str):
         """
         ETSI QKD 014 V1.1.1 Get Key API.
         """

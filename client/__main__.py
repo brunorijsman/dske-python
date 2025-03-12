@@ -68,13 +68,13 @@ async def get_etsi_get_key(slave_sae_id: str):
 
 
 @_APP.get("/dske/client/etsi/api/v1/keys/{slave_sae_id}/dec_keys")
-async def get_etsi_get_key_with_key_ids(slave_sae_id: str, key_ID: str):
+async def get_eti_get_key_with_key_ids(slave_sae_id: str, key_ID: str):
     """
     ETSI QKD 014 API: Get Key with Key IDs.
     """
     # ETSI QKD 014 says that ID in key_ID has to be upper case, which lint doesn't like.
     # pylint: disable=invalid-name
-    return await _CLIENT.etsi_get_key_with_key_ids(slave_sae_id, key_id=key_ID)
+    return await _CLIENT.etsi_get_key_with_key_ids(slave_sae_id, key_ID)
 
 
 @_APP.get("/dske/client/mgmt/v1/status")
