@@ -60,15 +60,6 @@ async def get_oob_psrd(client_name: str, size: pydantic.PositiveInt):
     return psrd_block.to_api_dict()
 
 
-@_APP.get("/dske/hub/api/v1/status")
-async def get_api_status():
-    """
-    API: Get status.
-    """
-    # TODO: Implement this.
-    return {"result": "Status."}
-
-
 @_APP.post("/dske/hub/api/v1/key-share")
 async def post_api_key_share(_key_share: api.APIKeyShare):
     """
