@@ -41,8 +41,7 @@ class Block:
 
     def to_mgmt_dict(self):
         """
-        Get a JSON representation of the PSRD block, for the purpose of sending it to the management
-        interface.
+        Get the management status.
         """
         return {
             "uuid": str(self._uuid),

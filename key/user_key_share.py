@@ -19,7 +19,6 @@ class UserKeyShare:
     def __init__(self, user_key_uuid: UUID, share_index: int, value: bytes):
         self._user_key_uuid = user_key_uuid
         self._share_index = share_index
-        self._size = len(value)  # TODO: Do we want the size attribute?
         self._value = value  # Not encrypted
         self._encryption_key_psrd_allocation = None
         self._signature_key_psrd_allocation = None
@@ -58,7 +57,6 @@ class UserKeyShare:
         return {
             "user_key_uuid": str(self._user_key_uuid),
             "share_index": self._share_index,
-            "size": self._size,
             "value": common.bytes_to_str(self._value, truncate=True),
             "encryption_key_psrd_allocation": common.to_mgmt_dict(
                 self._encryption_key_psrd_allocation

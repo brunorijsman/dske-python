@@ -34,7 +34,7 @@ def str_to_bytes(string: str | None) -> bytes | None:
 
 def to_mgmt_dict(obj: object) -> dict | None:
     """
-    Return the management status of an object. But None gets converted to None.
+    Get the management status.
     """
     if obj is None:
         return None

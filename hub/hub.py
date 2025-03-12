@@ -3,9 +3,12 @@ A DSKE hub.
 """
 
 import os
+from uuid import UUID
 
+import key
 import psrd
 
+from . import api
 from .peer_client import PeerClient
 
 
@@ -17,24 +20,29 @@ class Hub:
     _hub_name: str
     _pre_shared_key_size: int
     _peer_clients: dict[str, PeerClient]  # Indexed by DSKE client name
+    _user_key_shares: dict[UUID, key.UserKeyShare]  # Indexed by key UUID
 
     def __init__(self, name: str, pre_shared_key_size: int):
         self._hub_name = name
         self._pre_shared_key_size = pre_shared_key_size
         self._peer_clients = {}
+        self._user_key_shares = {}
 
     def to_mgmt_dict(self):
         """
         Get the management status.
         """
-        peer_clients_status = [
-            peer_client.to_mgmt_dict() for peer_client in self._peer_clients.values()
-        ]
         return {
             "hub_name": self._hub_name,
             "pre_shared_key_size": self._pre_shared_key_size,
-            "peer_clients": peer_clients_status,
-            # TODO: Add PSRDs
+            "peer_clients": [
+                peer_client.to_mgmt_dict()
+                for peer_client in self._peer_clients.values()
+            ],
+            "user_key_shares": [
+                user_key_share.to_mgmt_dict()
+                for user_key_share in self._user_key_shares.values()
+            ],
         }
 
     def register_peer_client(self, client_name: str) -> PeerClient:
@@ -62,3 +70,13 @@ class Hub:
         peer_client = self._peer_clients[client_name]
         psrd_block = peer_client.create_random_psrd_block(size)
         return psrd_block
+
+    def store_key_share_received_from_client(self, api_key_share: api.APIKeyShare):
+        """
+        Store a key share received from a client.
+        """
+        user_key_share = api_key_share.to_user_key_share()
+        # TODO: Check if the key UUID is already present, and if so, do something sensible
+        # TODO: Decrypt key value
+        # TODO: Check signature
+        self._user_key_shares[user_key_share.user_key_uuid] = user_key_share

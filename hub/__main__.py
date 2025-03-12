@@ -61,13 +61,12 @@ async def get_oob_psrd(client_name: str, size: pydantic.PositiveInt):
 
 
 @_APP.post("/dske/hub/api/v1/key-share")
-async def post_api_key_share(_key_share: api.APIKeyShare):
+async def post_api_key_share(api_key_share: api.APIKeyShare):
     """
     API: Post key share.
     """
-    print(f"Received POST /dske/hub/api/v1/key-share {_key_share=}", flush=True)
-    # TODO: Implement this.
-    return {"result": "Post key-share result."}
+    print(f"Received POST /dske/hub/api/v1/key-share {api_key_share=}", flush=True)
+    _HUB.store_key_share_received_from_client(api_key_share)
 
 
 @_APP.get("/dske/hub/mgmt/v1/status")

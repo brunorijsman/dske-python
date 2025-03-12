@@ -64,3 +64,9 @@ TODO: Add Sphinx documentation
 
 TODO: Do we even need pre-shared keys?
       What if we always just rely on PSRDs for all keys?
+
+TODO: For each UserKeyShare keep track of:
+      - The originator client name (or UUID)
+      - The responder client names (or UUIDs) - can be more than one for multicast
+      - Cleanup the UserKeyShare when all responders retrieved it
+      - Or cleanup after some timeout
