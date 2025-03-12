@@ -424,7 +424,7 @@ class Manager:
             print(f"Failed to invoke ETSI QKD Get Key API: {exc}")
             return
         print(json.dumps(get_key_with_key_ids_response.json(), indent=2))
-        key_value_2 = get_key_with_key_ids_response.json()["keys"]["key"]
+        key_value_2 = get_key_with_key_ids_response.json()["keys"][0]["key"]
         if key_value_1 == key_value_2:
             print("Key values match")
         else:

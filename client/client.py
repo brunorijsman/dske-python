@@ -98,10 +98,12 @@ class Client:
         size_in_bytes = self._default_key_size_in_bits // 8
         key_value = os.urandom(size_in_bytes)
         return {
-            "keys": {
-                "key_ID": key_id,
-                "key": common.bytes_to_str(key_value),
-            }
+            "keys": [
+                {
+                    "key_ID": key_id,
+                    "key": common.bytes_to_str(key_value),
+                }
+            ]
         }
 
     async def register_with_all_peer_hubs(self):
