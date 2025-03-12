@@ -52,19 +52,19 @@ def test_block_to_mgmt_dict():
     }
 
 
-def test_block_to_protocol_dict():
+def test_block_to_api_dict():
     size = 20
     uuid = uuid4()
     data = _bytes_test_pattern(size)
     block = Block(uuid, data)
-    protocol_json = block.to_protocol_dict()
+    protocol_json = block.to_api_dict()
     assert protocol_json == {
         "uuid": str(uuid),
         "data": common.bytes_to_str(data),
     }
 
 
-def test_block_from_protocol_json():
+def test_block_from_api_dict():
     size = 20
     uuid = uuid4()
     data = _bytes_test_pattern(size)
@@ -72,7 +72,7 @@ def test_block_from_protocol_json():
         "uuid": str(uuid),
         "data": common.bytes_to_str(data),
     }
-    block = Block.from_protocol_json(protocol_json)
+    block = Block.from_api_dict(protocol_json)
     assert block.uuid == uuid
     assert block.remaining_size == size
 

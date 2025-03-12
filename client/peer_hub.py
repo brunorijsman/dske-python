@@ -8,6 +8,8 @@ import common
 import key
 import psrd
 
+from hub import api as hub_api
+
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
 #       the hub decide?
 _PSRD_BLOCK_SIZE_IN_BYTES = 1000
@@ -90,7 +92,7 @@ class PeerHub:
                 return
             # TODO: Error handling: handle the case that the response does not contain the expected
             #       fields (is that even possible with FastAPI?)
-            psrd_block = psrd.Block.from_protocol_json(response.json())
+            psrd_block = psrd.Block.from_api_dict(response.json())
             self._psrd_pool.add_psrd_block(psrd_block)
 
     def allocate_encryption_and_authentication_psrd_keys_for_user_key_share(
@@ -108,19 +110,23 @@ class PeerHub:
         """
         Post a user key share to the peer hub.
         """
-        async with httpx.AsyncClient() as _httpx_client:
-            ### TODO: Continue from here
-            print(f"POST {user_key_share=} to hub {self._hub_name}", flush=True)
-            # size = _PSRD_BLOCK_SIZE_IN_BYTES
-            # url = f"{self._url}/oob/v1/psrd?client_name={self._client.name}&size={size}"
-            # response = await httpx_client.get(url)
-            # if response.status_code != 200:
-            #     # TODO: Error handling (throw an exception? retry?)
-            #     print(
-            #         f"Error: {response.status_code=}, {response.content=}", flush=True
-            #     )
-            #     return
-            # # TODO: Error handling: handle the case that the response does not contain the
-            # # expected fields (is that even possible with FastAPI?)
-            # psrd_block = psrd.Block.from_protocol_json(response.json())
+        async with httpx.AsyncClient() as httpx_client:
+            ### Continue from here
+            url = f"{self._url}/api/v1/key-share"
+            post_data = hub_api.APIKeyShare.from_user_key_share(
+                user_key_share
+            ).model_dump()
+            print(f"{url=}", flush=True)  ### DEBUG
+            print(f"{post_data=}", flush=True)  ### DEBUG
+            response = await httpx_client.post(url, json=post_data)
+            if response.status_code != 200:
+                # TODO: Error handling (throw an exception? retry?)
+                print(
+                    f"Error: {response.status_code=}, {response.content=}", flush=True
+                )
+                return
+            # TODO: Error handling: handle the case that the response does not contain the
+            # expected fields (is that even possible with FastAPI?)
+            response_data = response.json()
+            print(f"{response_data=}", flush=True)  ### DEBUG
             # self._psrd_pool.add_psrd_block(psrd_block)

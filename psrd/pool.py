@@ -29,9 +29,9 @@ class Pool:
             "psrd_blocks": [psrd_block.to_mgmt_dict() for psrd_block in self._blocks],
         }
 
-    def to_protocol_dict(self) -> dict:
+    def to_api_dict(self) -> dict:
         """
-        Convert to JSON representation as used in the DSKE protocol.
+        Convert to JSON representation as used in the DSKE API.
         """
         # TODO
         assert False

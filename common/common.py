@@ -41,10 +41,10 @@ def to_mgmt_dict(obj: object) -> dict | None:
     return obj.to_mgmt_dict()
 
 
-def to_protocol_dict(obj: object) -> dict | None:
+def to_api_dict(obj: object) -> dict | None:
     """
-    Return the encoding for the object as used in the DSKE protocol.
+    Return the encoding for the object as used in the DSKE API.
     """
     if obj is None:
         return None
-    return obj.to_protocol_dict()
+    return obj.to_api_dict()

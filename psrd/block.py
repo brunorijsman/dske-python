@@ -60,9 +60,9 @@ class Block:
             "data": common.bytes_to_str(self._data, truncate=True),
         }
 
-    def to_protocol_dict(self):
+    def to_api_dict(self):
         """
-        Convert to JSON representation as used in the DSKE protocol.
+        Convert to JSON representation as used in the DSKE API.
         """
         # Blocks should only be sent over protocol message before any bytes are allocated.
         assert self._remaining_size == self._size
@@ -72,9 +72,9 @@ class Block:
         }
 
     @classmethod
-    def from_protocol_json(cls, json: dict):
+    def from_api_dict(cls, json: dict):
         """
-        Convert from JSON representation as used in the DSKE protocol.
+        Convert from JSON representation as used in the DSKE API.
         """
         # TODO: Error handling
         return Block(

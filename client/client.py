@@ -153,6 +153,4 @@ class Client:
             await peer_hub.post_key_share(user_key_share)
 
         ### TODO: Continue from here
-        print(f"{user_key_shares=}", flush=True)  ### DEBUG
-        #    - Send the user key shares to the peer hubs
         #    - Flush fully consumed blocks from pool

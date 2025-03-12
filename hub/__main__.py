@@ -11,6 +11,8 @@ import pydantic
 import uvicorn
 
 import common
+
+from . import api
 from .hub import Hub
 
 
@@ -55,7 +57,7 @@ async def get_oob_psrd(client_name: str, size: pydantic.PositiveInt):
     # TODO: Error if the client was not peer.
     # TODO: Allow size to be None (use default size decided by hub).
     psrd_block = _HUB.generate_psrd_block_for_peer_client(client_name, size)
-    return psrd_block.to_protocol_dict()
+    return psrd_block.to_api_dict()
 
 
 @_APP.get("/dske/hub/api/v1/status")
@@ -68,10 +70,11 @@ async def get_api_status():
 
 
 @_APP.post("/dske/hub/api/v1/key-share")
-async def post_api_key_share():
+async def post_api_key_share(_key_share: api.APIKeyShare):
     """
     API: Post key share.
     """
+    print(f"Received POST /dske/hub/api/v1/key-share {_key_share=}", flush=True)
     # TODO: Implement this.
     return {"result": "Post key-share result."}
 
