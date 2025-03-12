@@ -7,12 +7,23 @@ It is sometimes also referred to by other names, including Symmetric Key Agreeme
 
 DSKE is described in detail in the following arXiv papers:
 
- * arXiv:2205.00615 
- [Distributed Symmetric Key Establishment: A scalable, quantum-proof key distribution system](https://arxiv.org/abs/2205.00615)
+ * arXiv:2205.00615:<br>
+   Distributed Symmetric Key Establishment: A scalable, quantum-proof key distribution system.<br>
+   [https://arxiv.org/abs/2205.00615](https://arxiv.org/abs/2205.00615)
 
- * 	arXiv:2304.13789 
- [Composable Security of Distributed Symmetric Key Establishment Protocol](https://arxiv.org/abs/2304.13789)
+ * arXiv:2304.13789<br>
+   Composable Security of Distributed Symmetric Key Establishment Protocol.<br>
+   [https://arxiv.org/abs/2304.13789]](https://arxiv.org/abs/2304.13789)
 
+There is also an Internet Engineering Task Force (IETF) Internet-Draft (I-D):
+
+* draft-mwag-dske-01<br>
+  The Distributed Symmetric Key Establishment (DSKE) Protocol.
+  [https://datatracker.ietf.org/doc/draft-mwag-dske/01/](https://datatracker.ietf.org/doc/draft-mwag-dske/01/)
+
+This draft describes the protocol in general terms.
+It does not yet describe the protocol in sufficient detail to enable interoperable implementations.
+For example, only the semantics but not yet the syntax of protocol messages is described.
 
 # dske-python
 
