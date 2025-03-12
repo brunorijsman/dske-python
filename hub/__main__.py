@@ -69,6 +69,15 @@ async def post_api_key_share(api_key_share: api.APIKeyShare):
     _HUB.store_key_share_received_from_client(api_key_share)
 
 
+@_APP.get("/dske/hub/api/v1/key-share")
+async def get_api_key_share(key_id: str) -> api.APIKeyShare:
+    """
+    API: Get key share.
+    """
+    print(f"Received POST /dske/hub/api/v1/key-share {key_id=}", flush=True)
+    return _HUB.get_key_share(key_id)
+
+
 @_APP.get("/dske/hub/mgmt/v1/status")
 async def get_mgmt_status():
     """

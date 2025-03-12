@@ -80,3 +80,14 @@ class Hub:
         # TODO: Decrypt key value
         # TODO: Check signature
         self._user_key_shares[user_key_share.user_key_uuid] = user_key_share
+
+    def get_key_share(self, key_id: str) -> api.APIKeyShare:
+        """
+        Get a key share.
+        """
+        # TODO: Error handling: key_id is not a valid UUID
+        user_key_uuid = UUID(key_id)
+        # TODO: Error handling: key_share is not in the store
+        user_key_share = self._user_key_shares[user_key_uuid]
+        # TODO: Remove it from the store once all responder clients have retrieved it
+        return api.APIKeyShare.from_user_key_share(user_key_share)
