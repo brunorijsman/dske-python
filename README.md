@@ -22,8 +22,43 @@ There is also an Internet Engineering Task Force (IETF) Internet-Draft (I-D):
   [https://datatracker.ietf.org/doc/draft-mwag-dske/01/](https://datatracker.ietf.org/doc/draft-mwag-dske/01/)
 
 This draft describes the protocol in general terms.
-It does not yet describe the protocol in sufficient detail to enable interoperable implementations.
+It does not (yet) describe the protocol in sufficient detail to enable interoperable
+implementations.
 For example, only the semantics but not yet the syntax of protocol messages is described.
+
+# Introduction to DSKE
+
+When two parties wish to securely communicate by exchanging encrypted data, they typically use
+a symmetric encryption protocol such as the Advanced Encryption Standard (AES), which is described
+in 
+[FIPS 197](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197-upd1.pdf).
+
+All symmetric encryption protocols require that the two parties first agree on an encryption key.
+This encryption key must be secret: it must only be known to the two communicating parties and not
+to any unauthorized eavesdropper who is attempting to steal the data.
+
+The question of how the two parties get this secret symmetric key is known as the Symmetric Key
+Establishment (SKE) problem.
+It is also known by many other names, including the key distribution, key agreement, shared
+secret establishment, etc.
+
+There are many existing mechanisms and protocols for doing key distribution.
+The most common onces are:
+
+1. Pre-Shared Keys (PSK).
+   The symmetric keys are distributed using some Out-of-Band (OOB) mechanism and pre-configured
+   on the communicating encryptor devices.
+   An example of such an out-of-band mechanism is that a trusted person, who can identify him or
+   herself, hand-carries a tamper-proof storage devices that contains the symmetric keys.
+
+   This is clearly a very burdensome way of distributing keys.
+   
+
+2. Zulu
+
+   Kilo
+
+
 
 # dske-python
 
