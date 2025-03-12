@@ -18,7 +18,7 @@ DSKE is described in detail in the following arXiv papers:
 There is also an Internet Engineering Task Force (IETF) Internet-Draft (I-D):
 
 * draft-mwag-dske-01<br>
-  The Distributed Symmetric Key Establishment (DSKE) Protocol.
+  The Distributed Symmetric Key Establishment (DSKE) Protocol.<br>
   [https://datatracker.ietf.org/doc/draft-mwag-dske/01/](https://datatracker.ietf.org/doc/draft-mwag-dske/01/)
 
 This draft describes the protocol in general terms.
