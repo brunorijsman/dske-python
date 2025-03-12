@@ -152,5 +152,6 @@ class Client:
         for peer_hub, user_key_share in zip(self._peer_hubs, user_key_shares):
             await peer_hub.post_key_share(user_key_share)
 
-        ### TODO: Continue from here
-        #    - Flush fully consumed blocks from pool
+        # Delete folly consumed blocks from all pools
+        for peer_hub in self._peer_hubs:
+            peer_hub.delete_fully_consumed_psrd_blocks()

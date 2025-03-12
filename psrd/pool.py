@@ -8,16 +8,17 @@ from .allocation import Allocation
 from .block import Block
 
 
+# TODO: Remove psrd_ prefix in lots of places
+
+
 class Pool:
     """
     A Pre-Shared Random Data (PSRD) pool.
     """
 
-    _remaining_size: int
     _blocks: list[Block]
 
     def __init__(self):
-        self._remaining_size = 0
         self._blocks = []
 
     def to_mgmt_dict(self) -> dict:
@@ -25,7 +26,6 @@ class Pool:
         Get the management status.
         """
         return {
-            "remaining_size": self._remaining_size,
             "psrd_blocks": [psrd_block.to_mgmt_dict() for psrd_block in self._blocks],
         }
 
@@ -41,7 +41,6 @@ class Pool:
         Add a PSRD block to the PSRD pool.
         """
         self._blocks.append(psrd_block)
-        self._remaining_size += psrd_block.remaining_size
 
     def allocate_allocation(self, size: PositiveInt) -> Allocation | None:
         """
@@ -72,3 +71,9 @@ class Pool:
         #       1. The fragments still have a back-reference to the block.
         #       2. What if the allocation is deallocated? Do we even ever allow that?
         return Allocation(fragments)
+
+    def delete_fully_consumed_psrd_blocks(self):
+        """
+        Delete fully consumed PSRD blocks from the pool.
+        """
+        self._blocks = [block for block in self._blocks if not block.is_fully_consumed]

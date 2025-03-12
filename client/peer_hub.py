@@ -111,7 +111,6 @@ class PeerHub:
         Post a user key share to the peer hub.
         """
         async with httpx.AsyncClient() as httpx_client:
-            ### Continue from here
             url = f"{self._url}/api/v1/key-share"
             post_data = hub_api.APIKeyShare.from_user_key_share(
                 user_key_share
@@ -128,5 +127,11 @@ class PeerHub:
             # TODO: Error handling: handle the case that the response does not contain the
             # expected fields (is that even possible with FastAPI?)
             response_data = response.json()
+            # TODO: For now, there is nothing meaningful in the response data
             print(f"{response_data=}", flush=True)  ### DEBUG
-            # self._psrd_pool.add_psrd_block(psrd_block)
+
+    def delete_fully_consumed_psrd_blocks(self) -> None:
+        """
+        Delete fully consumed PSRD blocks from the pool.
+        """
+        self._psrd_pool.delete_fully_consumed_psrd_blocks()

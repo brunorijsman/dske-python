@@ -20,7 +20,6 @@ class Block:
 
     _uuid: UUID
     _size: int  # In bytes
-    _remaining_size: int  # In bytes
     _data: bytes
     _allocated: bitarray
     _consumed: bitarray
@@ -28,7 +27,6 @@ class Block:
     def __init__(self, uuid: UUID, data: bytes):
         self._uuid = uuid
         self._size = len(data)
-        self._remaining_size = self._size
         # TODO: Use consistent naming: data or value
         self._data = data
         self._allocated = bitarray(self._size)
@@ -41,13 +39,6 @@ class Block:
         """
         return self._uuid
 
-    @property
-    def remaining_size(self):
-        """
-        The remaining number of bytes that have not yet been consumed.
-        """
-        return self._remaining_size
-
     def to_mgmt_dict(self):
         """
         Get a JSON representation of the PSRD block, for the purpose of sending it to the management
@@ -55,8 +46,6 @@ class Block:
         """
         return {
             "uuid": str(self._uuid),
-            "original_size": self._size,
-            "remaining_size": self._remaining_size,
             "data": common.bytes_to_str(self._data, truncate=True),
         }
 
@@ -64,8 +53,6 @@ class Block:
         """
         Convert to JSON representation as used in the DSKE API.
         """
-        # Blocks should only be sent over protocol message before any bytes are allocated.
-        assert self._remaining_size == self._size
         return {
             "uuid": str(self._uuid),
             "data": common.bytes_to_str(self._data),
@@ -111,7 +98,6 @@ class Block:
             found_end = found_start + desired_size
             found_size = desired_size
         self._allocated[found_start:found_end] = True
-        self._remaining_size -= found_size
         return Fragment(self, found_start, found_size)
 
     def deallocate_fragment(self, fragment: Fragment):
@@ -120,7 +106,6 @@ class Block:
         """
         end_byte = fragment.start_byte + fragment.size
         self._allocated[fragment.start_byte : end_byte] = False
-        self._remaining_size += fragment.size
 
     def consume_fragment(self, fragment: Fragment):
         """
@@ -135,3 +120,9 @@ class Block:
         # Zero out allocated bytes in block
         self._data = self._data[:start] + b"\x00" * fragment.size + self._data[end:]
         return consumed_data
+
+    def is_fully_consumed(self):
+        """
+        Check if all bytes in the block have been consumed.
+        """
+        return self._consumed.all()
