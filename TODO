@@ -61,3 +61,6 @@ TODO: Perhaps move all of the common packages (psrd, key) to a single package, n
 
 TODO: Add Sphinx documentation
       Use https://github.com/tox-dev/sphinx-autodoc-typehints 
+
+TODO: Do we even need pre-shared keys?
+      What if we always just rely on PSRDs for all keys?
