@@ -1,3 +1,19 @@
+# Distributed Symmetric Key Establishment (DSKE)
+
+Distributed Symmetric Key Establishment (DSKE) is a method for parties to agree on a shared secret
+(typically a symmetric encryption key) in a quantum-safe manner.
+
+It is sometimes also referred to by other names, including Symmetric Key Agreement (SKA).
+
+DSKE is described in detail in the following arXiv papers:
+
+ * arXiv:2205.00615 
+ [Distributed Symmetric Key Establishment: A scalable, quantum-proof key distribution system](https://arxiv.org/abs/2205.00615)
+
+ * 	arXiv:2304.13789 
+ [Composable Security of Distributed Symmetric Key Establishment Protocol](https://arxiv.org/abs/2304.13789)
+
+
 # dske-python
 
 This repository contains an implementation of Distributed Symmetric Key Establishment (DSKE) as specified in IETF draft
