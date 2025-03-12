@@ -40,7 +40,7 @@ _CLIENT = Client(_ARGS.name, peer_hub_urls)
 @contextlib.asynccontextmanager
 async def lifespan(_app: fastapi.FastAPI):
     """
-    Lifespan manager for the FastAPI app.
+    Do the things that need to be done just after startup and just before shutdown.
     """
     await _CLIENT.register_with_all_peer_hubs()
     await _CLIENT.request_psrd_from_all_peer_hubs()
@@ -72,6 +72,7 @@ async def get_etsi_get_key_with_key_ids(slave_sae_id: str, key_ID: str):
     """
     ETSI QKD 014 API: Get Key with Key IDs.
     """
+    # ETSI QKD 014 says that ID in key_ID has to be upper case, which lint doesn't like.
     # pylint: disable=invalid-name
     return await _CLIENT.etsi_get_key_with_key_ids(slave_sae_id, key_id=key_ID)
 
@@ -90,8 +91,6 @@ async def post_mgmt_stop():
     Management: Post stop.
     """
     os.kill(os.getpid(), signal.SIGTERM)
-    # TODO: Better result
-    return {"result": "Client stopped"}
 
 
 def main():
