@@ -70,3 +70,10 @@ TODO: For each UserKeyShare keep track of:
       - The responder client names (or UUIDs) - can be more than one for multicast
       - Cleanup the UserKeyShare when all responders retrieved it
       - Or cleanup after some timeout
+
+TODO: For now, we just request one block of PSRD from each peer hub. Once we have FSMs,
+      we need to request new blocks of PSRD as the random data is consumed and falls below
+      some defined threshold.
+
+TODO: Do we need a formal Finite State Machine (FSM) for each peer hub, running independently
+      from the FSMs of other peer hubs?
