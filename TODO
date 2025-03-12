@@ -77,3 +77,6 @@ TODO: For now, we just request one block of PSRD from each peer hub. Once we hav
 
 TODO: Do we need a formal Finite State Machine (FSM) for each peer hub, running independently
       from the FSMs of other peer hubs?
+
+TODO: Use async features to send all shares to the peer hubs in parallel, instead of sequentially
+      one after the other. Ditto for getting the shares on the responder client.

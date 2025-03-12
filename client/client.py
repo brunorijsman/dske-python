@@ -79,7 +79,7 @@ class Client:
         size_in_bytes = self._default_key_size_in_bits // 8
         user_key = UserKey.create_random_user_key(size_in_bytes)
         # TODO: Error handling; this the sharing amongst peer hubs could fail.
-        await self.share_user_key_amongst_peer_hubs(user_key)
+        await self.scatter_user_key_amongst_peer_hubs(user_key)
         return {
             "keys": {
                 "key_ID": user_key.user_key_uuid,
@@ -91,69 +91,73 @@ class Client:
         """
         ETSI QKD 014 V1.1.1 Get Key API.
         """
-        # See remark about ETSI QKD API in file TODO
-        # TODO: For now, we return a random key UUID and a random key value. We need to implement
-        #       the actual key generation using DSKE.
-        assert self._default_key_size_in_bits % 8 == 0
-        size_in_bytes = self._default_key_size_in_bits // 8
-        key_value = os.urandom(size_in_bytes)
+        # TODO: key_id should be a list; allow to get more than one key in a single call.
+        # TODO: Error handling; the gather could fail for any number of reasons.
+        user_key = await self.gather_user_key_from_peer_hubs()
         return {
             "keys": [
                 {
-                    "key_ID": key_id,
-                    "key": common.bytes_to_str(key_value),
+                    "key_ID": user_key.user_key_uuid,
+                    "key": common.bytes_to_str(user_key.value),
                 }
             ]
         }
 
-    async def register_with_all_peer_hubs(self):
+    async def register_with_all_peer_hubs(self) -> None:
         """
         Register to all peer hubs.
         """
         for peer_hub in self._peer_hubs:
             await peer_hub.register()
 
-    async def unregister_from_all_peer_hubs(self):
+    async def unregister_from_all_peer_hubs(self) -> None:
         """
         Unregister from all peer hubs.
         """
         for peer_hub in self._peer_hubs:
             await peer_hub.unregister()
 
-    async def request_psrd_from_all_peer_hubs(self):
+    async def request_psrd_from_all_peer_hubs(self) -> None:
         """
         Request PSRD from all peer hubs.
         """
         for peer_hub in self._peer_hubs:
             await peer_hub.request_psrd()
 
-    async def share_user_key_amongst_peer_hubs(self, user_key: UserKey):
+    async def scatter_user_key_amongst_peer_hubs(self, user_key: UserKey) -> None:
         """
-        Share the user key amongst the peer hubs.
+        Split the user key into user key shares, and send each user key share to a peer hub.
         """
-
         # Split user key into shares
         nr_shares = len(self._peer_hubs)
         user_key_shares = user_key.split_into_user_key_shares(nr_shares, _MIN_NR_SHARES)
-
         # Allocate encryption and authentication keys for each share
         for peer_hub, user_key_share in zip(self._peer_hubs, user_key_shares):
             peer_hub.allocate_encryption_and_authentication_psrd_keys_for_user_key_share(
                 user_key_share
             )
-
         # TODO: Error handling. If there was an issue allocating any one of the encryption or
         #       authentication keys, deallocate all of the ones that were allocated, and return
         #       and error to the caller.
-
         # Consume the allocated encryption and authentication keys for each share
         for user_key_share in user_key_shares:
             user_key_share.consume_encryption_and_authentication_psrd_keys()
-
         # POST the user key shares to the peer hubs
         for peer_hub, user_key_share in zip(self._peer_hubs, user_key_shares):
             await peer_hub.post_key_share(user_key_share)
-
         # Delete folly consumed blocks from all pools
         for peer_hub in self._peer_hubs:
             peer_hub.delete_fully_consumed_psrd_blocks()
+
+    async def gather_user_key_from_peer_hubs(self) -> UserKey:
+        """
+        Gather user key shares from the peer hubs, and reconstruct the user key out of (a subset of)
+        the user key shares.
+        """
+        # TODO: Continue from here
+        # TODO: Send a get key-share to each peer hub (this is allowed to fail)
+        # TODO: Decrypt each share
+        # TODO: Verify the signature of each share
+        # TODO: Check if we have enough shares
+        # TODO: Reconstruct the user key using Shamir secret sharing algorithm
+        # TODO: Return the user key
