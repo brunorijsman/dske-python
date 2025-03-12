@@ -6,7 +6,10 @@ import os
 from uuid import UUID, uuid4
 
 from .user_key_share import UserKeyShare
-from .shamir import split_binary_secret_into_shares
+from .shamir import (
+    split_binary_secret_into_shares,
+    reconstruct_binary_secret_from_shares,
+)
 
 
 class UserKey:
@@ -54,12 +57,29 @@ class UserKey:
         The shares do *not* yet have an encryption key or a signature key allocated. This is done
         later when each share is associated with a peer node.
         """
-        binary_shares = split_binary_secret_into_shares(
+        share_indexes_and_values = split_binary_secret_into_shares(
             self._value, nr_shares, min_nr_shares
         )
         user_key_shares = []
-        for share_index, share_value in binary_shares:
+        for share_index, share_value in share_indexes_and_values:
             # TODO: Error handling?
             user_key_share = UserKeyShare(self._user_key_uuid, share_index, share_value)
             user_key_shares.append(user_key_share)
         return user_key_shares
+
+    @classmethod
+    def reconstruct_from_user_key_shares(
+        cls,
+        user_key_uuid: UUID,
+        user_key_shares: list["UserKeyShare"],
+    ) -> "UserKey":
+        """
+        Reconstruct a user key from a list of user key shares.
+        """
+        share_indexes_and_values = [
+            (user_key_share.share_index, user_key_share.value)
+            for user_key_share in user_key_shares
+        ]
+        binary_secret = reconstruct_binary_secret_from_shares(share_indexes_and_values)
+        user_key = UserKey(user_key_uuid, binary_secret)
+        return user_key

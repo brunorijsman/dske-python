@@ -167,9 +167,9 @@ def split_binary_secret_into_shares(
     Split a binary secret into `nr_shares` shares. The minimum number of shares required to
     reconstruct the binary is `min_nr_shares`.
     """
-    # TODO: Implement this for real. For now, this is just a dummy implementation: each share
-    #       contains a copy of the original secret. So, it's trivial to reconstruct the original
-    #       secret from any single share.
+    # TODO: For now, this is just a dummy implementation: each share contains a copy of the
+    #       original secret. So, it's trivial to reconstruct the original secret from any single
+    #       share.
     assert nr_shares >= min_nr_shares
     shares = []
     for share_index in range(nr_shares):
@@ -184,4 +184,5 @@ def reconstruct_binary_secret_from_shares(shares: list[(int, bytes)]) -> bytes:
     """
     # TODO: Same dummy implementation as described above.
     # TODO: Throw an exception if the secret cannot be reconstructed.
+    assert len(shares) > 0
     return shares[0][1]

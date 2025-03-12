@@ -2,6 +2,8 @@
 A peer DSKE hub.
 """
 
+from uuid import UUID
+
 import httpx
 
 import common
@@ -56,8 +58,9 @@ class PeerHub:
         Register the peer hub.
         """
         async with httpx.AsyncClient() as httpx_client:
-            url = f"{self._url}/oob/v1/register-client?client_name={self._client.name}"
-            response = await httpx_client.get(url)
+            url = f"{self._url}/oob/v1/register-client"
+            get_params = {"client_name": self._client.name}
+            response = await httpx_client.get(url, params=get_params)
             if response.status_code != 200:
                 # TODO: Error handling (throw an exception? retry?)
                 print(
@@ -82,8 +85,9 @@ class PeerHub:
         """
         async with httpx.AsyncClient() as httpx_client:
             size = _PSRD_BLOCK_SIZE_IN_BYTES
-            url = f"{self._url}/oob/v1/psrd?client_name={self._client.name}&size={size}"
-            response = await httpx_client.get(url)
+            url = f"{self._url}/oob/v1/psrd"
+            get_params = {"client_name": self._client.name, "size": size}
+            response = await httpx_client.get(url, params=get_params)
             if response.status_code != 200:
                 # TODO: Error handling (throw an exception? retry?)
                 print(
@@ -129,6 +133,32 @@ class PeerHub:
             response_data = response.json()
             # TODO: For now, there is nothing meaningful in the response data
             print(f"{response_data=}", flush=True)  ### DEBUG
+
+    async def get_key_share(self, user_key_uuid: UUID) -> key.UserKeyShare:
+        """
+        Get a user key share from the peer hub.
+        """
+        async with httpx.AsyncClient() as httpx_client:
+            url = f"{self._url}/api/v1/key-share"
+            get_params = {"key_id": str(user_key_uuid)}
+            print(f"{url=}", flush=True)  ### DEBUG
+            print(f"{get_params=}", flush=True)  ### DEBUG
+            response = await httpx_client.get(url, params=get_params)
+            if response.status_code != 200:
+                # TODO: Error handling (throw an exception? retry?)
+                print(
+                    f"Error: {response.status_code=}, {response.content=}", flush=True
+                )
+                return
+            # TODO: Error handling: handle the case that the response does not contain the
+            # expected fields (is that even possible with FastAPI?)
+            response_data = response.json()
+            print(f"{response_data=}", flush=True)  ### DEBUG
+            api_key_share = hub_api.APIKeyShare.model_validate(response_data)
+            print(f"{api_key_share=}", flush=True)  ### DEBUG
+            user_key_share = api_key_share.to_user_key_share()
+            print(f"{user_key_share=}", flush=True)  ### DEBUG
+            return user_key_share
 
     def delete_fully_consumed_psrd_blocks(self) -> None:
         """
