@@ -1,12 +1,12 @@
 hubs:
-  - name: helen
   - name: hank
-  - name: heidi
-  - name: harry
+  - name: helen
+  - name: hillary
   - name: holly
+  - name: hugo
 clients:
-  - name: clarice
-  - name: charlie
-  - name: camila
-  - name: colin
+  - name: carol
+  - name: celia
   - name: cindy
+  - name: connie
+  - name: curtis
