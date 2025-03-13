@@ -1,3 +1,6 @@
+**WARNING**: This project is in the extremely early stages of implementation; it is not yet useable
+by the general public.
+
 # Table of contents
 
 * [Distributed Symmetric Key Establishment (DSKE)](#distributed-symmetric-key-establishment-dske)
@@ -5,6 +8,8 @@
 * [Authentication](#authentication)
 * [The DSKE protocol described in draft-mwag-dske-01](#the-dske-protocol-described-in-draft-mwag-dske-01)
 * [The open source implementation of DSKE in dske-python](#the-open-source-implementation-of-dske-in-dske-python)
+  * [User guide](#user-guide)
+  * [Implementation notes](#implementation-notes)
 
 # Distributed Symmetric Key Establishment (DSKE)
 
@@ -75,6 +80,8 @@ symmetric encryption key. The method has the following special characteristics:
   to key material that is consumed from the pre-shared random data blocks to protect the DSKE
   protocol itself (i.e. to encrypt and authenticate DSKE protocol messages).
   
+TODO: Add figures to clarify the above
+
 DSKE is described in detail in the following arXiv papers:
 
  * arXiv:2205.00615:<br>
@@ -187,43 +194,121 @@ TODO: Finish this
 
 # The open source implementation of DSKE in dske-python
 
-This repository contains an implementation of Distributed Symmetric Key Establishment (DSKE) as specified in IETF draft
+This repository contains an implementation of Distributed Symmetric Key Establishment (DSKE) as
+specified in IETF draft
 [draft-mwag-dske-01](https://datatracker.ietf.org/doc/draft-mwag-dske/01/).
-The code is implemented in Python 3.12 and uses FastAPI.
 
-**WARNING**: This project is in the extremely early stages of implementation and nowhere near usable yet.
+## User guide
+
+### Installation
+
+Clone the repository:
+
+<pre>
+git clone https://github.com/brunorijsman/dske-python.git
+</pre>
+
+Change directory to the cloned repository:
+
+<pre>
+cd dske-python
+</pre>
+
+Create a virtual environment:
+
+<pre>
+python3.13 -m venv venv
+</pre>
+
+Note: we use Python 3.13 to develop and test the code.
+
+Activate the virtual environment:
+
+<pre>
+source venv/bin/activate
+</pre>
+
+### Topology file
+
+We need a topology YAML file which describes the topology of the network.
+It lists the names of the DSKE clients (clients for short) and the
+DSKE security hubs (hubs for short).
+
+The repository contains an example `topology.yaml` file:
+
+<pre>
+$ <b>cat topology.yaml</b>
+hubs:
+  - name: hank
+  - name: helen
+  - name: hillary
+  - name: holly
+  - name: hugo
+clients:
+  - name: carol
+  - name: celia
+  - name: cindy
+  - name: connie
+  - name: curtis
+</pre>
+
+### The topology manager
+
+TODO: Finish this
+
+### Start the topology
 
 To start the DSKE topology:
 
 <pre>
 $ <b>./manager.py topology.yaml start</b>
-Starting hub helen on port 8000
-Starting hub hank on port 8001
-Starting hub heidi on port 8002
-Starting hub harry on port 8003
-Starting hub holly on port 8004
-Starting client clarice on port 8005
-Starting client charlie on port 8006
-Starting client camila on port 8007
-Starting client colin on port 8008
-Starting client cindy on port 8009
+Starting hub hank on port 8000
+Starting hub helen on port 8001
+Starting hub hillary on port 8002
+Starting hub holly on port 8003
+Starting hub hugo on port 8004
+Starting client carol on port 8005
+Starting client celia on port 8006
+Starting client cindy on port 8007
+Starting client connie on port 8008
+Starting client curtis on port 8009
 </pre>
+
+### Access web interface
 
 Once a topology has been started, open the API in the browser at URL `http://127.0.0.1:8000/docs`.
 (Replace 8000 with the port number reported by the topology start command)
 
-To stop the DSKE topology:
+TODO: Finish this
+
+### Report the topology status
+
+TODO: Finish this
+
+### Get encryption keys
+
+TODO: Finish this
+
+### Stop the topology
+
+To stop the topology, use the manager stop command:
 
 <pre>
 $ <b>./manager.py topology.yaml stop</b>
-Stopping client clarice on port 8005
-Stopping client charlie on port 8006
-Stopping client camila on port 8007
-Stopping client colin on port 8008
-Stopping client cindy on port 8009
-Stopping hub helen on port 8000
-Stopping hub hank on port 8001
-Stopping hub heidi on port 8002
-Stopping hub harry on port 8003
-Stopping hub holly on port 8004
+Stopping client carol on port 8005
+Stopping client celia on port 8006
+Stopping client cindy on port 8007
+Stopping client connie on port 8008
+Stopping client curtis on port 8009
+Stopping hub hank on port 8000
+Stopping hub helen on port 8001
+Stopping hub hillary on port 8002
+Stopping hub holly on port 8003
+Stopping hub hugo on port 8004
 </pre>
+
+## Implementation notes
+
+The code is implemented in Python 3.12 and uses FastAPI.
+
+TODO: Finish this

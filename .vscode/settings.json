@@ -29,7 +29,8 @@
         "Rivest",
         "setaf",
         "Shamir",
-        "urandom"
+        "urandom",
+        "venv"
     ],
     "editor.wordWrapColumn": 100,
     "pylint.importStrategy": "fromEnvironment",
