@@ -1,11 +1,14 @@
 {
     "cSpell.words": [
         "accum",
+        "Adleman",
         "camila",
         "coeff",
         "configfile",
+        "Diffie",
         "DSKE",
         "DSKEClient",
+        "ECDH",
         "encryptor",
         "ETSI",
         "FIPS",
@@ -23,6 +26,7 @@
         "pytest",
         "Rijsman",
         "RINT",
+        "Rivest",
         "setaf",
         "Shamir",
         "urandom"
