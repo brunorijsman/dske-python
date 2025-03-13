@@ -33,7 +33,7 @@ and not to any unauthorized eavesdropper who is attempting to steal the data.
 Symmetric key establishment (a.k.a. key distribution etc.) is the mechanism that the two parties
 use to establish (a.k.a. distribute, agree on, etc.) the symmetric encryption key.
 
-There are several existing mechanisms and protocols for doing key distribution:
+There are several existing mechanisms and protocols for doing symmetric key establishment:
 
 1. **Pre-Shared Keys (PSK)**
    
