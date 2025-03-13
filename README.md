@@ -3,13 +3,96 @@ by the general public.
 
 # Table of contents
 
-* [Distributed Symmetric Key Establishment (DSKE)](#distributed-symmetric-key-establishment-dske)
 * [The key distribution problem](#the-key-distribution-problem)
-* [Authentication](#authentication)
+* [Distributed Symmetric Key Establishment (DSKE)](#distributed-symmetric-key-establishment-dske)
 * [The DSKE protocol described in draft-mwag-dske-01](#the-dske-protocol-described-in-draft-mwag-dske-01)
 * [The open source implementation of DSKE in dske-python](#the-open-source-implementation-of-dske-in-dske-python)
   * [User guide](#user-guide)
   * [Implementation notes](#implementation-notes)
+
+# The key distribution problem
+
+The problem that Distributed Symmetric Key Establishment (DSKE) solves is the problem of
+Symmetric Key Establishment (SKE).
+This problem is also known by many other names, including key distribution, key agreement,
+key establishment, shared secret agreement, Symmetric Key Agreement (SKA), etc.
+
+When two parties wish to securely communicate by exchanging encrypted data, they typically use
+a symmetric encryption protocol such as the
+[Advanced Encryption Standard (AES)](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197-upd1.pdf)
+.
+
+All symmetric encryption protocols require the two communicating parties to first agree on an
+encryption key.
+This encryption key must be secret: it must only be known to the two parties and not to any
+unauthorized eavesdropper who is attempting to steal the data.
+
+The question of how the two parties get this secret symmetric key is known as the Symmetric
+Key Establishment (SKE) problem.
+
+There are several existing mechanisms and protocols for doing key distribution:
+
+1. **Pre-Shared Keys (PSK)**
+   
+   The symmetric keys are distributed using some Out-of-Band (OOB) mechanism and pre-configured
+   on the communicating encryptor devices.
+   An example of such an out-of-band mechanism is that a trusted person, who can identify him or
+   herself, hand-carries a tamper-proof storage devices that contains the symmetric keys.
+
+   Pre-shared keys have several disadvantages.
+
+   It is cumbersome and error-prone because it requires some secure out-of-band mechanism to
+   distribute the keys.
+   In practice, because it is so cumbersome, pre-shared keys are not rolled-over as often as they
+   should.
+
+   It is not possible to securely communicate with a party unless a pre-shared key has been
+   established with that specific party a-priori. For example, securely communicating with websites
+   is impractical using pre-shared keys.
+
+2. **Traditional classical cryptographic algorithms for dynamic key establishment**
+
+   The vast majority of secure communications on the Internet today use what we refer to 
+   (for lack of a better name) as "traditional classical cryptographic algorithms for
+   dynamic key establishment". 
+   This includes cryptographic algorithms such as Diffie-Hellman (DH), 
+   Elliptic Curve Diffie-Hellman (ECDH), and Rivest Shamir Adleman (RSA).
+
+   All of these protocol enable two communicating parties who have never met before to dynamically
+   generate a symmetric encryption key (referred to as a session key) for the duration of the
+   communication session.
+   Generating the key involves the two parties exchanging some messages using a so-called
+   key generation protocol.
+   One example of such a key generation protocol is the Internet Key Exchange (IKE) protocol.
+
+   The interesting thing is that the key generation protocol is allowed to be a public discourse
+   and still be safe.
+   What this means that is impossible for an attacker (typically called an eavesdropper) to
+   figure out what the dynamically generated key is, _even_ if the attacker can view all messages
+   that are part of the key generation protocol.
+
+   All of the cryptographic algorithms that we mentioned (DH, ECDH, RSA) rely on mathematical
+   trap-door functions.
+   These are functions that are easy to compute in one direction, but practically impossible to
+   compute in the reverse direction.
+   For example, it is easy to multiple two large numbers and determine their product.
+   But it is practically impossible to find the original two numbers given the product, i.e.,
+   to factor a number into primes.
+   The security of RSA depends on this property.
+   The security of DH and ECDH relies on a similar trapdoor function involving computing the
+   exponents of certain special numbers (a to the power b).
+
+3. **Post Quantum Cryptography (PQC)**
+
+   TODO: Finish this
+
+4. **Quantum Key Distribution (QDK)**
+
+   TODO: Finish this
+   
+The problem of key distribution is very closely related to the problem of authentication.
+
+TODO: Finish this
 
 # Distributed Symmetric Key Establishment (DSKE)
 
@@ -103,90 +186,7 @@ It does not (yet) describe the protocol in sufficient detail to enable interoper
 implementations.
 For example, only the semantics but not yet the syntax of protocol messages is described.
 
-# The key distribution problem
 
-The problem that DSKE solves is the problem of Symmetric Key Establishment (SKE).
-
-When two parties wish to securely communicate by exchanging encrypted data, they typically use
-a symmetric encryption protocol such as the
-[Advanced Encryption Standard (AES)](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197-upd1.pdf)
-.
-
-All symmetric encryption protocols require the two communicating parties to first agree on an
-encryption key.
-This encryption key must be secret: it must only be known to the two parties and not to any
-unauthorized eavesdropper who is attempting to steal the data.
-
-The question of how the two parties get this secret symmetric key is known as the Symmetric
-Key Establishment (SKE) problem.
-Symmetric key exchange is also known by many other names, including key distribution, key agreement,
-key establishment, shared secret establishment, Symmetric Key Agreement (SKA), etc.
-
-There are several existing mechanisms and protocols for doing key distribution:
-
-1. **Pre-Shared Keys (PSK)**
-   
-   The symmetric keys are distributed using some Out-of-Band (OOB) mechanism and pre-configured
-   on the communicating encryptor devices.
-   An example of such an out-of-band mechanism is that a trusted person, who can identify him or
-   herself, hand-carries a tamper-proof storage devices that contains the symmetric keys.
-
-   Pre-shared keys have several disadvantages.
-
-   It is cumbersome and error-prone because it requires some secure out-of-band mechanism to
-   distribute the keys.
-   In practice, because it is so cumbersome, pre-shared keys are not rolled-over as often as they
-   should.
-
-   It is not possible to securely communicate with a party unless a pre-shared key has been
-   established with that specific party a-priori. For example, securely communicating with websites
-   is impractical using pre-shared keys.
-
-2. **Traditional classical cryptographic algorithms for dynamic key establishment**
-
-   The vast majority of secure communications on the Internet today use what we refer to 
-   (for lack of a better name) as "traditional classical cryptographic algorithms for
-   dynamic key establishment". 
-   This includes cryptographic algorithms such as Diffie-Hellman (DH), 
-   Elliptic Curve Diffie-Hellman (ECDH), and Rivest Shamir Adleman (RSA).
-
-   All of these protocol enable two communicating parties who have never met before to dynamically
-   generate a symmetric encryption key (referred to as a session key) for the duration of the
-   communication session.
-   Generating the key involves the two parties exchanging some messages using a so-called
-   key generation protocol.
-   One example of such a key generation protocol is the Internet Key Exchange (IKE) protocol.
-
-   The interesting thing is that the key generation protocol is allowed to be a public discourse
-   and still be safe.
-   What this means that is impossible for an attacker (typically called an eavesdropper) to
-   figure out what the dynamically generated key is, _even_ if the attacker can view all messages
-   that are part of the key generation protocol.
-
-   All of the cryptographic algorithms that we mentioned (DH, ECDH, RSA) rely on mathematical
-   trap-door functions.
-   These are functions that are easy to compute in one direction, but practically impossible to
-   compute in the reverse direction.
-   For example, it is easy to multiple two large numbers and determine their product.
-   But it is practically impossible to find the original two numbers given the product, i.e.,
-   to factor a number into primes.
-   The security of RSA depends on this property.
-   The security of DH and ECDH relies on a similar trapdoor function involving computing the
-   exponents of certain special numbers (a to the power b).
-
-3. **Post Quantum Cryptography (PQC)**
-
-   TODO: Finish this
-
-4. **Quantum Key Distribution (QDK)**
-
-   TODO: Finish this
-   
-# Authentication
-
-The problem of key distribution is very closely related to the problem of authentication.
-
-TODO: Finish this
 
 # The DSKE protocol described in draft-mwag-dske-01
 
