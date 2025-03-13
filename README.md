@@ -14,8 +14,9 @@ by the general public.
 
 The problem that Distributed Symmetric Key Establishment (DSKE) solves is the problem of
 Symmetric Key Establishment (SKE).
-This problem is also known by many other names, including key distribution, key agreement,
-key establishment, shared secret agreement, Symmetric Key Agreement (SKA), etc.
+
+Symmetric key establishment is also known by many other names, including key distribution,
+key agreement, key establishment, shared secret agreement, Symmetric Key Agreement (SKA), etc.
 
 When two parties wish to securely communicate by exchanging encrypted data, they typically use
 a symmetric encryption protocol such as the
