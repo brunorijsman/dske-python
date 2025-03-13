@@ -25,11 +25,13 @@ a symmetric encryption protocol such as the
 
 All symmetric encryption protocols require the two communicating parties to first agree on an
 encryption key.
-This encryption key must be secret: it must only be known to the two parties and not to any
-unauthorized eavesdropper who is attempting to steal the data.
+The word "symmetric" means that the encryption key used by the sending party is the same as the
+decryption key used by the receiving party.
+As a result, this symmetric encryption key must be secret: it must only be known to the two parties
+and not to any unauthorized eavesdropper who is attempting to steal the data.
 
-The question of how the two parties get this secret symmetric key is known as the Symmetric
-Key Establishment (SKE) problem.
+Symmetric key establishment (a.k.a. key distribution etc.) is the mechanism that the two parties
+use to establish (a.k.a. distribute, agree on, etc.) the symmetric encryption key.
 
 There are several existing mechanisms and protocols for doing key distribution:
 
