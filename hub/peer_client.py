@@ -2,7 +2,7 @@
 A peer DSKE client.
 """
 
-from common import APIShare, Block, bytes_to_str, Pool, Share
+from common import Block, bytes_to_str, Pool
 
 
 class PeerClient:
@@ -13,7 +13,6 @@ class PeerClient:
     _client_name: str
     _pre_shared_key: bytes
     _pool: Pool
-    _shares: dict[str, Share]  # client name -> Share
 
     def __init__(self, client_name: str, pre_shared_key: bytes):
         self._client_name = client_name
@@ -27,6 +26,13 @@ class PeerClient:
         The pre-shared key.
         """
         return self._pre_shared_key
+
+    @property
+    def pool(self):
+        """
+        Get the pool.
+        """
+        return self._pool
 
     def to_mgmt(self):
         """
@@ -45,14 +51,3 @@ class PeerClient:
         block = Block.create_random_block(size)
         self._pool.add_block(block)
         return block
-
-    def store_share_received_from_client(self, api_share: APIShare):
-        """
-        Store a key share received from a client.
-        """
-        share = api_share.from_api()
-        # TODO: Check if the key UUID is already present, and if so, do something sensible
-        # TODO: Decrypt key value
-        # TODO: Check signature
-        share = Share.from_api(api_share)
-        self._shares[share.key_uuid] = share

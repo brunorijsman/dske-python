@@ -17,7 +17,7 @@ class APIShare(pydantic.BaseModel):
     # TODO: Provide a better example in the generated documentation page
     # TODO: Add a seq_nr field to the API for replay attack prevention
 
-    # TODO: Do we need this: client_name: str
+    client_name: str
     key_id: str
     share_index: int
     encrypted_value: str  # Base64 encoded
@@ -143,7 +143,7 @@ class Share:
         # TODO: Finish this
 
     @classmethod
-    def from_api(cls, api_share: APIShare) -> "Share":
+    def from_api(cls, api_share: APIShare, pool: Pool) -> "Share":
         """
         Create a Share from an APIShare.
         """
@@ -151,15 +151,20 @@ class Share:
             key_uuid=UUID(api_share.key_id),
             share_index=api_share.share_index,
             value=str_to_bytes(api_share.encrypted_value),
-            encryption_key_allocation=api_share.encryption_key_allocation.from_api(),
-            signature_key_allocation=api_share.signature_key_allocation.from_api(),
+            encryption_key_allocation=Allocation.from_api(
+                api_share.encryption_key_allocation, pool
+            ),
+            signature_key_allocation=Allocation.from_api(
+                api_share.signature_key_allocation, pool
+            ),
         )
 
-    def to_api(self) -> APIShare:
+    def to_api(self, client_name) -> APIShare:
         """
         Create an APIShare from a Share.
         """
         api_share = APIShare(
+            client_name=client_name,
             key_id=str(self._key_uuid),
             share_index=self._share_index,
             encrypted_value=bytes_to_str(self._value),

@@ -110,7 +110,7 @@ class PeerHub:
         """
         async with httpx.AsyncClient() as httpx_client:
             url = f"{self._url}/api/v1/key-share"
-            api_share = share.to_api()
+            api_share = share.to_api(self._client.name)
             print(f"{api_share=}", flush=True)  ### DEBUG
             post_data = api_share.model_dump()
             print(f"{url=}", flush=True)  ### DEBUG
@@ -150,7 +150,7 @@ class PeerHub:
             print(f"{response_data=}", flush=True)  ### DEBUG
             api_share = APIShare.model_validate(response_data)
             print(f"{api_share=}", flush=True)  ### DEBUG
-            share = api_share.from_api()
+            share = Share.from_api(api_share, self._pool)
             print(f"{share=}", flush=True)  ### DEBUG
             return share
 

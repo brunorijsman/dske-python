@@ -21,11 +21,11 @@ class Client:
     _max_stored_key_count = 1000  # TODO: What is a sensible value?
     _max_keys_per_request = 1  # TODO: Allow more than one
 
-    _client_name: str
+    _name: str
     _peer_hubs: list[PeerHub]
 
     def __init__(self, name: str, peer_hub_urls: list[str]):
-        self._client_name = name
+        self._name = name
         self._peer_hubs = []
         for peer_hub_url in peer_hub_urls:
             peer_hub = PeerHub(self, peer_hub_url)
@@ -36,14 +36,14 @@ class Client:
         """
         Get the client name.
         """
-        return self._client_name
+        return self._name
 
     def to_mgmt(self):
         """
         Get the management status.
         """
         peer_hubs_status = [peer_hub.to_mgmt() for peer_hub in self._peer_hubs]
-        return {"client_name": self._client_name, "peer_hubs": peer_hubs_status}
+        return {"client_name": self._name, "peer_hubs": peer_hubs_status}
 
     async def etsi_status(self, slave_sae_id: str):
         """
@@ -51,9 +51,9 @@ class Client:
         """
         # See remark about ETSI QKD API in file TODO
         return {
-            "source_kme_id": self._client_name,
+            "source_kme_id": self._name,
             "target_kme_id": slave_sae_id,
-            "master_sae_id": self._client_name,
+            "master_sae_id": self._name,
             "slave_sae_id": slave_sae_id,
             "key_size": self._default_key_size_in_bits,
             "stored_key_count": 25000,  # TODO

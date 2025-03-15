@@ -70,7 +70,13 @@ class Hub:
             # TODO: Not the right kind of exception
             raise ValueError(f"Client {client_name} not registered.")
         peer_client = self._peer_clients[client_name]
-        peer_client.store_share_received_from_client(api_share)
+        pool = peer_client.pool
+        share = Share.from_api(api_share, pool)
+        # TODO: Check if the key UUID is already present, and if so, do something sensible
+        # TODO: Decrypt key value
+        # TODO: Check signature
+        print(f"Store share {share=} {share.key_uuid=}")  ### DEBUG
+        self._shares[share.key_uuid] = share
 
     def get_api_share(self, key_id: str) -> APIShare:
         """
