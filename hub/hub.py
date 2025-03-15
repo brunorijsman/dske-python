@@ -78,7 +78,7 @@ class Hub:
         print(f"Store share {share=} {share.key_uuid=}")  ### DEBUG
         self._shares[share.key_uuid] = share
 
-    def get_api_share(self, key_id: str) -> APIShare:
+    def get_api_share(self, client_name: str, key_id: str) -> APIShare:
         """
         Get a key share.
         """
@@ -87,4 +87,4 @@ class Hub:
         # TODO: Error handling: share is not in the store
         share = self._shares[key_uuid]
         # TODO: Remove it from the store once all responder clients have retrieved it
-        return share.to_api()
+        return share.to_api(client_name)

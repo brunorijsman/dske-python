@@ -134,7 +134,7 @@ class PeerHub:
         """
         async with httpx.AsyncClient() as httpx_client:
             url = f"{self._url}/api/v1/key-share"
-            get_params = {"key_id": str(key_uuid)}
+            get_params = {"client_name": self._client.name, "key_id": str(key_uuid)}
             print(f"{url=}", flush=True)  ### DEBUG
             print(f"{get_params=}", flush=True)  ### DEBUG
             response = await httpx_client.get(url, params=get_params)
