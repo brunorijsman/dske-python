@@ -69,6 +69,14 @@ class Pool:
             return None
         return Allocation(fragments)
 
+    def mark_allocation_allocated(self, allocation: Allocation):
+        """
+        Mark an allocation as allocated in the pool. This is needed when the allocation was received
+        from the other side instead of being allocated locally.
+        """
+        for fragment in allocation.fragments:
+            fragment.block.mark_fragment_allocated(fragment)
+
     def delete_fully_consumed_blocks(self):
         """
         Delete fully consumed PSRD blocks from the pool.

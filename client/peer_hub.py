@@ -36,6 +36,13 @@ class PeerHub:
         self._hub_name = None
         self._pre_shared_key = None
 
+    @property
+    def pool(self):
+        """
+        Get the pool for the peer hub.
+        """
+        return self._pool
+
     def to_mgmt(self) -> dict:
         """
         Get the management status.
@@ -94,15 +101,6 @@ class PeerHub:
             api_block = APIBlock.model_validate(response_data)
             block = Block.from_api(api_block)
             self._pool.add_block(block)
-
-    def allocate_encryption_and_authentication_keys_for_share(
-        self,
-        share: Share,
-    ):
-        """
-        Allocate encryption and authentication PSRD keys for a key share.
-        """
-        share.allocate_encryption_and_authentication_keys_from_pool(self._pool)
 
     async def post_share(self, share: Share) -> None:
         """

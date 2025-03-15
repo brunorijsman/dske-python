@@ -1,17 +1,4 @@
-TODO: After share is received
-      - Decrypt it
-      - Validate signature
-      - Clear encrypted value
-      - Clear encryption key
-      - Clear signature key
-
-TODO: Before get share is responded to
-      - Allocate new encryption key
-      - Allocate new signature key
-      - Encrypt
-      - Sign
-      - Send
-      - Do all of this on deep-copied share
+TODO: If we do a get-key twice in a row, the second one crashes
 
 TODO: Test case to get familiar with 
 
@@ -106,3 +93,11 @@ TODO: Shorten naming:
       psrd_block -> block etc
 
 TODO: Better way to avoid circular imports that then current # type: ignore
+
+TODO: Fundamental problem
+      There is a race condition:
+      If initiator client sends key-share to hub, the client allocates the decryption/signature key
+      If responder client gets key-share from hub, the hub currently allocates the decryption/
+        signature key. They could allocate the same bits from the pool.
+      Solution: always have the client allocate the decryption/signature key bits and include them
+        in the get key-share request. That probably means it will have to be a POST.

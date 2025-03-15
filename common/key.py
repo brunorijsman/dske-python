@@ -62,7 +62,7 @@ class Key:
         shares = []
         for share_index, share_value in share_indexes_and_values:
             # TODO: Error handling?
-            share = Share(self._key_uuid, share_index, share_value)
+            share = Share(self._key_uuid, share_index, value=share_value)
             shares.append(share)
         return shares
 

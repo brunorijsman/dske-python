@@ -365,15 +365,16 @@ class Manager:
         slave_sae_id = self._args.slave_sae_id
         # See remark about ETSI QKD API in file TODO
         master_client_name = master_sae_id
+        slave_client_name = slave_sae_id
         port = self.node_port("client", master_client_name)
         print(
-            f"Invoke ETSI QKD Get Key with Key IDs API for client {master_client_name} "
+            f"Invoke ETSI QKD Get Key with Key IDs API for client {slave_client_name} "
             f"on port {port}"
         )
         key_id = self._args.key_id
-        print(f"{master_sae_id=} {slave_sae_id=} {key_id}")
+        print(f"{slave_client_name=} {master_sae_id=} {key_id}")
         url = (
-            f"{self.etsi_url("client", master_client_name)}/{slave_sae_id}/dec_keys"
+            f"{self.etsi_url("client", slave_client_name)}/{master_sae_id}/dec_keys"
             f"?key_ID={key_id}"
         )
         try:

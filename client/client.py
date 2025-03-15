@@ -131,7 +131,7 @@ class Client:
         shares = key.split_into_shares(nr_shares, _MIN_NR_SHARES)
         # Allocate encryption and authentication keys for each share
         for peer_hub, share in zip(self._peer_hubs, shares):
-            peer_hub.allocate_encryption_and_authentication_keys_for_share(share)
+            share.allocate_encryption_and_authentication_keys_from_pool(peer_hub.pool)
         # TODO: Error handling. If there was an issue allocating any one of the encryption or
         #       authentication keys, deallocate all of the ones that were allocated, and return
         #       and error to the caller.

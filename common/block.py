@@ -96,6 +96,17 @@ class Block:
         end_byte = fragment.start_byte + fragment.size
         self._allocated[fragment.start_byte : end_byte] = False
 
+    def mark_fragment_allocated(self, fragment: Fragment):
+        """
+        Mark the bits in the block corresponding to the fragment as allocated.
+        """
+        assert fragment.start_byte is not None
+        assert fragment.size is not None
+        start = fragment.start_byte
+        end = start + fragment.size
+        assert not self._allocated[start:end].any()
+        self._allocated[start:end] = True
+
     def consume_fragment(self, fragment: Fragment):
         """
         Consume a fragment from the block.

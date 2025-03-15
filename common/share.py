@@ -17,7 +17,7 @@ class APIShare(pydantic.BaseModel):
     # TODO: Provide a better example in the generated documentation page
     # TODO: Add a seq_nr field to the API for replay attack prevention
 
-    client_name: str
+    client_name: str  # TODO: Doesn't belong in here; carry separately
     key_id: str
     share_index: int
     encrypted_value: str  # Base64 encoded
@@ -39,14 +39,16 @@ class Share:
         self,
         key_uuid: UUID,
         share_index: int,
-        value: bytes,
+        value: bytes | None = None,
+        encrypted_value: bytes | None = None,
         encryption_key_allocation: Allocation | None = None,
         signature_key_allocation: Allocation | None = None,
     ):
+        print(f"Share constructor: {value=} {encrypted_value=}")  ### DEBUG
         self._key_uuid = key_uuid
         self._share_index = share_index
-        self._value = value  # Not encrypted
-        self._encrypted_value = None
+        self._value = value
+        self._encrypted_value = encrypted_value
         self._encryption_key_allocation = encryption_key_allocation
         self._signature_key_allocation = signature_key_allocation
 
@@ -122,6 +124,7 @@ class Share:
         Encrypt the value, using encryption_key_allocation as a one-time pad encryption key.
         """
         assert self._value is not None
+        assert self._encrypted_value is None
         assert self._encryption_key_allocation is not None
         encryption_key = self._encryption_key_allocation.consume()
         assert encryption_key is not None
@@ -131,6 +134,26 @@ class Share:
             for value_byte, encryption_key_byte in zip(self._value, encryption_key)
         ]
         self._encrypted_value = bytes(encrypted_byte_list)
+
+    def decrypt(self):
+        """
+        Decrypt the value, using encryption_key_allocation as a one-time pad encryption key.
+        """
+        assert self._encrypted_value is not None
+        assert self._value is None
+        assert self._encryption_key_allocation is not None
+        encryption_key = self._encryption_key_allocation.consume()
+        assert encryption_key is not None
+        assert len(self._encrypted_value) == len(encryption_key)
+        decrypted_byte_list = [
+            value_byte ^ encryption_key_byte
+            for value_byte, encryption_key_byte in zip(
+                self._encrypted_value, encryption_key
+            )
+        ]
+        self._value = bytes(decrypted_byte_list)
+        self._encrypted_value = None
+        self._encryption_key_allocation = None
 
     def sign(self):
         """
@@ -142,15 +165,26 @@ class Share:
         _signature_key = self._signature_key_allocation.consume()
         # TODO: Finish this
 
+    def verify_signature(self):
+        """
+        Validate the signature. TODO: Better description
+        TODO: handle the case that the signature validation fails.
+        TODO: For now, always return success and clear the key
+        """
+        assert self._encrypted_value is not None
+        assert self._signature_key_allocation is not None
+        self._signature_key_allocation = None
+
     @classmethod
     def from_api(cls, api_share: APIShare, pool: Pool) -> "Share":
         """
         Create a Share from an APIShare.
         """
-        return Share(
+        share = Share(
             key_uuid=UUID(api_share.key_id),
             share_index=api_share.share_index,
-            value=str_to_bytes(api_share.encrypted_value),
+            value=None,
+            encrypted_value=str_to_bytes(api_share.encrypted_value),
             encryption_key_allocation=Allocation.from_api(
                 api_share.encryption_key_allocation, pool
             ),
@@ -158,6 +192,9 @@ class Share:
                 api_share.signature_key_allocation, pool
             ),
         )
+        pool.mark_allocation_allocated(share.encryption_key_allocation)
+        pool.mark_allocation_allocated(share.signature_key_allocation)
+        return share
 
     def to_api(self, client_name) -> APIShare:
         """
@@ -167,7 +204,7 @@ class Share:
             client_name=client_name,
             key_id=str(self._key_uuid),
             share_index=self._share_index,
-            encrypted_value=bytes_to_str(self._value),
+            encrypted_value=bytes_to_str(self._encrypted_value),
             encryption_key_allocation=self._encryption_key_allocation.to_api(),
             signature_key_allocation=self._signature_key_allocation.to_api(),
         )
