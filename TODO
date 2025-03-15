@@ -1,3 +1,18 @@
+TODO: After share is received
+      - Decrypt it
+      - Validate signature
+      - Clear encrypted value
+      - Clear encryption key
+      - Clear signature key
+
+TODO: Before get share is responded to
+      - Allocate new encryption key
+      - Allocate new signature key
+      - Encrypt
+      - Sign
+      - Send
+      - Do all of this on deep-copied share
+
 TODO: Test case to get familiar with 
 
 TODO: Zero out bytes when they are allocated
