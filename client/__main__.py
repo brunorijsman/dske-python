@@ -43,7 +43,7 @@ async def lifespan(_app: fastapi.FastAPI):
     Do the things that need to be done just after startup and just before shutdown.
     """
     await _CLIENT.register_with_all_peer_hubs()
-    await _CLIENT.request_psrd_from_all_peer_hubs()
+    await _CLIENT.request_block_from_all_peer_hubs()
     yield
     await _CLIENT.unregister_from_all_peer_hubs()
 
@@ -82,7 +82,7 @@ async def get_mgmt_status():
     """
     Management: Get status.
     """
-    return _CLIENT.to_mgmt_dict()
+    return _CLIENT.to_mgmt()
 
 
 @_APP.post("/dske/client/mgmt/v1/stop")

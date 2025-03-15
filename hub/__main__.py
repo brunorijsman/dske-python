@@ -5,14 +5,10 @@ Main module for a DSKE security hub.
 import argparse
 import os
 import signal
-
 import fastapi
 import pydantic
 import uvicorn
-
-import common
-
-from . import api
+from common import APIBlock, APIShare, bytes_to_str
 from .hub import Hub
 
 
@@ -36,46 +32,46 @@ _APP = fastapi.FastAPI()
 
 # This should be a POST instead of a GET
 @_APP.get("/dske/hub/oob/v1/register-client")
-async def get_oob_register_dske_client(client_name: str):
+async def get_oob_register_client(client_name: str):
     """
-    Out of band: Register a DSKE client.
+    Out of band: Register a client.
     """
     peer_client = _HUB.register_peer_client(client_name)
     # TODO: Return a proper error when there is an exception because the client already is
     #       peer.
     return {
         "hub_name": _HUB_NAME,
-        "pre_shared_key": common.bytes_to_str(peer_client.pre_shared_key),
+        "pre_shared_key": bytes_to_str(peer_client.pre_shared_key),
     }
 
 
 @_APP.get("/dske/hub/oob/v1/psrd")
-async def get_oob_psrd(client_name: str, size: pydantic.PositiveInt):
+async def get_oob_psrd(client_name: str, size: pydantic.PositiveInt) -> APIBlock:
     """
     Out of band: Get a block of Pre-Shared Random Data (PSRD).
     """
     # TODO: Error if the client was not peer.
     # TODO: Allow size to be None (use default size decided by hub).
-    psrd_block = _HUB.generate_psrd_block_for_peer_client(client_name, size)
-    return psrd_block.to_api_dict()
+    block = _HUB.generate_block_for_peer_client(client_name, size)
+    return block.to_api()
 
 
 @_APP.post("/dske/hub/api/v1/key-share")
-async def post_api_key_share(api_key_share: api.APIKeyShare):
+async def post_key_share(api_share: APIShare):
     """
     API: Post key share.
     """
-    print(f"Received POST /dske/hub/api/v1/key-share {api_key_share=}", flush=True)
-    _HUB.store_key_share_received_from_client(api_key_share)
+    print(f"Received POST /dske/hub/api/v1/key-share {api_share=}", flush=True)
+    _HUB.store_share_received_from_client(api_share)
 
 
 @_APP.get("/dske/hub/api/v1/key-share")
-async def get_api_key_share(key_id: str) -> api.APIKeyShare:
+async def get_key_share(key_id: str) -> APIShare:
     """
     API: Get key share.
     """
     print(f"Received POST /dske/hub/api/v1/key-share {key_id=}", flush=True)
-    return _HUB.get_key_share(key_id)
+    return _HUB.get_api_share(key_id)
 
 
 @_APP.get("/dske/hub/mgmt/v1/status")
@@ -83,7 +79,7 @@ async def get_mgmt_status():
     """
     Management: Get status.
     """
-    status = _HUB.to_mgmt_dict()
+    status = _HUB.to_mgmt()
     return status
 
 

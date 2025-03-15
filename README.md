@@ -161,7 +161,7 @@ symmetric encryption key. The method has the following special characteristics:
 
 * All communications between DSKE clients and DSKE hubs are both One-Time Pad (OTP) encrypted and
   authenticated using single-use keys extracted from the pre-shared random data.
-  Note: to avoid confusion we will use the term "user key" to refer to the secret symmetric keys
+  Note: to avoid confusion we will use the term "key" to refer to the secret symmetric keys
   that are established between DSKE clients, and we will use the term "DSKE key" to refer
   to key material that is consumed from the pre-shared random data blocks to protect the DSKE
   protocol itself (i.e. to encrypt and authenticate DSKE protocol messages).

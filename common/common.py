@@ -32,19 +32,10 @@ def str_to_bytes(string: str | None) -> bytes | None:
     return base64.b64decode(string)
 
 
-def to_mgmt_dict(obj: object) -> dict | None:
+def to_mgmt(obj: object) -> dict | None:
     """
     Get the management status.
     """
     if obj is None:
         return None
-    return obj.to_mgmt_dict()
-
-
-def to_api_dict(obj: object) -> dict | None:
-    """
-    Return the encoding for the object as used in the DSKE API.
-    """
-    if obj is None:
-        return None
-    return obj.to_api_dict()
+    return obj.to_mgmt()

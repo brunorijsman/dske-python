@@ -65,10 +65,10 @@ TODO: Add Sphinx documentation
 TODO: Do we even need pre-shared keys?
       What if we always just rely on PSRDs for all keys?
 
-TODO: For each UserKeyShare keep track of:
+TODO: For each Share keep track of:
       - The originator client name (or UUID)
       - The responder client names (or UUIDs) - can be more than one for multicast
-      - Cleanup the UserKeyShare when all responders retrieved it
+      - Cleanup the Share when all responders retrieved it
       - Or cleanup after some timeout
 
 TODO: For now, we just request one block of PSRD from each peer hub. Once we have FSMs,
@@ -81,6 +81,13 @@ TODO: Do we need a formal Finite State Machine (FSM) for each peer hub, running 
 TODO: Use async features to send all shares to the peer hubs in parallel, instead of sequentially
       one after the other. Ditto for getting the shares on the responder client.
 
-TODO: Replace user_key_uuid -> key_id?
+TODO: Replace key_uuid -> key_id?
 
-TODO: Replace user_key -> key and user_key_share -> key_share?
+TODO: Replace key -> key and key_share -> key_share?
+
+TODO: Shorten naming:
+      key_share -> key_share
+      key -> key
+      psrd_block -> block etc
+
+TODO: Better way to avoid circular imports that then current # type: ignore

@@ -24,7 +24,7 @@ FALSE=0
 REPO_ROOT_DIR="${VIRTUAL_ENV}/.."
 cd $REPO_ROOT_DIR
 
-MODULE_DIRS="client common hub psrd"
+MODULE_DIRS="client common hub"
 
 ALL_OK=$TRUE
 ISSUES=""
@@ -128,9 +128,9 @@ unit_test_all_code_using_pytest ()
     for dir in $MODULE_DIRS; do
         cov_modules="$cov_modules --cov=${dir}"
     done    
-    # TODO: So far, we only have tests for the psrd module.
+    # TODO: So far, we only have tests for the common module.
     # for DIR in $MODULE_DIRS; do
-    for DIR in psrd; do
+    for DIR in common; do
         progress "Unit test $DIR using pytest"
         output=$(pytest ${cov_modules} --cov-report=html --cov-report=term ${DIR} 2>&1)
         if [ "$?" -ne 0 ]; then

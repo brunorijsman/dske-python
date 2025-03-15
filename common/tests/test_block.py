@@ -3,9 +3,7 @@ Unit tests for the Block class.
 """
 
 from uuid import uuid4
-
-import common
-from psrd.block import Block
+from common import Block, bytes_to_str
 
 
 # pylint: disable=missing-function-docstring
@@ -37,48 +35,27 @@ def test_block_properties():
     assert block.uuid == uuid
 
 
-def test_block_to_mgmt_dict():
+def test_block_to_mgmt():
     size = 20
     uuid = uuid4()
     data = _bytes_test_pattern(size)
     block = Block(uuid, data)
-    management_json = block.to_mgmt_dict()
+    management_json = block.to_mgmt()
     assert management_json == {
         "uuid": str(uuid),
-        "data": common.bytes_to_str(data, truncate=True),
+        "size": 20,
+        "data": bytes_to_str(data, truncate=True),
+        "allocated": 0,
+        "consumed": 0,
     }
 
 
-def test_block_to_api_dict():
-    size = 20
-    uuid = uuid4()
-    data = _bytes_test_pattern(size)
-    block = Block(uuid, data)
-    protocol_json = block.to_api_dict()
-    assert protocol_json == {
-        "uuid": str(uuid),
-        "data": common.bytes_to_str(data),
-    }
-
-
-def test_block_from_api_dict():
-    size = 20
-    uuid = uuid4()
-    data = _bytes_test_pattern(size)
-    protocol_json = {
-        "uuid": str(uuid),
-        "data": common.bytes_to_str(data),
-    }
-    block = Block.from_api_dict(protocol_json)
-    assert block.uuid == uuid
-
-
-def test_create_random_psrd_block():
+def test_create_random_block():
     size = 100
-    _block = Block.create_random_psrd_block(size)
+    _block = Block.create_random_block(size)
 
 
-def test_allocate_psrd_fragment_from_fresh_block():
+def test_allocate_fragment_from_fresh_block():
     """
     Allocate one fragment from a block that has not had any bytes allocated yet.
     """
@@ -91,7 +68,7 @@ def test_allocate_psrd_fragment_from_fresh_block():
     assert fragment.consumed is False
 
 
-def test_allocate_multiple_psrd_fragments_from_fresh_block():
+def test_allocate_multiple_fragments_from_fresh_block():
     """
     Allocate multiple fragments from a block that has not had any bytes allocated yet.
     """
@@ -144,7 +121,7 @@ def test_try_allocate_fragment_from_block_with_insufficient_space():
     assert fragment_b.consumed is False
 
 
-def test_deallocate_psrd_fragment():
+def test_deallocate_fragment():
     """
     Deallocate a fragment from a block. Test re-allocating from a gap in a block.
     """

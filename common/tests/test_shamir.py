@@ -2,10 +2,6 @@
 Unit tests for Shamir Secret Sharing.
 """
 
-import os
-
-import key
-
 # pylint: disable=missing-function-docstring
 
 

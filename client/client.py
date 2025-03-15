@@ -3,10 +3,7 @@ A DSKE client.
 """
 
 from uuid import UUID
-
-import common
-
-from key import UserKey
+from common import bytes_to_str, Key
 from .peer_hub import PeerHub
 
 # TODO: Make this configurable
@@ -41,11 +38,11 @@ class Client:
         """
         return self._client_name
 
-    def to_mgmt_dict(self):
+    def to_mgmt(self):
         """
         Get the management status.
         """
-        peer_hubs_status = [peer_hub.to_mgmt_dict() for peer_hub in self._peer_hubs]
+        peer_hubs_status = [peer_hub.to_mgmt() for peer_hub in self._peer_hubs]
         return {"client_name": self._client_name, "peer_hubs": peer_hubs_status}
 
     async def etsi_status(self, slave_sae_id: str):
@@ -77,13 +74,13 @@ class Client:
         # See remarks about ETSI QKD API in file TODO
         assert self._default_key_size_in_bits % 8 == 0
         size_in_bytes = self._default_key_size_in_bits // 8
-        user_key = UserKey.create_random_user_key(size_in_bytes)
+        key = Key.create_random_key(size_in_bytes)
         # TODO: Error handling; this the sharing amongst peer hubs could fail.
-        await self.scatter_user_key_amongst_peer_hubs(user_key)
+        await self.scatter_key_amongst_peer_hubs(key)
         return {
             "keys": {
-                "key_ID": user_key.user_key_uuid,
-                "key": common.bytes_to_str(user_key.value),
+                "key_ID": key.key_uuid,
+                "key": bytes_to_str(key.value),
             }
         }
 
@@ -93,20 +90,20 @@ class Client:
         """
         # TODO: key_id should be a list; allow to get more than one key in a single call.
         # TODO: Error handling; the gather could fail for any number of reasons.
-        user_key_uuid = UUID(key_id)
-        user_key = await self.gather_user_key_from_peer_hubs(user_key_uuid)
+        key_uuid = UUID(key_id)
+        key = await self.gather_key_from_peer_hubs(key_uuid)
         return {
             "keys": [
                 {
-                    "key_ID": user_key.user_key_uuid,
-                    "key": common.bytes_to_str(user_key.value),
+                    "key_ID": key.key_uuid,
+                    "key": bytes_to_str(key.value),
                 }
             ]
         }
 
     async def register_with_all_peer_hubs(self) -> None:
         """
-        Register to all peer hubs.
+        Register with all peer hubs.
         """
         for peer_hub in self._peer_hubs:
             await peer_hub.register()
@@ -118,66 +115,60 @@ class Client:
         for peer_hub in self._peer_hubs:
             await peer_hub.unregister()
 
-    async def request_psrd_from_all_peer_hubs(self) -> None:
+    async def request_block_from_all_peer_hubs(self) -> None:
         """
         Request PSRD from all peer hubs.
         """
         for peer_hub in self._peer_hubs:
             await peer_hub.request_psrd()
 
-    async def scatter_user_key_amongst_peer_hubs(self, user_key: UserKey) -> None:
+    async def scatter_key_amongst_peer_hubs(self, key: Key) -> None:
         """
-        Split the user key into user key shares, and send each user key share to a peer hub.
+        Split the key into key shares, and send each key share to a peer hub.
         """
-        # Split user key into shares
+        # Split key into shares
         nr_shares = len(self._peer_hubs)
-        user_key_shares = user_key.split_into_user_key_shares(nr_shares, _MIN_NR_SHARES)
+        shares = key.split_into_shares(nr_shares, _MIN_NR_SHARES)
         # Allocate encryption and authentication keys for each share
-        for peer_hub, user_key_share in zip(self._peer_hubs, user_key_shares):
-            peer_hub.allocate_encryption_and_authentication_psrd_keys_for_user_key_share(
-                user_key_share
-            )
+        for peer_hub, share in zip(self._peer_hubs, shares):
+            peer_hub.allocate_encryption_and_authentication_keys_for_share(share)
         # TODO: Error handling. If there was an issue allocating any one of the encryption or
         #       authentication keys, deallocate all of the ones that were allocated, and return
         #       and error to the caller.
-        # Consume the allocated encryption and authentication keys for each share
-        for user_key_share in user_key_shares:
-            user_key_share.consume_encryption_and_authentication_psrd_keys()
-        # TODO: Encrypt and sign each share
-        # POST the user key shares to the peer hubs
-        for peer_hub, user_key_share in zip(self._peer_hubs, user_key_shares):
-            await peer_hub.post_key_share(user_key_share)
+        # Encrypt and sign each share
+        for share in shares:
+            share.encrypt()
+            share.sign()
+        # POST the key shares to the peer hubs
+        for peer_hub, share in zip(self._peer_hubs, shares):
+            await peer_hub.post_share(share)
         # Delete folly consumed blocks from all pools
         for peer_hub in self._peer_hubs:
-            peer_hub.delete_fully_consumed_psrd_blocks()
+            peer_hub.delete_fully_consumed_blocks()
 
-    async def gather_user_key_from_peer_hubs(self, user_key_uuid: UUID) -> UserKey:
+    async def gather_key_from_peer_hubs(self, key_uuid: UUID) -> Key:
         """
-        Gather user key shares from the peer hubs, and reconstruct the user key out of (a subset of)
-        the user key shares.
+        Gather key shares from the peer hubs, and reconstruct the key out of (a subset of)
+        the key shares.
         """
 
-        # Attempt to get a user key share from every peer hub.
-        peer_hubs_and_user_key_shares = []
+        # Attempt to get a key share from every peer hub.
+        peer_hubs_and_shares = []
         for peer_hub in self._peer_hubs:
             # TODO: Handle exception. If an exception occurs, we just skip the peer hub, and move
             #       on to the next one. We just need K out of N shares to reconstruct the key.
-            user_key_share = await peer_hub.get_key_share(user_key_uuid)
-            peer_hubs_and_user_key_shares.append((peer_hub, user_key_share))
+            share = await peer_hub.get_share(key_uuid)
+            peer_hubs_and_shares.append((peer_hub, share))
         # TODO: Include the encryption and authentication key allocations in the API messages.
         # TODO: Allocate encryption and authentication keys for each share
         # TODO: Consume the allocated encryption and authentication keys for each share
         # TODO: Decrypt each share
         # TODO: Verify the signature of each share
         # TODO: Check if we have enough shares
-        # TODO: Reconstruct the user key using Shamir secret sharing algorithm
+        # TODO: Reconstruct the key using Shamir secret sharing algorithm
 
-        # Reconstruct the user key from the shares
-        user_key_shares = [
-            user_key_share for _, user_key_share in peer_hubs_and_user_key_shares
-        ]
-        user_key = UserKey.reconstruct_from_user_key_shares(
-            user_key_uuid, user_key_shares
-        )
-        print(f"Reconstructed user key: {user_key}")  ### DEBUG
-        return user_key
+        # Reconstruct the key from the shares
+        shares = [share for _, share in peer_hubs_and_shares]
+        key = Key.reconstruct_from_shares(key_uuid, shares)
+        print(f"Reconstructed key: {key}")  ### DEBUG
+        return key

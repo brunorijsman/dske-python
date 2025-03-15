@@ -1,19 +1,16 @@
 """
-A Pre-Shared Random Data (PSRD) pool.
+A pool of blocks.
 """
 
+from uuid import UUID
 from pydantic import PositiveInt
-
 from .allocation import Allocation
 from .block import Block
 
 
-# TODO: Remove psrd_ prefix in lots of places
-
-
 class Pool:
     """
-    A Pre-Shared Random Data (PSRD) pool.
+    A pool of blocks.
     """
 
     _blocks: list[Block]
@@ -21,30 +18,33 @@ class Pool:
     def __init__(self):
         self._blocks = []
 
-    def to_mgmt_dict(self) -> dict:
+    def to_mgmt(self) -> dict:
         """
         Get the management status.
         """
         return {
-            "psrd_blocks": [psrd_block.to_mgmt_dict() for psrd_block in self._blocks],
+            "blocks": [block.to_mgmt() for block in self._blocks],
         }
 
-    def to_api_dict(self) -> dict:
+    def add_block(self, block: Block):
         """
-        Convert to JSON representation as used in the DSKE API.
+        Add a block to the pool.
         """
-        # TODO
-        assert False
+        self._blocks.append(block)
 
-    def add_psrd_block(self, psrd_block: Block):
+    def get_block(self, block_uuid: UUID) -> Block:
         """
-        Add a PSRD block to the PSRD pool.
+        Get a block by block UUID.
         """
-        self._blocks.append(psrd_block)
+        for block in self._blocks:
+            if block.uuid == block_uuid:
+                return block
+        # TODO: Better exception type
+        raise ValueError(f"Block with UUID {block_uuid} not found")
 
-    def allocate_allocation(self, size: PositiveInt) -> Allocation | None:
+    def allocate(self, size: PositiveInt) -> Allocation | None:
         """
-        Allocate a PSRD allocation from the pool. An allocation consists of one or more fragments.
+        Allocate an allocation from the pool. An allocation consists of one or more fragments.
         This either returns an Allocation object for the full requested `size` or None if there is
         not enough unallocated data left in the pool.
         """
@@ -65,14 +65,11 @@ class Pool:
         if remaining_size > 0:
             # We didn't allocate the full desired size, deallocate the fragments we did allocate.
             for fragment in fragments:
-                fragment.block.deallocate_psrd_fragment(fragment)
+                fragment.block.deallocate_fragment(fragment)
             return None
-        # TODO: Purge any blocks that are now fully allocated. But....
-        #       1. The fragments still have a back-reference to the block.
-        #       2. What if the allocation is deallocated? Do we even ever allow that?
         return Allocation(fragments)
 
-    def delete_fully_consumed_psrd_blocks(self):
+    def delete_fully_consumed_blocks(self):
         """
         Delete fully consumed PSRD blocks from the pool.
         """

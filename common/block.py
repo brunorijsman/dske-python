@@ -4,13 +4,20 @@ A Pre-Shared Random Data (PSRD) block.
 
 from uuid import UUID, uuid4
 import os
-
+import pydantic
 from bitarray import bitarray
 from pydantic import PositiveInt
-
-import common
-
+from .common import bytes_to_str, str_to_bytes
 from .fragment import Fragment
+
+
+class APIBlock(pydantic.BaseModel):
+    """
+    Representation of a PSRD block as used in API calls.
+    """
+
+    block_uuid: str
+    data: str
 
 
 class Block:
@@ -18,14 +25,14 @@ class Block:
     A Pre-Shared Random Data (PSRD) block.
     """
 
-    _uuid: UUID
+    _block_uuid: UUID
     _size: int  # In bytes
     _data: bytes
     _allocated: bitarray
     _consumed: bitarray
 
-    def __init__(self, uuid: UUID, data: bytes):
-        self._uuid = uuid
+    def __init__(self, block_uuid: UUID, data: bytes):
+        self._block_uuid = block_uuid
         self._size = len(data)
         # TODO: Use consistent naming: data or value
         self._data = data
@@ -35,43 +42,26 @@ class Block:
     @property
     def uuid(self):
         """
-        The UUID of the PSRD block.
+        The UUID of the block.
         """
-        return self._uuid
+        return self._block_uuid
 
-    def to_mgmt_dict(self):
+    def to_mgmt(self):
         """
         Get the management status.
         """
         return {
-            "uuid": str(self._uuid),
-            "data": common.bytes_to_str(self._data, truncate=True),
-        }
-
-    def to_api_dict(self):
-        """
-        Convert to JSON representation as used in the DSKE API.
-        """
-        return {
-            "uuid": str(self._uuid),
-            "data": common.bytes_to_str(self._data),
+            "uuid": str(self._block_uuid),
+            "size": self._size,
+            "data": bytes_to_str(self._data, truncate=True),
+            "allocated": self._allocated.count(),
+            "consumed": self._consumed.count(),
         }
 
     @classmethod
-    def from_api_dict(cls, json: dict):
+    def create_random_block(cls, size: PositiveInt):
         """
-        Convert from JSON representation as used in the DSKE API.
-        """
-        # TODO: Error handling
-        return Block(
-            UUID(json["uuid"]),
-            common.str_to_bytes(json["data"]),
-        )
-
-    @classmethod
-    def create_random_psrd_block(cls, size: PositiveInt):
-        """
-        Create a PSRD block, containing `size` random bytes.
+        Create a block, containing `size` random bytes.
         """
         uuid = uuid4()
         data = os.urandom(size)
@@ -79,7 +69,7 @@ class Block:
 
     def allocate_fragment(self, desired_size: PositiveInt) -> Fragment | None:
         """
-        Allocate a PSRD fragment from the block. We try to allocate `desired_size` bytes from the
+        Allocate a fragment from the block. We try to allocate `desired_size` bytes from the
         block, but we accept a smaller fragment if there is not enough data left in the block. We a
         fragment for the first unallocated set of bytes in the block (i.e. we don't try to search
         further for a larger gap).
@@ -101,14 +91,14 @@ class Block:
 
     def deallocate_fragment(self, fragment: Fragment):
         """
-        Deallocate a PSRD fragment from the block.
+        Deallocate a fragment from the block.
         """
         end_byte = fragment.start_byte + fragment.size
         self._allocated[fragment.start_byte : end_byte] = False
 
     def consume_fragment(self, fragment: Fragment):
         """
-        Consume a PSRD fragment from the block.
+        Consume a fragment from the block.
         """
         start = fragment.start_byte
         end = start + fragment.size
@@ -125,3 +115,20 @@ class Block:
         Check if all bytes in the block have been consumed.
         """
         return self._consumed.all()
+
+    @classmethod
+    def from_api(cls, api_block: APIBlock) -> "Block":
+        """
+        Create a Block from an APIBlock.
+        """
+        # TODO: Error handling
+        return Block(UUID(api_block.block_uuid), str_to_bytes(api_block.data))
+
+    def to_api(self) -> APIBlock:
+        """
+        Create an APIBLock from a Block.
+        """
+        return APIBlock(
+            block_uuid=str(self._block_uuid),
+            data=bytes_to_str(self._data),
+        )

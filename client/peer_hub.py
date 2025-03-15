@@ -1,16 +1,10 @@
 """
-A peer DSKE hub.
+A peer hub.
 """
 
 from uuid import UUID
-
 import httpx
-
-import common
-import key
-import psrd
-
-from hub import api as hub_api
+from common import APIBlock, APIShare, Block, bytes_to_str, Pool, Share, str_to_bytes
 
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
 #       the hub decide?
@@ -19,16 +13,16 @@ _PSRD_BLOCK_SIZE_IN_BYTES = 1000
 
 class PeerHub:
     """
-    A peer DSKE hub.
+    A peer hub.
     """
 
     _client: "Client"  # type: ignore
     _url: str
     _registered: bool
-    _psrd_pool: psrd.Pool
+    _pool: Pool
     # The following attributes are set after registration
     _name: None | str
-    _pre_shared_key: None | bytes
+    _pre_shared_key: None | bytes  # TODO: Get rid of pre-shared keys
 
     def __init__(self, client, base_url):
         self._client = client
@@ -37,20 +31,20 @@ class PeerHub:
             url += "/"
         url += "dske/hub"
         self._registered = False
-        self._psrd_pool = psrd.Pool()
+        self._pool = Pool()
         self._url = url
         self._hub_name = None
         self._pre_shared_key = None
 
-    def to_mgmt_dict(self) -> dict:
+    def to_mgmt(self) -> dict:
         """
         Get the management status.
         """
         return {
             "hub_name": self._hub_name,
-            "pre_shared_key": common.bytes_to_str(self._pre_shared_key),
+            "pre_shared_key": bytes_to_str(self._pre_shared_key),
             "registered": self._registered,
-            "psrd_pool": self._psrd_pool.to_mgmt_dict(),
+            "psrd_pool": self._pool.to_mgmt(),
         }
 
     async def register(self) -> None:
@@ -70,7 +64,7 @@ class PeerHub:
             # TODO: Handle the case that the response does not contain the expected fields
             data = response.json()
             self._hub_name = data["hub_name"]
-            self._pre_shared_key = common.str_to_bytes(data["pre_shared_key"])
+            self._pre_shared_key = str_to_bytes(data["pre_shared_key"])
             self._registered = True
 
     async def unregister(self) -> None:
@@ -96,29 +90,29 @@ class PeerHub:
                 return
             # TODO: Error handling: handle the case that the response does not contain the expected
             #       fields (is that even possible with FastAPI?)
-            psrd_block = psrd.Block.from_api_dict(response.json())
-            self._psrd_pool.add_psrd_block(psrd_block)
+            response_data = response.json()
+            api_block = APIBlock.model_validate(response_data)
+            block = Block.from_api(api_block)
+            self._pool.add_block(block)
 
-    def allocate_encryption_and_authentication_psrd_keys_for_user_key_share(
+    def allocate_encryption_and_authentication_keys_for_share(
         self,
-        user_key_share: key.UserKeyShare,
+        share: Share,
     ):
         """
-        Allocate encryption and authentication PSRD keys for a user key share.
+        Allocate encryption and authentication PSRD keys for a key share.
         """
-        user_key_share.allocate_encryption_and_authentication_psrd_keys_from_pool(
-            self._psrd_pool
-        )
+        share.allocate_encryption_and_authentication_keys_from_pool(self._pool)
 
-    async def post_key_share(self, user_key_share: key.UserKeyShare) -> None:
+    async def post_share(self, share: Share) -> None:
         """
-        Post a user key share to the peer hub.
+        Post a key share to the peer hub.
         """
         async with httpx.AsyncClient() as httpx_client:
             url = f"{self._url}/api/v1/key-share"
-            post_data = hub_api.APIKeyShare.from_user_key_share(
-                user_key_share
-            ).model_dump()
+            api_share = share.to_api()
+            print(f"{api_share=}", flush=True)  ### DEBUG
+            post_data = api_share.model_dump()
             print(f"{url=}", flush=True)  ### DEBUG
             print(f"{post_data=}", flush=True)  ### DEBUG
             response = await httpx_client.post(url, json=post_data)
@@ -134,13 +128,13 @@ class PeerHub:
             # TODO: For now, there is nothing meaningful in the response data
             print(f"{response_data=}", flush=True)  ### DEBUG
 
-    async def get_key_share(self, user_key_uuid: UUID) -> key.UserKeyShare:
+    async def get_share(self, key_uuid: UUID) -> Share:
         """
-        Get a user key share from the peer hub.
+        Get a key share from the peer hub.
         """
         async with httpx.AsyncClient() as httpx_client:
             url = f"{self._url}/api/v1/key-share"
-            get_params = {"key_id": str(user_key_uuid)}
+            get_params = {"key_id": str(key_uuid)}
             print(f"{url=}", flush=True)  ### DEBUG
             print(f"{get_params=}", flush=True)  ### DEBUG
             response = await httpx_client.get(url, params=get_params)
@@ -154,14 +148,14 @@ class PeerHub:
             # expected fields (is that even possible with FastAPI?)
             response_data = response.json()
             print(f"{response_data=}", flush=True)  ### DEBUG
-            api_key_share = hub_api.APIKeyShare.model_validate(response_data)
-            print(f"{api_key_share=}", flush=True)  ### DEBUG
-            user_key_share = api_key_share.to_user_key_share()
-            print(f"{user_key_share=}", flush=True)  ### DEBUG
-            return user_key_share
+            api_share = APIShare.model_validate(response_data)
+            print(f"{api_share=}", flush=True)  ### DEBUG
+            share = api_share.from_api()
+            print(f"{share=}", flush=True)  ### DEBUG
+            return share
 
-    def delete_fully_consumed_psrd_blocks(self) -> None:
+    def delete_fully_consumed_blocks(self) -> None:
         """
         Delete fully consumed PSRD blocks from the pool.
         """
-        self._psrd_pool.delete_fully_consumed_psrd_blocks()
+        self._pool.delete_fully_consumed_blocks()
