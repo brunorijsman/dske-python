@@ -3,7 +3,7 @@ A DSKE client.
 """
 
 from uuid import UUID
-from common import bytes_to_str, Key
+from common import bytes_to_str, Key, reconstruct_binary_secret_from_shares
 from .peer_hub import PeerHub
 
 # TODO: Make this configurable
@@ -151,24 +151,26 @@ class Client:
         Gather key shares from the peer hubs, and reconstruct the key out of (a subset of)
         the key shares.
         """
-
         # Attempt to get a key share from every peer hub.
-        peer_hubs_and_shares = []
+        shares = []
         for peer_hub in self._peer_hubs:
+            # TODO The client should allocated the allocations for the encryption key and the
+            #      signature key; see fundamental problem in file TODO
             # TODO: Handle exception. If an exception occurs, we just skip the peer hub, and move
             #       on to the next one. We just need K out of N shares to reconstruct the key.
             share = await peer_hub.get_share(key_uuid)
-            peer_hubs_and_shares.append((peer_hub, share))
-        # TODO: Include the encryption and authentication key allocations in the API messages.
-        # TODO: Allocate encryption and authentication keys for each share
-        # TODO: Consume the allocated encryption and authentication keys for each share
-        # TODO: Decrypt each share
-        # TODO: Verify the signature of each share
+            share.verify_signature()
+            share.decrypt()
+            shares.append(share)
+            print(f"{share=}")  ### DEBUG
+
         # TODO: Check if we have enough shares
         # TODO: Reconstruct the key using Shamir secret sharing algorithm
-
         # Reconstruct the key from the shares
-        shares = [share for _, share in peer_hubs_and_shares]
-        key = Key.reconstruct_from_shares(key_uuid, shares)
+        shamir_input = [(share.share_index, share.value) for share in shares]
+        print(f"{shamir_input=}")  ### DEBUG
+        key_value = reconstruct_binary_secret_from_shares(shamir_input)
+        print(f"{key_value=}")  ### DEBUG
+        key = Key(key_uuid, key_value)
         print(f"Reconstructed key: {key}")  ### DEBUG
         return key
