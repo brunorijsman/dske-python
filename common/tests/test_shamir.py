@@ -9,14 +9,12 @@ from common import (
     split_binary_secret_into_shares,
 )
 
-# pylint: disable=missing-function-docstring
-
 
 def shamir_split_reconstruct_scenario(size: int, nr_shares: int, min_shares: int):
     """
-    Test splitting a randomly generated secret if `size` bytes into `n` shares, and then
-    reconstructing the secret using a randomly selected subset of `k` out of the original `n`
-    shares.
+    Test splitting a randomly generated secret if `size` bytes into `nr_shares` shares, and then
+    reconstructing the secret using a randomly selected subset of `min_shares` out of the original
+    `nr_shares` shares.
     """
     info = f"size={size} nr_shares={nr_shares} min_shares={min_shares}"
     secret = urandom(size)
@@ -28,6 +26,10 @@ def shamir_split_reconstruct_scenario(size: int, nr_shares: int, min_shares: int
 
 
 def test_shamir_split_reconstruct_all_scenarios():
+    """
+    Test splitting and reconstructing secrets of various sizes, with various numbers of shares and
+    minimum shares required for reconstruction.
+    """
     for size in [16, 32, 1, 1000]:
         for nr_shares, min_shares in [
             (3, 3),
