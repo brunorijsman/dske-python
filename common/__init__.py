@@ -8,5 +8,8 @@ from .common import *  # TODO: Not wildcard
 from .fragment import APIFragment, Fragment
 from .key import Key
 from .pool import Pool
-from .shamir import reconstruct_binary_secret_from_shares
+from .shamir import (
+    split_binary_secret_into_shares,
+    reconstruct_binary_secret_from_shares,
+)
 from .share import APIShare, Share

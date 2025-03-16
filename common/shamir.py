@@ -155,9 +155,6 @@ def recover_secret(shares, prime=_PRIME):
     return _lagrange_interpolate(0, x_s, y_s, prime)
 
 
-# TODO: Remove the main function
-
-
 def split_binary_secret_into_shares(
     secret: bytes,
     nr_shares: int,
