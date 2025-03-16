@@ -76,7 +76,7 @@ class PeerHub:
 
     async def unregister(self) -> None:
         """
-        Register the peer hub.
+        Unregister the peer hub.
         """
         # TODO: Implement this
 
