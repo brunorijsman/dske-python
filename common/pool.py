@@ -5,6 +5,7 @@ A pool of blocks.
 from uuid import UUID
 from pydantic import PositiveInt
 from .allocation import Allocation
+from .exceptions import OutOfPreSharedRandomDataException
 from .block import Block
 
 
@@ -42,7 +43,7 @@ class Pool:
         # TODO: Better exception type
         raise ValueError(f"Block with UUID {block_uuid} not found")
 
-    def allocate(self, size: PositiveInt) -> Allocation | None:
+    def allocate(self, size: PositiveInt) -> Allocation:
         """
         Allocate an allocation from the pool. An allocation consists of one or more fragments.
         This either returns an Allocation object for the full requested `size` or None if there is
@@ -66,7 +67,7 @@ class Pool:
             # We didn't allocate the full desired size, deallocate the fragments we did allocate.
             for fragment in fragments:
                 fragment.block.deallocate_fragment(fragment)
-            return None
+            raise OutOfPreSharedRandomDataException()
         return Allocation(fragments)
 
     def mark_allocation_allocated(self, allocation: Allocation):

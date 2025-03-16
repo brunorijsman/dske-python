@@ -33,8 +33,6 @@ class Share:
 
     _AUTHENTICATION_KEY_SIZE_IN_BYTES = 2
 
-    # pylint: disable=too-many-arguments
-    # pylint: disable=too-many-positional-arguments
     def __init__(
         self,
         key_uuid: UUID,

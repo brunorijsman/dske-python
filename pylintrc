@@ -2,4 +2,6 @@
 
 disable=
     fixme,
-    too-few-public-methods
+    too-few-public-methods,
+    too-many-arguments,
+    too-many-positional-arguments
