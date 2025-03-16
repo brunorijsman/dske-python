@@ -1,15 +1,6 @@
-TODO: If we do a get-key twice in a row, the second one crashes
-
-TODO: Test case to get familiar with 
-
 TODO: Zero out bytes when they are allocated
 
-TODO: Remove block from pool when it is completely allocated
-
-TODO: Add a Key class to keep track of the key logic (separate class for initiator and
-      responder?)
-
-TODO: Key has unique key UUID
+TODO: Make sure key has unique key UUID
 
 TODO: Key initiator: Select N peer hub (initially: all peer hubs)
 

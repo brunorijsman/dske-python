@@ -5,8 +5,14 @@ A pool of blocks.
 from uuid import UUID
 from pydantic import PositiveInt
 from .allocation import Allocation
-from .exceptions import OutOfPreSharedRandomDataException
 from .block import Block
+
+
+class OutOfPreSharedRandomDataError(Exception):
+    """
+    Out of Pre-Shared Random Data (PSRD). We tried to allocated some pre-shared random data from
+    a pool, but the pool did not contain enough free data to fulfill the allocation request.
+    """
 
 
 class Pool:
@@ -67,7 +73,7 @@ class Pool:
             # We didn't allocate the full desired size, deallocate the fragments we did allocate.
             for fragment in fragments:
                 fragment.block.deallocate_fragment(fragment)
-            raise OutOfPreSharedRandomDataException()
+            raise OutOfPreSharedRandomDataError()
         return Allocation(fragments)
 
     def mark_allocation_allocated(self, allocation: Allocation):
@@ -82,4 +88,6 @@ class Pool:
         """
         Delete fully consumed PSRD blocks from the pool.
         """
-        self._blocks = [block for block in self._blocks if not block.is_fully_consumed]
+        self._blocks = [
+            block for block in self._blocks if not block.is_fully_consumed()
+        ]
