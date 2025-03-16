@@ -21,7 +21,9 @@ def shamir_split_reconstruct_scenario(size: int, nr_shares: int, min_shares: int
     shares = split_binary_secret_into_shares(secret, nr_shares, min_shares)
     assert len(shares) == nr_shares, info
     selected_shares = sample(shares, min_shares)
-    reconstructed_secret = reconstruct_binary_secret_from_shares(selected_shares)
+    reconstructed_secret = reconstruct_binary_secret_from_shares(
+        min_shares, selected_shares
+    )
     assert secret == reconstructed_secret, info
 
 
@@ -30,7 +32,7 @@ def test_shamir_split_reconstruct_all_scenarios():
     Test splitting and reconstructing secrets of various sizes, with various numbers of shares and
     minimum shares required for reconstruction.
     """
-    for size in [16, 32, 1, 1000]:
+    for size in [16, 32, 4, 1000]:
         for nr_shares, min_shares in [
             (3, 3),
             (5, 5),
@@ -40,3 +42,5 @@ def test_shamir_split_reconstruct_all_scenarios():
             (10, 3),
         ]:
             shamir_split_reconstruct_scenario(size, nr_shares, min_shares)
+
+    # TODO: Key lenghth 3 (< MIN_KEY_LENGTH) raises exception

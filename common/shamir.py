@@ -82,8 +82,13 @@ import hmac
 import secrets  # TODO: Use secrets everywhere instead of os.urandom
 from typing import List, NamedTuple, Sequence, Tuple
 
+
 DIGEST_LENGTH_BYTES = 4
 """The length of the digest of the shared secret in bytes."""
+
+
+MIN_KEY_LENGTH = DIGEST_LENGTH_BYTES
+"""The minimum length of the shared secret in bytes."""
 
 MAX_SHARE_COUNT = 16
 """The maximum number of shares that can be created."""
@@ -191,6 +196,11 @@ def _create_digest(random_data: bytes, shared_secret: bytes) -> bytes:
 def _split_secret(
     threshold: int, share_count: int, shared_secret: bytes
 ) -> List[RawShare]:
+    if len(shared_secret) < MIN_KEY_LENGTH:
+        raise ValueError(
+            f"The shared secret must be at least {MIN_KEY_LENGTH} bytes long."
+        )
+
     if threshold < 1:
         raise ValueError("The requested threshold must be a positive integer.")
 
@@ -231,6 +241,7 @@ def _split_secret(
 
 def _recover_secret(threshold: int, shares: Sequence[RawShare]) -> bytes:
     # If the threshold is 1, then the digest of the shared secret is not used.
+    # TODO: Disallow threshold of 1
     if threshold == 1:
         return next(iter(shares)).data
 
@@ -257,22 +268,16 @@ def split_binary_secret_into_shares(
     Split a binary secret into `nr_shares` shares. The minimum number of shares required to
     reconstruct the binary is `min_nr_shares`.
     """
-    # TODO: For now, this is just a dummy implementation: each share contains a copy of the
-    #       original secret. So, it's trivial to reconstruct the original secret from any single
-    #       share.
-    assert nr_shares >= min_nr_shares
-    shares = []
-    for share_index in range(nr_shares):
-        share = (share_index, secret)
-        shares.append(share)
-    return shares
+    # TODO: Remove this back-and-forth conversion between our tuple and RawShare
+    raw_shares = _split_secret(min_nr_shares, nr_shares, secret)
+    return [(share.x, share.data) for share in raw_shares]
 
 
-def reconstruct_binary_secret_from_shares(shares: list[(int, bytes)]) -> bytes:
+def reconstruct_binary_secret_from_shares(
+    min_nr_shares: int, shares: list[(int, bytes)]
+) -> bytes:
     """
     Reconstruct a binary secret from shares.
     """
-    # TODO: Same dummy implementation as described above.
-    # TODO: Throw an exception if the secret cannot be reconstructed.
-    assert len(shares) > 0
-    return shares[0][1]
+    raw_shares = [RawShare(x, data) for (x, data) in shares]
+    return _recover_secret(min_nr_shares, raw_shares)

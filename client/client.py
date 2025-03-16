@@ -169,7 +169,7 @@ class Client:
         # Reconstruct the key from the shares
         shamir_input = [(share.share_index, share.value) for share in shares]
         print(f"{shamir_input=}")  ### DEBUG
-        key_value = reconstruct_binary_secret_from_shares(shamir_input)
+        key_value = reconstruct_binary_secret_from_shares(_MIN_NR_SHARES, shamir_input)
         print(f"{key_value=}")  ### DEBUG
         key = Key(key_uuid, key_value)
         print(f"Reconstructed key: {key}")  ### DEBUG
