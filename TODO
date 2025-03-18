@@ -76,13 +76,6 @@ TODO: Use async features to send all shares to the peer hubs in parallel, instea
 
 TODO: Replace key_uuid -> key_id?
 
-TODO: Replace key -> key and key_share -> key_share?
-
-TODO: Shorten naming:
-      key_share -> key_share
-      key -> key
-      psrd_block -> block etc
-
 TODO: Better way to avoid circular imports that then current # type: ignore
 
 TODO: Fundamental problem
