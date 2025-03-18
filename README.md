@@ -1,14 +1,536 @@
-**WARNING**: This project is in the extremely early stages of implementation; it is not yet useable
-by the general public.
-
 # Table of contents
 
-* [The key distribution problem](#the-key-distribution-problem)
-* [Distributed Symmetric Key Establishment (DSKE)](#distributed-symmetric-key-establishment-dske)
-* [The DSKE protocol described in draft-mwag-dske-01](#the-dske-protocol-described-in-draft-mwag-dske-01)
 * [The open source implementation of DSKE in dske-python](#the-open-source-implementation-of-dske-in-dske-python)
-  * [User guide](#user-guide)
-  * [Implementation notes](#implementation-notes)
+
+* [User guide](#user-guide)
+
+* [The key distribution problem](#the-key-distribution-problem)
+
+* [Distributed Symmetric Key Establishment (DSKE)](#distributed-symmetric-key-establishment-dske)
+
+* [The DSKE protocol described in draft-mwag-dske-01](#the-dske-protocol-described-in-draft-mwag-dske-01)
+
+* [Implementation notes](#implementation-notes)
+
+# The open source implementation of DSKE in dske-python
+
+This repository contains an open source implementation of Distributed Symmetric Key Establishment (DSKE) as
+specified in IETF draft
+[draft-mwag-dske-01](https://datatracker.ietf.org/doc/draft-mwag-dske/01/).
+
+**WARNING**: The code is far from complete (definitely less than 50% done), but it is already at the
+point that it can create Shamir-sharded keys between two clients and deliver it over an ETSI QKD 014
+interface. 
+
+**WARNING**: The code is intended to be a proof-of-concept to study the DSKE protocol; it is not
+suitable for  production deployments for numerous reasons (e.g. there are lots of side-channel 
+vulnerabilities). 
+
+It has been developed completely independently of the authors of the draft, based only on the public
+information in the draft. 
+It has been developed purely out of curiosity (building something is the best way to understand it).
+# User guide
+
+## Installation
+
+Clone the repository:
+
+<pre>
+git clone https://github.com/brunorijsman/dske-python.git
+</pre>
+
+Change directory to the cloned repository:
+
+<pre>
+cd dske-python
+</pre>
+
+Create a virtual environment:
+
+<pre>
+python3.13 -m venv venv
+</pre>
+
+Note: we use Python 3.13 to develop and test the code.
+
+Activate the virtual environment:
+
+<pre>
+source venv/bin/activate
+</pre>
+
+## Topology file
+
+We need a topology YAML file which describes the topology of the network.
+It lists the names of the DSKE clients (clients for short) and the
+DSKE security hubs (hubs for short).
+Local distributors are not yet implemented.
+
+The repository contains an example `topology.yaml` file:
+
+<pre>
+$ <b>cat topology.yaml</b>
+hubs:
+  - name: hank
+  - name: helen
+  - name: hillary
+  - name: holly
+  - name: hugo
+clients:
+  - name: carol
+  - name: celia
+  - name: cindy
+  - name: connie
+  - name: curtis
+</pre>
+
+## The topology manager
+
+The script `manager.py` is used to:
+* Start a topology
+* Stop a topology.
+* Retrieve the status of one or more nodes.
+* Retrieve keys from client nodes.
+
+Use the `--help` option to see the command line parameters:
+
+<pre>
+$ <b>./manager.py --help</b>
+usage: manager.py [-h] [--client CLIENT | --hub HUB] configfile {start,stop,status,etsi-qkd} ...
+
+DSKE Manager
+
+positional arguments:
+  configfile            Configuration filename
+  {start,stop,status,etsi-qkd}
+    start               Start all hubs and clients
+    stop                Stop all hubs and clients
+    status              Report status for all hubs and clients
+    etsi-qkd            ETSI QKD operations
+
+options:
+  -h, --help            show this help message and exit
+  --client CLIENT       Filter on client name
+  --hub HUB             Filter on hub name
+</pre>
+
+You can also use the `--help` option to see the command line parameters for a specific sub-command:
+
+<pre>
+$ <b>./manager.py topology.yaml etsi-qkd --help</b>
+usage: manager.py configfile etsi-qkd [-h] master_sae_id slave_sae_id {status,get-key,get-key-with-key-ids,get-key-pair} ...
+
+positional arguments:
+  master_sae_id         Master SAE ID
+  slave_sae_id          Slave SAE ID
+  {status,get-key,get-key-with-key-ids,get-key-pair}
+    status              Invoke ETSI QKD Status API
+    get-key             Invoke ETSI QKD Get Key API
+    get-key-with-key-ids
+                        Invoke ETSI QKD Get Key with Key IDs API
+    get-key-pair        Invoke ETSI QKD Get Key and Get Key with Key IDs APIs
+
+options:
+  -h, --help            show this help message and exit
+</pre>
+
+
+## Start the topology
+
+To start the DSKE topology:
+
+<pre>
+$ <b>./manager.py topology.yaml start</b>
+Starting hub hank on port 8000
+Starting hub helen on port 8001
+Starting hub hillary on port 8002
+Starting hub holly on port 8003
+Starting hub hugo on port 8004
+Starting client carol on port 8005
+Starting client celia on port 8006
+Starting client cindy on port 8007
+Starting client connie on port 8008
+Starting client curtis on port 8009
+</pre>
+
+Here `topology.yaml` is the topology file that specifies the names of the hubs and clients that
+are part of the topology.
+
+Starting a topology spawns one Python process for each node, where a node is either a DSKE client 
+(client for short) or a DSKE Security Hub (hub for short).  
+Local distributors are not yet modelled.
+
+You can see these processed using `ps` command:
+
+<pre>
+ $ <b>ps</b>
+  PID TTY           TIME CMD
+81631 ttys000    0:01.57 Python -m hub hank --port 8000
+81632 ttys000    0:01.56 Python -m hub helen --port 8001
+81633 ttys000    0:01.56 Python -m hub hillary --port 8002
+81634 ttys000    0:01.57 Python -m hub holly --port 8003
+81635 ttys000    0:01.56 Python -m hub hugo --port 8004
+81636 ttys000    0:01.96 Python -m client carol --port 8005 --hubs http://localhost:8000 http://localhost:8001 http://localhost:8002 http://localhost:8003 http://localhost:8004
+81637 ttys000    0:01.96 Python -m client celia --port 8006 --hubs http://localhost:8000 http://localhost:8001 http://localhost:8002 http://localhost:8003 http://localhost:8004
+81638 ttys000    0:01.97 Python -m client cindy --port 8007 --hubs http://localhost:8000 http://localhost:8001 http://localhost:8002 http://localhost:8003 http://localhost:8004
+81639 ttys000    0:01.97 Python -m client connie --port 8008 --hubs http://localhost:8000 http://localhost:8001 http://localhost:8002 http://localhost:8003 http://localhost:8004
+81640 ttys000    0:01.96 Python -m client curtis --port 8009 --hubs http://localhost:8000 http://localhost:8001 http://localhost:8002 http://localhost:8003 http://localhost:8004
+...
+</pre>
+
+The reported port numbers are the port numbers for the REST interface (including documentation) of
+each node.
+
+## REST interfaces
+
+The nodes communicate with each other over REST interfaces, implemented using FastAPI.
+There are four types of REST interfaces:
+
+1. `api` REST interfaces model the actual DSKE protocol specified in the draft. 
+   Note that the draft currently only describes the protocol at the semantic level, and not (yet)
+   the message encoding. 
+   We do not intend to imply that REST is the best encoding for the message encoding; a leaner 
+   binary encoding may be more appropriate for this type of protocol.
+   We only chose REST to make prototyping and studying the protocol easier the semantic level.
+
+2. `oob` REST interfaces model the out-of-band actions mentioned in the draft, for example 
+   delivering a block of pre-shared random data (PSRD).
+   In real life, this would not be done over a REST interface but using some other mechanism
+   (e.g. physically shipping a tamper-proof device with gigabytes of random data). 
+   In this code we use REST interface to model these actions so that we can automate the scripting
+   of entire end-to-end testing scenarios.
+
+3. `esti` REST interfaces are implement the ETSI QKD 014 interface (a subset at this time) on the
+   DSKE clients to deliver the produced keys to the Secure Application Entity (SAE) consumers.
+
+4. `mgmt` management REST interfaces to control and debug the various nodes (e.g. to stop them and
+   to retrieve operational status to "look inside" of them to see what is happening).
+
+
+## REST interface documentation
+
+The REST interface for each node is available at the reported port number when the topology was
+started.
+
+In the above example, the REST interface for hub "Hank" is available at `http://127.0.0.1:8000`
+
+In addition to the REST interface itself, documentation is also available at
+`http://127.0.0.1:8000/docs` and `http://127.0.0.1:8000/redoc`.
+You can also manually invoke the REST APIs from the documentation page (click on an API endpoint
+and then click on "Try it out").
+
+Here is an example of the automatically generated documentation at `http://127.0.0.1:8005/docs`
+for a client node:
+
+![Client REST API documentation](docs/figures/client-rest-api-documentation.png)
+
+Here is an example of the automatically generated documentation at `http://127.0.0.1:8000/docs`
+for a hub node:
+
+![Hub REST API documentation](docs/figures/hub-rest-api-documentation.png)
+
+When you click on the row for `POST /dske/hub/api/v1/key-share` you see the detailed documentation
+for that particular REST endpoint:
+
+![Hub POST key-share details documentation](docs/figures/hub-post-key-share-endpoint-details-documentation.png)
+
+### Invoking the REST interface
+
+Here is an example of invoking the API to get the status of 
+
+In this example, we pipe the output of `curl` through `jq` (JSON query) to pretty-print the
+JSON REST response:
+
+<pre>
+$ <b>curl --silent http://127.0.0.1:8000/dske/hub/mgmt/v1/status | jq</b>
+{
+  "hub_name": "hank",
+  "pre_shared_key_size": 32,
+  "peer_clients": [
+    {
+      "client_name": "carol",
+      "pre_shared_key": "0O/FbKqpYW646cjs2eQmzMVqYj67VuBrY/6ItHXA9FI=",
+      "pool": {
+        "blocks": [
+          {
+            "uuid": "14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5",
+            "size": 1000,
+            "data": "AAAAAAAAAAAAAA==...",
+            "allocated": 18,
+            "consumed": 16
+          }
+        ]
+      }
+    },
+    {
+      "client_name": "celia",
+      "pre_shared_key": "jY2U8WCUg3y/rxbu6VcDr3em/AI+K+jXdk7EIEDi5BA=",
+      "pool": {
+        "blocks": [
+          {
+            "uuid": "7734118a-24f6-4fb0-9cba-8d00bbbaedc7",
+            "size": 1000,
+            "data": "AAAAAAAAAAAAAA==...",
+            "allocated": 18,
+            "consumed": 18
+          }
+        ]
+      }
+    },
+    ... snip ...
+  ],
+  "shares": [
+    {
+      "key_uuid": "6050fccc-b882-402e-8ca1-62f0147999de",
+      "share_index": 0,
+      "value": "1AvP8kSDA1KExw==...",
+      "encrypted_value": null,
+      "encryption_key_allocation": null,
+      "signature_key_allocation": null
+    }
+  ]
+}
+</pre>
+
+Note 1: The `status` REST API is intended for debugging and understanding the protocol; it exposes
+information that should not be exposed in a production environment.
+
+Note 2: There is currently no authentication on any of the REST interfaces.
+It is my understanding (but I could be wrong) that the DSKE protocol does not require the API
+interfaces to be authenticated nor encrypted to be secure.
+
+
+## Report the topology status
+
+Use the manager `status` command to report the status of each node in the topology:
+
+<pre>
+$ <b>./manager.py topology.yaml status</b>
+Status for hub hank on port 8000
+{
+  "hub_name": "hank",
+  "pre_shared_key_size": 32,
+  "peer_clients": [
+    {
+      "client_name": "carol",
+      "pre_shared_key": "0O/FbKqpYW646cjs2eQmzMVqYj67VuBrY/6ItHXA9FI=",
+      "pool": {
+        "blocks": [
+          {
+            "uuid": "14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5",
+            "size": 1000,
+            "data": "AAAAAAAAAAAAAA==...",
+            "allocated": 18,
+            "consumed": 16
+          }
+        ]
+      }
+    },
+    ... snip ...
+    {
+      "hub_name": "holly",
+      "pre_shared_key": "6++8XCkHuqv94pLNpmaf1Emm8Pd0yfug6rn/dGSU4GU=",
+      "registered": true,
+      "psrd_pool": {
+        "blocks": [
+          {
+            "uuid": "67193b56-13fe-4e43-a42c-103097fcdbae",
+            "size": 1000,
+            "data": "hGV7ypmUQBiiBQ==...",
+            "allocated": 0,
+            "consumed": 0
+          }
+        ]
+      }
+    },
+    {
+      "hub_name": "hugo",
+      "pre_shared_key": "wetCgZv8yS7PHu5ve09VROyhOidLANKvTvMbauPVM4U=",
+      "registered": true,
+      "psrd_pool": {
+        "blocks": [
+          {
+            "uuid": "64ba8d8f-d26c-498f-854a-123346074072",
+            "size": 1000,
+            "data": "iSZnsqd1CSIEWw==...",
+            "allocated": 0,
+            "consumed": 0
+          }
+        ]
+      }
+    }
+  ]
+}
+</pre>
+
+You can also use the `--client` or `--hub` command-line option to only report the status of a single
+client or hub node, for example:
+
+<pre>
+$ <b>./manager.py topology.yaml --client celia status</b>
+Status for client celia on port 8006
+{
+  "client_name": "celia",
+  "peer_hubs": [
+    ... snip ...
+    {
+      "hub_name": "hugo",
+      "pre_shared_key": "AZzkkvM4rsmq89gjsCMZCURcHpa0Y/5ZsGrtVqzICMI=",
+      "registered": true,
+      "psrd_pool": {
+        "blocks": [
+          {
+            "uuid": "78a32566-5ee1-4adb-b468-91c12ae4920c",
+            "size": 1000,
+            "data": "AAAAAAAAAAAAAA==...",
+            "allocated": 18,
+            "consumed": 16
+          }
+        ]
+      }
+    }
+  ]
+}
+</pre>
+
+## Get encryption keys
+
+Use the manager `get-key` sub-command under the `etsi-qkd` command to invoke the ETSI QKD 014
+"Get Key" API to retrieve a key for a pair of SAEs on the master SAE.
+In the following example we as master SAE "carol" for a key which is shared with slave SAE "celia":
+
+<pre>
+ $ <b>./manager.py topology.yaml etsi-qkd carol celia get-key</b>
+Invoke ETSI QKD Get Key API for client carol on port 8005
+master_sae_id='carol' slave_sae_id='celia'
+url='http://localhost:8005/dske/client/etsi/api/v1/keys/celia/enc_keys'
+response=<Response [200]>
+{
+  "keys": {
+    "key_ID": "f47f23d7-be01-41d3-a5bc-106b2335e652",
+    "key": "/j0FX08Tf9THPD0k1viX3g=="
+  }
+}
+</pre>
+
+Note 1: The master / slave terminology comes from ETSI QKD 014 version 1 and will be revised in 
+version 2.
+
+Note: At this point, the code assumes that there is exactly one SAE per client, and that the SAE-ID
+of the SAE is the same as the name of the client.
+
+Use the manager `get-key-with-key-ids` sub-command under the `etsi-qkd` command to invoke the 
+ETSI QKD 014 "Get Key" API to retrieve a key for a pair of SAEs on the slave SAE.
+
+<pre>
+$ <b>./manager.py topology.yaml etsi-qkd carol celia get-key-with-key-ids f47f23d7-be01-41d3-a5bc-106b2335e652</b>
+Invoke ETSI QKD Get Key with Key IDs API for client celia on port 8005
+slave_client_name='celia' master_sae_id='carol' f47f23d7-be01-41d3-a5bc-106b2335e652
+{
+  "keys": [
+    {
+      "key_ID": "f47f23d7-be01-41d3-a5bc-106b2335e652",
+      "key": "/j0FX08Tf9THPD0k1viX3g=="
+    }
+  ]
+}
+</pre>
+
+As a matter of convenience, there is also a `get-key-pair` sub-command to combine both the
+"Get Key" and the "Get Key with Key IDs" calls:
+
+<pre>
+$ <b>./manager.py topology.yaml etsi-qkd carol celia get-key-pair</b>
+Invoke ETSI QKD Get Key API for client carol on port 8005
+master_sae_id='carol' slave_sae_id='celia'
+{
+  "keys": {
+    "key_ID": "cc658ffe-8d54-414b-b91f-20b59b03f034",
+    "key": "jSOFUh56slAChUrzUExdbQ=="
+  }
+}
+Invoke ETSI QKD Get Key with Key IDs API for client celia on port 8006
+master_sae_id='carol' slave_sae_id='celia' cc658ffe-8d54-414b-b91f-20b59b03f034
+{
+  "keys": [
+    {
+      "key_ID": "cc658ffe-8d54-414b-b91f-20b59b03f034",
+      "key": "jSOFUh56slAChUrzUExdbQ=="
+    }
+  ]
+}
+Key values match
+</pre>
+
+And, finally, there is a `status` subcommand to invoke the "Status" ETSI QKD 014 API:
+
+<pre>
+$ <b<>./manager.py topology.yaml etsi-qkd carol celia status</b>
+Invoke ETSI QKD Status API for client carol on port 8005
+master_sae_id='carol' slave_sae_id='celia'
+{
+  "source_kme_id": "carol",
+  "target_kme_id": "celia",
+  "master_sae_id": "carol",
+  "slave_sae_id": "celia",
+  "key_size": 128,
+  "stored_key_count": 25000,
+  "max_key_count": 1000,
+  "max_key_per_request": 1,
+  "max_key_size": 100000,
+  "min_key_size": 1,
+  "max_sae_id_count": 0
+}
+</pre>
+
+
+Note: The implementation of the ETSI QKD API interface is far from complete.
+The `size` and `number` GET parameters are not yet supported.
+`POST` methods are not yet supported.
+Multicast keys are not yet supported.
+
+## Log files
+
+Each node produces an `.out` log file for debugging purposes.
+The information in this log file will vary wildly as the implementation progresses.
+For example, the log file for client carol is `client-carol.out`:
+
+<pre>
+$ <b>cat client-carol.out</b>
+INFO:     Started server process [81636]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8005 (Press CTRL+C to quit)
+INFO:     127.0.0.1:56441 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56441 - "GET /openapi.json HTTP/1.1" 200 OK
+Share constructor: value=b'\xd4\x0b\xcf\xf2D\x83\x03R\x84\xc7\n\xd1#X\xd3`' encrypted_value=None
+Share constructor: value=b'-kD\x06\x99\xb2E\xc2\xd5\xf0\xb3z\xd0Oyn' encrypted_value=None
+Share constructor: value=b'\x11\x9c\x84\x19\x93\xed\xac\xa516Z\x07\xfaf\xe7\xfa' encrypted_value=None
+Share constructor: value=b'\xe8\xfc\x0f\xedN\xdc\xea5`\x01\xe3\xac\tqM\xf4' encrypted_value=None
+Share constructor: value=b'\xf5yZ_2o\xca\xba\xa9tN<\x1adLa' encrypted_value=None
+api_share=APIShare(client_name='carol', key_id='6050fccc-b882-402e-8ca1-62f0147999de', share_index=0, encrypted_value='e2wgFBkt7R8FGubnZesLJw==', encryption_key_allocation=APIAllocation(fragments=[APIFragment(block_uuid='14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5', start_byte=0, size=16)]), signature_key_allocation=APIAllocation(fragments=[APIFragment(block_uuid='14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5', start_byte=16, size=2)]))
+url='http://localhost:8000/dske/hub/api/v1/key-share'
+... snip ...
+</pre>
+
+
+## Stop the topology
+
+To stop the topology, use the manager stop command:
+
+<pre>
+$ <b>./manager.py topology.yaml stop</b>
+Stopping client carol on port 8005
+Stopping client celia on port 8006
+Stopping client cindy on port 8007
+Stopping client connie on port 8008
+Stopping client curtis on port 8009
+Stopping hub hank on port 8000
+Stopping hub helen on port 8001
+Stopping hub hillary on port 8002
+Stopping hub holly on port 8003
+Stopping hub hugo on port 8004
+</pre>
 
 # The key distribution problem
 
@@ -195,120 +717,6 @@ For example, only the semantics but not yet the syntax of protocol messages is d
 
 TODO: Finish this
 
-# The open source implementation of DSKE in dske-python
-
-This repository contains an implementation of Distributed Symmetric Key Establishment (DSKE) as
-specified in IETF draft
-[draft-mwag-dske-01](https://datatracker.ietf.org/doc/draft-mwag-dske/01/).
-
-## User guide
-
-### Installation
-
-Clone the repository:
-
-<pre>
-git clone https://github.com/brunorijsman/dske-python.git
-</pre>
-
-Change directory to the cloned repository:
-
-<pre>
-cd dske-python
-</pre>
-
-Create a virtual environment:
-
-<pre>
-python3.13 -m venv venv
-</pre>
-
-Note: we use Python 3.13 to develop and test the code.
-
-Activate the virtual environment:
-
-<pre>
-source venv/bin/activate
-</pre>
-
-### Topology file
-
-We need a topology YAML file which describes the topology of the network.
-It lists the names of the DSKE clients (clients for short) and the
-DSKE security hubs (hubs for short).
-
-The repository contains an example `topology.yaml` file:
-
-<pre>
-$ <b>cat topology.yaml</b>
-hubs:
-  - name: hank
-  - name: helen
-  - name: hillary
-  - name: holly
-  - name: hugo
-clients:
-  - name: carol
-  - name: celia
-  - name: cindy
-  - name: connie
-  - name: curtis
-</pre>
-
-### The topology manager
-
-TODO: Finish this
-
-### Start the topology
-
-To start the DSKE topology:
-
-<pre>
-$ <b>./manager.py topology.yaml start</b>
-Starting hub hank on port 8000
-Starting hub helen on port 8001
-Starting hub hillary on port 8002
-Starting hub holly on port 8003
-Starting hub hugo on port 8004
-Starting client carol on port 8005
-Starting client celia on port 8006
-Starting client cindy on port 8007
-Starting client connie on port 8008
-Starting client curtis on port 8009
-</pre>
-
-### Access web interface
-
-Once a topology has been started, open the API in the browser at URL `http://127.0.0.1:8000/docs`.
-(Replace 8000 with the port number reported by the topology start command)
-
-TODO: Finish this
-
-### Report the topology status
-
-TODO: Finish this
-
-### Get encryption keys
-
-TODO: Finish this
-
-### Stop the topology
-
-To stop the topology, use the manager stop command:
-
-<pre>
-$ <b>./manager.py topology.yaml stop</b>
-Stopping client carol on port 8005
-Stopping client celia on port 8006
-Stopping client cindy on port 8007
-Stopping client connie on port 8008
-Stopping client curtis on port 8009
-Stopping hub hank on port 8000
-Stopping hub helen on port 8001
-Stopping hub hillary on port 8002
-Stopping hub holly on port 8003
-Stopping hub hugo on port 8004
-</pre>
 
 ## Implementation notes
 

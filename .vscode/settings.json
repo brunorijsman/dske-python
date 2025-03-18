@@ -11,6 +11,7 @@
         "DSKEClient",
         "ECDH",
         "encryptor",
+        "esti",
         "ETSI",
         "FIPS",
         "getpid",
