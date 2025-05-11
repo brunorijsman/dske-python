@@ -200,6 +200,7 @@ class Manager:
         """
         Start all hubs and clients.
         """
+        # TODO: For all nodes, check if port is already bound, and if so, don't start any node
         client_extra_args = ["--hubs"]
         for hub_config in self._config["hubs"]:
             hub_name = hub_config["name"]
@@ -229,6 +230,7 @@ class Manager:
         # pylint: disable=consider-using-with
         out_file = open(out_filename, "w", encoding="utf-8")
         # TODO: Error handling (e.g., if the process fails to start)
+        # TODO: Append to stdout and stderr instead of replacing it (here and elsewhere)
         _process = subprocess.Popen(
             ["python", "-m", f"{node_type}", node_name, "--port", str(port)]
             + extra_args,

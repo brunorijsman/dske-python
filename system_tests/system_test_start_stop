@@ -1,6 +1,0 @@
-#! /bin/bash
-
-set -e
-cd "${VIRTUAL_ENV}/.."
-./manager.py topology.yaml start
-./manager.py topology.yaml stop
