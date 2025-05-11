@@ -42,7 +42,6 @@ class Share:
         encryption_key_allocation: Allocation | None = None,
         signature_key_allocation: Allocation | None = None,
     ):
-        print(f"Share constructor: {value=} {encrypted_value=}")  ### DEBUG
         self._key_uuid = key_uuid
         self._share_index = share_index
         self._value = value
