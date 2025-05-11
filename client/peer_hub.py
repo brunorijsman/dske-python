@@ -109,10 +109,7 @@ class PeerHub:
         async with httpx.AsyncClient() as httpx_client:
             url = f"{self._url}/api/v1/key-share"
             api_share = share.to_api(self._client.name)
-            print(f"{api_share=}", flush=True)  ### DEBUG
             post_data = api_share.model_dump()
-            print(f"{url=}", flush=True)  ### DEBUG
-            print(f"{post_data=}", flush=True)  ### DEBUG
             response = await httpx_client.post(url, json=post_data)
             if response.status_code != 200:
                 # TODO: Error handling (throw an exception? retry?)
@@ -124,7 +121,6 @@ class PeerHub:
             # expected fields (is that even possible with FastAPI?)
             response_data = response.json()
             # TODO: For now, there is nothing meaningful in the response data
-            print(f"{response_data=}", flush=True)  ### DEBUG
 
     async def get_share(self, key_uuid: UUID) -> Share:
         """
@@ -133,8 +129,6 @@ class PeerHub:
         async with httpx.AsyncClient() as httpx_client:
             url = f"{self._url}/api/v1/key-share"
             get_params = {"client_name": self._client.name, "key_id": str(key_uuid)}
-            print(f"{url=}", flush=True)  ### DEBUG
-            print(f"{get_params=}", flush=True)  ### DEBUG
             response = await httpx_client.get(url, params=get_params)
             if response.status_code != 200:
                 # TODO: Error handling (throw an exception? retry?)
@@ -145,11 +139,8 @@ class PeerHub:
             # TODO: Error handling: handle the case that the response does not contain the
             # expected fields (is that even possible with FastAPI?)
             response_data = response.json()
-            print(f"{response_data=}", flush=True)  ### DEBUG
             api_share = APIShare.model_validate(response_data)
-            print(f"{api_share=}", flush=True)  ### DEBUG
             share = Share.from_api(api_share, self._pool)
-            print(f"{share=}", flush=True)  ### DEBUG
             return share
 
     def delete_fully_consumed_blocks(self) -> None:

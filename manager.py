@@ -346,14 +346,12 @@ class Manager:
         )
         print(f"{master_sae_id=} {slave_sae_id=}")
         url = f"{self.etsi_url("client", master_client_name)}/{slave_sae_id}/enc_keys"
-        print(f"{url=}", flush=True)  ### DEBUG
         try:
             response = requests.get(url, timeout=1.0)
             # TODO: Check response (error handling)
         except requests.exceptions.RequestException as exc:
             print(f"Failed to invoke ETSI QKD Get Key API: {exc}")
             return
-        print(f"{response=}")  ### DEBUG
         print(json.dumps(response.json(), indent=2))
 
     def etsi_qkd_get_key_with_key_ids(self):

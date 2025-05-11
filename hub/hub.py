@@ -77,10 +77,8 @@ class Hub:
         # TODO: Decrypt key value
         # TODO: Check signature
         # Verify the signature and decrypt the share.
-        print(f"Before verify sign and decrypt {share=}")  ### DEBUG
         share.verify_signature()
         share.decrypt()
-        print(f"Store share {share=} {share.key_uuid=}")  ### DEBUG
         self._shares[share.key_uuid] = share
 
     def get_api_share(self, client_name: str, key_id: str) -> APIShare:
