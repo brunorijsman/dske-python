@@ -1,0 +1,134 @@
+#!/bin/bash
+
+if [[ $TERM == "" || $TERM == "dumb" ]]; then
+    NORMAL=""
+    RED=""
+    GREEN=""
+    YELLOW=""
+    BLUE=""
+    MAGENTA=""
+    BEEP=""
+else
+    NORMAL=$(tput sgr0)
+    RED=$(tput setaf 1)
+    GREEN=$(tput setaf 2)
+    YELLOW=$(tput setaf 3)
+    BLUE=$(tput setaf 4)
+    MAGENTA=$(tput setaf 5)
+    BEEP=$(tput bel)
+fi
+
+TRUE=1
+FALSE=0
+
+REPO_ROOT_DIR="${VIRTUAL_ENV}/.."
+cd $REPO_ROOT_DIR/system_tests
+
+VERBOSE=$FALSE
+
+SYSTEM_TESTS="system_test_start_stop"
+
+ALL_OK=$TRUE
+
+fatal_error ()
+{
+    local message="$1"
+    echo "${RED}Error:${NORMAL} ${message}" >&2
+    exit 1
+}
+
+usage ()
+{
+    command=$(basename $0)
+    echo "Usage: $command [OPTIONS]"  >&2
+    echo  >&2
+    echo "OPTIONS:"  >&2
+    echo "  -h, --help: Display this help message"  >&2
+    echo "  -v, --verbose: Verbose output"  >&2
+}
+
+progress ()
+{
+    local message="$1"
+    echo "${NORMAL}${message}"
+}
+
+issue ()
+{
+    local message="$1"
+    echo "${RED}Issue:${NORMAL} ${message}" >&2
+}
+
+parse_command_line_arguments ()
+{
+    # TODO - error if more than one action
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            -v|--verbose)
+                VERBOSE=$TRUE
+                ;;
+            *)
+                fatal_error "Unexpected command line argument \"$1\""
+                ;;
+        esac
+        shift
+    done
+}
+
+check_virtual_environment ()
+{
+    if [[ -z "${VIRTUAL_ENV}" ]]; then
+        fatal_error "Virtual deployment not activated"
+    fi
+}
+
+record_problem ()
+{
+    local output="$1"
+    echo "${MAGENTA}${output}${NORMAL}"
+    ALL_OK=$FALSE
+}
+
+run_all_system_tests ()
+{
+    for SYSTEM_TEST in $SYSTEM_TESTS; do
+        progress "Run system test $SYSTEM_TEST"
+        output=$(./$SYSTEM_TEST 2>&1)
+        if [[ "$?" -ne 0 ]]; then
+            record_problem "$output"
+        elif [[ $VERBOSE -eq $TRUE ]]; then
+            echo "${MAGENTA}${output}${NORMAL}"
+        fi
+    done
+}
+
+all_system_tests_passed ()
+{
+    echo "${GREEN}All system tests passed."
+    exit 0
+
+}
+
+not_all_system_tests_passed ()
+{
+    echo "${RED}At least one system test failed"
+    exit 1
+}
+
+main ()
+{
+    parse_command_line_arguments "$@"
+    check_virtual_environment
+    run_all_system_tests
+    if [ $ALL_OK == $TRUE ]; then
+        all_system_tests_passed
+    else
+        not_all_system_tests_passed
+    fi
+}
+
+main $@

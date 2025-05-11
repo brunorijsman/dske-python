@@ -85,3 +85,7 @@ TODO: Fundamental problem
         signature key. They could allocate the same bits from the pool.
       Solution: always have the client allocate the decryption/signature key bits and include them
         in the get key-share request. That probably means it will have to be a POST.
+
+TODO: Make the swagger docs also work off-line
+
+TODO: Add code coverage measurement to system tests
