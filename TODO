@@ -26,6 +26,13 @@ TODO: Setup CI/CD environment
 
 TODO: Implement mTLS authentication of SAEs on the ETSI QKD interface.
 
+TODO: Implement authentication on DSKE interface
+      Using either pre-shared authentication keys, or authentication keys harvested from pre-shared
+      random data
+
+TODO: Graceful handling of a client registering more than once
+      Don't just fail - the client will re-register when it restarts
+
 TODO: Remark about ETSI QKD API
       For now, we assumed that there is exactly one SAE attached to every DSKE client, and that the
       SAE ID is the same as the name of the DSKE client. Generalize this to allow any number of SAEs
