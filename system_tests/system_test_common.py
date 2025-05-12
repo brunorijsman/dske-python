@@ -2,12 +2,13 @@
 Common functions for the system tests.
 """
 
+import json
 import os
 import subprocess
 import time
 
 
-_DEFAULT_TOPOLOGY_FILE = "topology.yaml"
+_DEFAULT_TOPOLOGY = "topology.yaml"
 _DEFAULT_TOPOLOGY_CLIENTS = ["carol", "celia", "cindy", "connie", "curtis"]
 # TODO: Is it hilary or hillary?
 _DEFAULT_TOPOLOGY_HUBS = ["hank", "helen", "hillary", "holly", "hugo"]
@@ -15,11 +16,11 @@ _NODE_START_DELAY = 1.0
 _INITIAL_NODE_PORT = 8000
 
 
-def start_topology(topology_file=_DEFAULT_TOPOLOGY_FILE):
+def start_topology(topology=_DEFAULT_TOPOLOGY):
     """
     Start a topology.
     """
-    args = [topology_file, "start"]
+    args = [topology, "start"]
     output = _run_manager(args)
     expected_output = ""
     for hub in _DEFAULT_TOPOLOGY_HUBS:
@@ -30,11 +31,11 @@ def start_topology(topology_file=_DEFAULT_TOPOLOGY_FILE):
     time.sleep(_NODE_START_DELAY)
 
 
-def stop_topology(topology_file=_DEFAULT_TOPOLOGY_FILE):
+def stop_topology(topology=_DEFAULT_TOPOLOGY):
     """
     Stop a topology.
     """
-    args = [topology_file, "stop"]
+    args = [topology, "stop"]
     output = _run_manager(args)
     expected_output = ""
     for client in _DEFAULT_TOPOLOGY_CLIENTS:
@@ -42,6 +43,34 @@ def stop_topology(topology_file=_DEFAULT_TOPOLOGY_FILE):
     for hub in _DEFAULT_TOPOLOGY_HUBS:
         expected_output += f"Stopping hub {hub} on port {_hub_port(hub)}\n"
     assert output == expected_output
+
+
+def status_topology(topology=_DEFAULT_TOPOLOGY):
+    """
+    Get status for a topology.
+    """
+    status = {}
+    status["clients"] = {}
+    for client in _DEFAULT_TOPOLOGY_CLIENTS:
+        status["clients"][client] = status_node(topology, "client", client)
+    status["hubs"] = {}
+    for hub in _DEFAULT_TOPOLOGY_HUBS:
+        status["hubs"][hub] = status_node(topology, "hub", hub)
+    return status
+
+
+def status_node(topology, node_type, node_name):
+    """
+    Get status for a client.
+    """
+    args = [topology, f"--{node_type}", node_name, "status"]
+    output = _run_manager(args)
+    # Remove header line "Status for {node_type} {node_name} on port {port_nr}"
+    output = output.split("\n")
+    output = output[1:]
+    output = "\n".join(output)
+    status = json.loads(output)
+    return status
 
 
 def _hub_port(hub):
