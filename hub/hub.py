@@ -14,23 +14,30 @@ class Hub:
     A DSKE hub.
     """
 
-    _hub_name: str
+    _name: str
     _pre_shared_key_size: int
     _peer_clients: dict[str, PeerClient]  # Indexed by DSKE client name
     _shares: dict[UUID, Share]  # Indexed by key UUID
 
     def __init__(self, name: str, pre_shared_key_size: int):
-        self._hub_name = name
+        self._name = name
         self._pre_shared_key_size = pre_shared_key_size
         self._peer_clients = {}
         self._shares = {}
+
+    @property
+    def name(self):
+        """
+        Get the hub name.
+        """
+        return self._name
 
     def to_mgmt(self):
         """
         Get the management status.
         """
         return {
-            "hub_name": self._hub_name,
+            "name": self._name,
             "pre_shared_key_size": self._pre_shared_key_size,
             "peer_clients": [
                 peer_client.to_mgmt() for peer_client in self._peer_clients.values()

@@ -8,7 +8,7 @@ import signal
 import fastapi
 import pydantic
 import uvicorn
-from common import APIBlock, APIShare, bytes_to_str
+from common import APIBlock, APIShare, bytes_to_str, create_pid_file, delete_pid_file
 from .hub import Hub
 
 
@@ -90,7 +90,10 @@ async def post_mgmt_stop():
     """
     Management: Post stop.
     """
+    # TODO: Can we delete the PID file later, when the process actually terminates?
+    delete_pid_file("hub", _HUB.name)
     os.kill(os.getpid(), signal.SIGTERM)
+    # TODO: Does this result actually get returned
     return {"result": "Hub stopped"}
 
 
@@ -98,6 +101,7 @@ def main():
     """
     Main entry point for the hub package.
     """
+    create_pid_file("hub", _HUB.name)
     config = uvicorn.Config(app=_APP, port=_ARGS.port)
     server = uvicorn.Server(config)
     server.run()

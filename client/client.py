@@ -43,7 +43,7 @@ class Client:
         Get the management status.
         """
         peer_hubs_status = [peer_hub.to_mgmt() for peer_hub in self._peer_hubs]
-        return {"client_name": self._name, "peer_hubs": peer_hubs_status}
+        return {"name": self._name, "peer_hubs": peer_hubs_status}
 
     async def etsi_status(self, slave_sae_id: str):
         """

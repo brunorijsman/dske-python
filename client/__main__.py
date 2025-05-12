@@ -10,6 +10,7 @@ import signal
 import fastapi
 import uvicorn
 
+from common import create_pid_file, delete_pid_file
 from .client import Client
 
 
@@ -90,13 +91,18 @@ async def post_mgmt_stop():
     """
     Management: Post stop.
     """
+    # TODO: Can we delete the PID file later, when the process actually terminates?
+    delete_pid_file("client", _CLIENT.name)
     os.kill(os.getpid(), signal.SIGTERM)
+    # TODO: Does this result actually get returned
+    return {"result": "Hub stopped"}
 
 
 def main():
     """
     Main entry point for the hub package.
     """
+    create_pid_file("client", _CLIENT.name)
     config = uvicorn.Config(app=_APP, port=_ARGS.port)
     server = uvicorn.Server(config)
     server.run()
