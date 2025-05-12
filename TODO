@@ -1,3 +1,17 @@
+TODO: Manager: write the PID in a .pid file when starting a node
+      Delete the .pid file when the node is stopped
+      On startup, check if a pid file exists
+      If it exists, check if a process with that PID is running
+      If so, produce an error and don't start any node in the topology
+      If not, produce a warning, delete the .pid file, and proceed anyway
+
+TODO: Finish the test case for starting a node twice
+
+TODO: Manager: make sure all ports are available for listening before starting any node in the
+      topology
+
+TODO: Add a test cases with a netcat (nc) listener squatting the port
+
 TODO: Zero out bytes when they are allocated
 
 TODO: Make sure key has unique key UUID

@@ -12,7 +12,8 @@ _DEFAULT_TOPOLOGY = "topology.yaml"
 _DEFAULT_TOPOLOGY_CLIENTS = ["carol", "celia", "cindy", "connie", "curtis"]
 # TODO: Is it hilary or hillary?
 _DEFAULT_TOPOLOGY_HUBS = ["hank", "helen", "hillary", "holly", "hugo"]
-_NODE_START_DELAY = 1.0
+_NODE_START_DELAY = 0.5
+_NODE_STOP_DELAY = 0.5
 _INITIAL_NODE_PORT = 8000
 
 
@@ -43,6 +44,7 @@ def stop_topology(topology=_DEFAULT_TOPOLOGY):
     for hub in _DEFAULT_TOPOLOGY_HUBS:
         expected_output += f"Stopping hub {hub} on port {_hub_port(hub)}\n"
     assert output == expected_output
+    time.sleep(_NODE_STOP_DELAY)
 
 
 def status_topology(topology=_DEFAULT_TOPOLOGY):
