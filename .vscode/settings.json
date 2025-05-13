@@ -27,6 +27,8 @@
         "pylint",
         "pylintrc",
         "pytest",
+        "REUSEADDR",
+        "REUSEPORT",
         "Rijsman",
         "RINT",
         "Rivest",

@@ -7,12 +7,15 @@ Main entry point for the topology package.
 import argparse
 import json
 import pprint
+import socket
 import subprocess
 import sys
 
 import cerberus
 import requests
 import yaml
+
+from common import common
 
 
 class Manager:
@@ -40,11 +43,13 @@ class Manager:
         self.assign_ports()
         match self._args.command:
             case "start":
-                self.start()
+                if self.is_topology_already_started():
+                    sys.exit(1)
+                self.start_topology()
             case "stop":
-                self.stop()
+                self.stop_topology()
             case "status":
-                self.status()
+                self.status_topology()
             case "etsi-qkd":
                 self.etsi_qkd()
 
@@ -196,7 +201,70 @@ class Manager:
                     return node_name != self._args.hub
         return False
 
-    def start(self):
+    def is_topology_already_started(self):
+        """
+        Check if any of the hubs or clients have already been started using two mechanisms:
+        1. Does a PID file exist, and if so, does a process with that PID exist?
+        2. Is the port already in use?
+        """
+        some_node_already_started = False
+        for hub_config in self._config["hubs"]:
+            hub_name = hub_config["name"]
+            if self.is_node_filtered("hub", hub_name):
+                continue
+            some_node_already_started |= self.is_node_already_started("hub", hub_name)
+        for client_config in self._config["clients"]:
+            client_name = client_config["name"]
+            if self.is_node_filtered("client", client_name):
+                continue
+            some_node_already_started |= self.is_node_already_started(
+                "client", client_name
+            )
+        return some_node_already_started
+
+    def is_node_already_started(self, node_type: str, node_name: str) -> bool:
+        """
+        Check if a node has already been started.
+        """
+        return self.is_node_already_started_check_using_pid(
+            node_type, node_name
+        ) or self.is_node_already_started_check_using_port(node_type, node_name)
+
+    def is_node_already_started_check_using_pid(
+        self, node_type: str, node_name: str
+    ) -> bool:
+        """
+        Does a PID file for the node exists, and if so, is there a process running with that PID?
+        """
+        if not common.pid_file_exists(node_type, node_name):
+            return False
+        # TODO: Check if PID is already running
+        return False
+
+    def is_node_already_started_check_using_port(
+        self, node_type: str, node_name: str
+    ) -> bool:
+        """
+        Is the TCP port already in use by some process (might not be a DSKE node, but nevertheless
+        it means the DSKE node cannot be started on that port)?
+        """
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # TODO: sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        port = self.node_port(node_type, node_name)
+        try:
+            sock.bind(("", port))
+        except OSError as error:
+            # TODO: address already in use, find a symbolic constant for this
+            if error.errno == 48:
+                print(
+                    f"TCP port {port} needed for {node_type} {node_name} already in use"
+                )
+                return True
+        sock.close()
+        return False
+
+    def start_topology(self):
         """
         Start all hubs and clients.
         """
@@ -238,7 +306,7 @@ class Manager:
             stderr=out_file,
         )
 
-    def stop(self):
+    def stop_topology(self):
         """
         Stop all hubs and clients.
         """
@@ -267,7 +335,7 @@ class Manager:
             print(f"Failed to stop {node_type} {node_name}: {exc}")
         # TODO: Check response (error handling)
 
-    def status(self):
+    def status_topology(self):
         """
         Report status for all hubs and clients.
         """
