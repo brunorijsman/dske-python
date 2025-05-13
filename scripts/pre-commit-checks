@@ -68,7 +68,7 @@ issue ()
 
 parse_command_line_arguments ()
 {
-    # TODO - error if more than one action
+    local action_set=$FALSE
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -h|--help)
@@ -76,14 +76,18 @@ parse_command_line_arguments ()
                 exit 0
                 ;;
             *)
+                if [[ $action_set == $TRUE ]]; then
+                    fatal_error "Only one ACTION allowed"
+                fi
                 ACTION="$1"
+                action_set=$TRUE
                 ;;
         esac
         shift
     done
     case $ACTION in
         all|lint|format-check|test) ;;
-        *) fatal_error "Invalid action: $ACTION"
+        *) fatal_error "Invalid action: $action"
     esac    
 }
 
@@ -103,13 +107,13 @@ record_problem ()
 
 lint_all_code_using_pylint ()
 {
-    # TODO: Do we need the find command below? Can't we just pylint the directory?
-    for DIR in $MODULE_DIRS; do
-        progress "Lint $DIR using pylint"
+    local dir
+    for dir in $MODULE_DIRS; do
+        progress "Lint $dir using pylint"
         output=$( \
             pylint \
             --rcfile $REPO_ROOT_DIR/pylintrc \
-            $(find ${DIR} -name \*.py) \
+            $dir \
             2>&1 \
         )
         if [ "$?" -ne 0 ]; then
@@ -125,19 +129,18 @@ lint_all_code ()
 
 unit_test_all_code_using_pytest ()
 {
+    local dir
     cov_modules=""
     for dir in $MODULE_DIRS; do
         cov_modules="$cov_modules --cov=${dir}"
     done    
-    for DIR in $TEST_DIRS; do
-        progress "Test $DIR using pytest"
-        output=$(DSKE_COVERAGE=1 pytest -vv ${cov_modules} --cov-report=html --cov-report=term ${DIR} 2>&1)
-        if [ "$?" -ne 0 ]; then
-            record_problem "$output"
-        fi
-    done
+    progress "Test using pytest"
+    output=$(DSKE_COVERAGE=1 pytest -vv ${cov_modules} --cov-report=html --cov-report=term ${DIR} 2>&1)
+    if [ "$?" -ne 0 ]; then
+        record_problem "$output"
+    fi
     coverage_percent=$(coverage report | grep TOTAL | cut -f 4 -w)
-    echo "Code coverage: ${coverage_percent}"
+    echo "Code coverage: ${coverage_percent} ("open htmlcov/index.html" for details)"
 }
 
 unit_test_all_code ()
@@ -147,9 +150,10 @@ unit_test_all_code ()
 
 format_check_all_code_using_black ()
 {
-    for DIR in $MODULE_DIRS; do
-        progress "Format $DIR using black"
-        output=$(black --check ${REPO_ROOT_DIR}/${DIR} 2>&1)
+    local dir
+    for dir in $MODULE_DIRS; do
+        progress "Format $dir using black"
+        output=$(black --check ${REPO_ROOT_DIR}/${dir} 2>&1)
         if [ "$?" -ne 0 ]; then
             record_problem "$output"
         fi

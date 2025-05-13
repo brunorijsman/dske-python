@@ -9,4 +9,5 @@ __pycache__/
 
 # Code coverage
 .coverage
+.coverage.*
 htmlcov/
