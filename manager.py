@@ -45,7 +45,7 @@ class Manager:
         match self._args.command:
             case "start":
                 if self.is_topology_already_started():
-                    sys.exit(1)
+                    return
                 self.start_topology()
             case "stop":
                 self.stop_topology()
