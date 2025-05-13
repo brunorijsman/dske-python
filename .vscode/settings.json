@@ -9,6 +9,7 @@
         "Diffie",
         "DSKE",
         "DSKEClient",
+        "EADDRINUSE",
         "ECDH",
         "encryptor",
         "esti",

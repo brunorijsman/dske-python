@@ -5,6 +5,7 @@ Main entry point for the topology package.
 """
 
 import argparse
+import errno
 import json
 import pprint
 import socket
@@ -255,8 +256,7 @@ class Manager:
         try:
             sock.bind(("", port))
         except OSError as error:
-            # TODO: address already in use, find a symbolic constant for this
-            if error.errno == 48:
+            if error.errno == errno.EADDRINUSE:
                 print(
                     f"TCP port {port} needed for {node_type} {node_name} already in use"
                 )
