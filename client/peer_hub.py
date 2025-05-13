@@ -119,7 +119,7 @@ class PeerHub:
                 return
             # TODO: Error handling: handle the case that the response does not contain the
             # expected fields (is that even possible with FastAPI?)
-            response_data = response.json()
+            _response_data = response.json()
             # TODO: For now, there is nothing meaningful in the response data
 
     async def get_share(self, key_uuid: UUID) -> Share:
