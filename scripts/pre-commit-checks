@@ -85,10 +85,10 @@ run_command ()
     verbose "$command"
     if [[ $VERBOSE == $TRUE ]]; then
         echo -n $GRAY
-        eval "$command" 2>&1 | tee /tmp/dske_output
+        eval "$command 2>&1 | tee /tmp/dske_output"
         echo -n $NORMAL
     else
-        eval "$command" 2>&1 >/tmp/dske_output
+        eval "$command 2>&1 >/tmp/dske_output"
     fi
     if [ "$?" -ne 0 ]; then
         output=$(cat /tmp/dske_output)
@@ -177,7 +177,7 @@ format_check_all_code_using_black ()
     local dir
     for dir in $MODULE_DIRS; do
         progress "Format $dir using black"
-        run_command "black --check ${REPO_ROOT_DIR}/${dir}"
+        run_command "black --quiet --check ${REPO_ROOT_DIR}/${dir}"
     done
 }
 
