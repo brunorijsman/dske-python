@@ -7,6 +7,7 @@ Main entry point for the topology package.
 import argparse
 import errno
 import json
+import os
 import pprint
 import socket
 import subprocess
@@ -285,36 +286,20 @@ class Manager:
         """
         port = self.node_port(node_type, node_name)
         print(f"Starting {node_type} {node_name} on port {port}")
-        if extra_args is None:
-            extra_args = []
         out_filename = f"{node_type}-{node_name}.out"
         # TODO: Should we be using a context manager here?
         # pylint: disable=consider-using-with
         out_file = open(out_filename, "w", encoding="utf-8")
-        # If code coverage is being done on the manager, also do it on the sub-processes
-        # See https://coverage.readthedocs.io/en/coverage-5.1/subprocess.html
-        # TODO: Don't use hard-coded path
-        env = {
-            "COVERAGE_PROCESS_START": "/Users/brunorijsman/git-personal/dske-python/.coveragerc",
-        }
         # TODO: Error handling (e.g., if the process fails to start)
         # TODO: Append to stdout and stderr instead of replacing it (here and elsewhere)
-        _process = subprocess.Popen(
-            # ["python", "-m", f"{node_type}", node_name, "--port", str(port)]
-            [
-                # TODO: Coverage doesn't work ("python not found" crash) unless full path is given
-                "/Users/brunorijsman/git-personal/dske-python/venv/bin/python",
-                "-m",
-                f"{node_type}",
-                node_name,
-                "--port",
-                str(port),
-            ]
-            + extra_args,
-            env=env,
-            stdout=out_file,
-            stderr=out_file,
-        )
+        if os.getenv("DSKE_COVERAGE"):
+            command = ["python", "-m", "coverage", "run", "-m"]
+        else:
+            command = ["python", "-m"]
+        command += [f"{node_type}", node_name, "--port", str(port)]
+        if extra_args is not None:
+            command += extra_args
+        _process = subprocess.Popen(command, stdout=out_file, stderr=out_file)
 
     def stop_topology(self):
         """

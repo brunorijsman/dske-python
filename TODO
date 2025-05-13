@@ -1,3 +1,7 @@
+TODO: Add -v / --verbose mode to pre-commit-checks
+
+TODO: Move code coverage data files to subdirectory
+
 TODO: Also measure cover coverage in launched sub-processes
 
 TODO: Stop all nodes after each test (to make sure they are stopped if test case fails)

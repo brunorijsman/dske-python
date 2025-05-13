@@ -15,9 +15,9 @@ _DEFAULT_TOPOLOGY_CLIENTS = ["carol", "celia", "cindy", "connie", "curtis"]
 # TODO: Is it hilary or hillary?
 _DEFAULT_TOPOLOGY_HUBS = ["hank", "helen", "hillary", "holly", "hugo"]
 # During coverage testing the delays need to be longer
-if os.getenv("DSKE_COVERAGE_DELAY"):
+if os.getenv("DSKE_COVERAGE"):
     _NODE_START_DELAY = 10.0
-    _NODE_STOP_DELAY = 15.0
+    _NODE_STOP_DELAY = 20.0
 else:
     _NODE_START_DELAY = 5.0
     _NODE_STOP_DELAY = 5.0

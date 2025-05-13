@@ -131,11 +131,13 @@ unit_test_all_code_using_pytest ()
     done    
     for DIR in $TEST_DIRS; do
         progress "Test $DIR using pytest"
-        output=$(DSKE_COVERAGE_DELAY=1 pytest -vv ${cov_modules} --cov-report=html --cov-report=term ${DIR} 2>&1)
+        output=$(DSKE_COVERAGE=1 pytest -vv ${cov_modules} --cov-report=html --cov-report=term ${DIR} 2>&1)
         if [ "$?" -ne 0 ]; then
             record_problem "$output"
         fi
     done
+    coverage_percent=$(coverage report | grep TOTAL | cut -f 4 -w)
+    echo "Code coverage: ${coverage_percent}"
 }
 
 unit_test_all_code ()
