@@ -29,3 +29,10 @@ def test_start_twice():
     system_test_common.start_topology()
     system_test_common.start_topology(already_started=True)
     system_test_common.stop_topology()
+
+
+def test_stop_without_start():
+    """
+    Stopping the nodes without starting them first produces an error message.
+    """
+    system_test_common.stop_topology(not_started=True)

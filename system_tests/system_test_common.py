@@ -4,6 +4,7 @@ Common functions for the system tests.
 
 import json
 import os
+import re
 import subprocess
 import time
 
@@ -40,18 +41,39 @@ def start_topology(topology=_DEFAULT_TOPOLOGY, already_started=False):
     time.sleep(_NODE_START_DELAY)
 
 
-def stop_topology(topology=_DEFAULT_TOPOLOGY):
+def stop_topology(topology=_DEFAULT_TOPOLOGY, not_started=False):
     """
     Stop a topology.
     """
     args = [topology, "stop"]
     output = _run_manager(args)
-    expected_output = ""
+    output_lines = output.split("\n")
     for client in _DEFAULT_TOPOLOGY_CLIENTS:
-        expected_output += f"Stopping client {client} on port {_client_port(client)}\n"
+        assert len(output_lines) > 0
+        output_line = output_lines[0]
+        output_lines = output_lines[1:]
+        port = _client_port(client)
+        expected_output = rf"Stopping client {client} on port {port}"
+        assert re.search(expected_output, output_line)
+        if not_started:
+            assert len(output_lines) > 0
+            output_line = output_lines[0]
+            output_lines = output_lines[1:]
+            expected_output = rf"Failed to stop client {client}.*"
+            assert re.search(expected_output, output_line)
     for hub in _DEFAULT_TOPOLOGY_HUBS:
-        expected_output += f"Stopping hub {hub} on port {_hub_port(hub)}\n"
-    assert output == expected_output
+        assert len(output_lines) > 0
+        output_line = output_lines[0]
+        output_lines = output_lines[1:]
+        port = _hub_port(hub)
+        expected_output = rf"Stopping hub {hub} on port {port}"
+        assert re.search(expected_output, output_line)
+        if not_started:
+            assert len(output_lines) > 0
+            output_line = output_lines[0]
+            output_lines = output_lines[1:]
+            expected_output = rf"Failed to stop hub {hub}.*"
+            assert re.search(expected_output, output_line)
     time.sleep(_NODE_STOP_DELAY)
 
 
