@@ -7,6 +7,7 @@ if [[ $TERM == "" || $TERM == "dumb" ]]; then
     YELLOW=""
     BLUE=""
     MAGENTA=""
+    GRAY=""
     BEEP=""
 else
     NORMAL=$(tput sgr0)
@@ -15,6 +16,7 @@ else
     YELLOW=$(tput setaf 3)
     BLUE=$(tput setaf 4)
     MAGENTA=$(tput setaf 5)
+    GRAY=$(tput setaf 8)
     BEEP=$(tput bel)
 fi
 
@@ -81,8 +83,15 @@ run_command ()
 {
     local command="$1"
     verbose "$command"
-    output=$(eval $command 2>&1)
+    if [[ $VERBOSE == $TRUE ]]; then
+        echo -n $GRAY
+        eval "$command" 2>&1 | tee /tmp/dske_output
+        echo -n $NORMAL
+    else
+        eval "$command" 2>&1 >/tmp/dske_output
+    fi
     if [ "$?" -ne 0 ]; then
+        output=$(cat /tmp/dske_output)
         record_problem "$output"
     fi
 }
