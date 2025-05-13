@@ -24,7 +24,8 @@ FALSE=0
 REPO_ROOT_DIR="${VIRTUAL_ENV}/.."
 cd $REPO_ROOT_DIR
 
-MODULE_DIRS="client common hub"
+MODULE_DIRS="client common hub system_tests"
+TEST_DIRS="common system_tests"
 
 ALL_OK=$TRUE
 ISSUES=""
@@ -128,11 +129,9 @@ unit_test_all_code_using_pytest ()
     for dir in $MODULE_DIRS; do
         cov_modules="$cov_modules --cov=${dir}"
     done    
-    # TODO: So far, we only have tests for the common module.
-    # for DIR in $MODULE_DIRS; do
-    for DIR in common; do
-        progress "Unit test $DIR using pytest"
-        output=$(pytest ${cov_modules} --cov-report=html --cov-report=term ${DIR} 2>&1)
+    for DIR in $TEST_DIRS; do
+        progress "Test $DIR using pytest"
+        output=$(DSKE_COVERAGE_DELAY=1 pytest -vv ${cov_modules} --cov-report=html --cov-report=term ${DIR} 2>&1)
         if [ "$?" -ne 0 ]; then
             record_problem "$output"
         fi
@@ -181,11 +180,11 @@ main ()
         all|lint) lint_all_code ;;
     esac    
     case $ACTION in
-        all|test) unit_test_all_code ;;
-    esac    
-    case $ACTION in
         all|format-check) format_check_all_code ;;
     esac
+    case $ACTION in
+        all|test) unit_test_all_code ;;
+    esac    
     if [ $ALL_OK == $TRUE ]; then
         okay_to_commit
     else

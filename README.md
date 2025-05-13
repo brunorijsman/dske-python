@@ -141,16 +141,16 @@ To start the DSKE topology:
 
 <pre>
 $ <b>./manager.py topology.yaml start</b>
-Starting hub hank on port 8000
-Starting hub helen on port 8001
-Starting hub hillary on port 8002
-Starting hub holly on port 8003
-Starting hub hugo on port 8004
-Starting client carol on port 8005
-Starting client celia on port 8006
-Starting client cindy on port 8007
-Starting client connie on port 8008
-Starting client curtis on port 8009
+Starting hub hank on port 8100
+Starting hub helen on port 8101
+Starting hub hillary on port 8102
+Starting hub holly on port 8103
+Starting hub hugo on port 8104
+Starting client carol on port 8105
+Starting client celia on port 8106
+Starting client cindy on port 8107
+Starting client connie on port 8108
+Starting client curtis on port 8109
 </pre>
 
 Here `topology.yaml` is the topology file that specifies the names of the hubs and clients that
@@ -165,16 +165,16 @@ You can see these processed using `ps` command:
 <pre>
  $ <b>ps</b>
   PID TTY           TIME CMD
-81631 ttys000    0:01.57 Python -m hub hank --port 8000
-81632 ttys000    0:01.56 Python -m hub helen --port 8001
-81633 ttys000    0:01.56 Python -m hub hillary --port 8002
-81634 ttys000    0:01.57 Python -m hub holly --port 8003
-81635 ttys000    0:01.56 Python -m hub hugo --port 8004
-81636 ttys000    0:01.96 Python -m client carol --port 8005 --hubs http://localhost:8000 http://localhost:8001 http://localhost:8002 http://localhost:8003 http://localhost:8004
-81637 ttys000    0:01.96 Python -m client celia --port 8006 --hubs http://localhost:8000 http://localhost:8001 http://localhost:8002 http://localhost:8003 http://localhost:8004
-81638 ttys000    0:01.97 Python -m client cindy --port 8007 --hubs http://localhost:8000 http://localhost:8001 http://localhost:8002 http://localhost:8003 http://localhost:8004
-81639 ttys000    0:01.97 Python -m client connie --port 8008 --hubs http://localhost:8000 http://localhost:8001 http://localhost:8002 http://localhost:8003 http://localhost:8004
-81640 ttys000    0:01.96 Python -m client curtis --port 8009 --hubs http://localhost:8000 http://localhost:8001 http://localhost:8002 http://localhost:8003 http://localhost:8004
+81631 ttys000    0:01.57 Python -m hub hank --port 8100
+81632 ttys000    0:01.56 Python -m hub helen --port 8101
+81633 ttys000    0:01.56 Python -m hub hillary --port 8102
+81634 ttys000    0:01.57 Python -m hub holly --port 8103
+81635 ttys000    0:01.56 Python -m hub hugo --port 8104
+81636 ttys000    0:01.96 Python -m client carol --port 8105 --hubs http://localhost:8100 http://localhost:8101 http://localhost:8102 http://localhost:8103 http://localhost:8104
+81637 ttys000    0:01.96 Python -m client celia --port 8106 --hubs http://localhost:8100 http://localhost:8101 http://localhost:8102 http://localhost:8103 http://localhost:8104
+81638 ttys000    0:01.97 Python -m client cindy --port 8107 --hubs http://localhost:8100 http://localhost:8101 http://localhost:8102 http://localhost:8103 http://localhost:8104
+81639 ttys000    0:01.97 Python -m client connie --port 8108 --hubs http://localhost:8100 http://localhost:8101 http://localhost:8102 http://localhost:8103 http://localhost:8104
+81640 ttys000    0:01.96 Python -m client curtis --port 8109 --hubs http://localhost:8100 http://localhost:8101 http://localhost:8102 http://localhost:8103 http://localhost:8104
 ...
 </pre>
 
@@ -212,19 +212,19 @@ There are four types of REST interfaces:
 The REST interface for each node is available at the reported port number when the topology was
 started.
 
-In the above example, the REST interface for hub "Hank" is available at `http://127.0.0.1:8000`
+In the above example, the REST interface for hub "Hank" is available at `http://127.0.0.1:8100`
 
 In addition to the REST interface itself, documentation is also available at
-`http://127.0.0.1:8000/docs` and `http://127.0.0.1:8000/redoc`.
+`http://127.0.0.1:8100/docs` and `http://127.0.0.1:8100/redoc`.
 You can also manually invoke the REST APIs from the documentation page (click on an API endpoint
 and then click on "Try it out").
 
-Here is an example of the automatically generated documentation at `http://127.0.0.1:8005/docs`
+Here is an example of the automatically generated documentation at `http://127.0.0.1:8105/docs`
 for a client node:
 
 ![Client REST API documentation](docs/figures/client-rest-api-documentation.png)
 
-Here is an example of the automatically generated documentation at `http://127.0.0.1:8000/docs`
+Here is an example of the automatically generated documentation at `http://127.0.0.1:8100/docs`
 for a hub node:
 
 ![Hub REST API documentation](docs/figures/hub-rest-api-documentation.png)
@@ -242,7 +242,7 @@ In this example, we pipe the output of `curl` through `jq` (JSON query) to prett
 JSON REST response:
 
 <pre>
-$ <b>curl --silent http://127.0.0.1:8000/dske/hub/mgmt/v1/status | jq</b>
+$ <b>curl --silent http://127.0.0.1:8100/dske/hub/mgmt/v1/status | jq</b>
 {
   "hub_name": "hank",
   "pre_shared_key_size": 32,
@@ -306,7 +306,7 @@ Use the manager `status` command to report the status of each node in the topolo
 
 <pre>
 $ <b>./manager.py topology.yaml status</b>
-Status for hub hank on port 8000
+Status for hub hank on port 8100
 {
   "hub_name": "hank",
   "pre_shared_key_size": 32,
@@ -368,7 +368,7 @@ client or hub node, for example:
 
 <pre>
 $ <b>./manager.py topology.yaml --client celia status</b>
-Status for client celia on port 8006
+Status for client celia on port 8106
 {
   "client_name": "celia",
   "peer_hubs": [
@@ -401,9 +401,9 @@ In the following example we as master SAE "carol" for a key which is shared with
 
 <pre>
  $ <b>./manager.py topology.yaml etsi-qkd carol celia get-key</b>
-Invoke ETSI QKD Get Key API for client carol on port 8005
+Invoke ETSI QKD Get Key API for client carol on port 8105
 master_sae_id='carol' slave_sae_id='celia'
-url='http://localhost:8005/dske/client/etsi/api/v1/keys/celia/enc_keys'
+url='http://localhost:8105/dske/client/etsi/api/v1/keys/celia/enc_keys'
 response=<Response [200]>
 {
   "keys": {
@@ -424,7 +424,7 @@ ETSI QKD 014 "Get Key" API to retrieve a key for a pair of SAEs on the slave SAE
 
 <pre>
 $ <b>./manager.py topology.yaml etsi-qkd carol celia get-key-with-key-ids f47f23d7-be01-41d3-a5bc-106b2335e652</b>
-Invoke ETSI QKD Get Key with Key IDs API for client celia on port 8005
+Invoke ETSI QKD Get Key with Key IDs API for client celia on port 8105
 slave_client_name='celia' master_sae_id='carol' f47f23d7-be01-41d3-a5bc-106b2335e652
 {
   "keys": [
@@ -441,7 +441,7 @@ As a matter of convenience, there is also a `get-key-pair` sub-command to combin
 
 <pre>
 $ <b>./manager.py topology.yaml etsi-qkd carol celia get-key-pair</b>
-Invoke ETSI QKD Get Key API for client carol on port 8005
+Invoke ETSI QKD Get Key API for client carol on port 8105
 master_sae_id='carol' slave_sae_id='celia'
 {
   "keys": {
@@ -449,7 +449,7 @@ master_sae_id='carol' slave_sae_id='celia'
     "key": "jSOFUh56slAChUrzUExdbQ=="
   }
 }
-Invoke ETSI QKD Get Key with Key IDs API for client celia on port 8006
+Invoke ETSI QKD Get Key with Key IDs API for client celia on port 8106
 master_sae_id='carol' slave_sae_id='celia' cc658ffe-8d54-414b-b91f-20b59b03f034
 {
   "keys": [
@@ -466,7 +466,7 @@ And, finally, there is a `status` subcommand to invoke the "Status" ETSI QKD 014
 
 <pre>
 $ <b<>./manager.py topology.yaml etsi-qkd carol celia status</b>
-Invoke ETSI QKD Status API for client carol on port 8005
+Invoke ETSI QKD Status API for client carol on port 8105
 master_sae_id='carol' slave_sae_id='celia'
 {
   "source_kme_id": "carol",
@@ -500,7 +500,7 @@ $ <b>cat client-carol.out</b>
 INFO:     Started server process [81636]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     Uvicorn running on http://127.0.0.1:8005 (Press CTRL+C to quit)
+INFO:     Uvicorn running on http://127.0.0.1:8105 (Press CTRL+C to quit)
 INFO:     127.0.0.1:56441 - "GET /docs HTTP/1.1" 200 OK
 INFO:     127.0.0.1:56441 - "GET /openapi.json HTTP/1.1" 200 OK
 Share constructor: value=b'\xd4\x0b\xcf\xf2D\x83\x03R\x84\xc7\n\xd1#X\xd3`' encrypted_value=None
@@ -509,7 +509,7 @@ Share constructor: value=b'\x11\x9c\x84\x19\x93\xed\xac\xa516Z\x07\xfaf\xe7\xfa'
 Share constructor: value=b'\xe8\xfc\x0f\xedN\xdc\xea5`\x01\xe3\xac\tqM\xf4' encrypted_value=None
 Share constructor: value=b'\xf5yZ_2o\xca\xba\xa9tN<\x1adLa' encrypted_value=None
 api_share=APIShare(client_name='carol', key_id='6050fccc-b882-402e-8ca1-62f0147999de', share_index=0, encrypted_value='e2wgFBkt7R8FGubnZesLJw==', encryption_key_allocation=APIAllocation(fragments=[APIFragment(block_uuid='14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5', start_byte=0, size=16)]), signature_key_allocation=APIAllocation(fragments=[APIFragment(block_uuid='14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5', start_byte=16, size=2)]))
-url='http://localhost:8000/dske/hub/api/v1/key-share'
+url='http://localhost:8100/dske/hub/api/v1/key-share'
 ... snip ...
 </pre>
 
@@ -520,16 +520,16 @@ To stop the topology, use the manager stop command:
 
 <pre>
 $ <b>./manager.py topology.yaml stop</b>
-Stopping client carol on port 8005
-Stopping client celia on port 8006
-Stopping client cindy on port 8007
-Stopping client connie on port 8008
-Stopping client curtis on port 8009
-Stopping hub hank on port 8000
-Stopping hub helen on port 8001
-Stopping hub hillary on port 8002
-Stopping hub holly on port 8003
-Stopping hub hugo on port 8004
+Stopping client carol on port 8105
+Stopping client celia on port 8106
+Stopping client cindy on port 8107
+Stopping client connie on port 8108
+Stopping client curtis on port 8109
+Stopping hub hank on port 8100
+Stopping hub helen on port 8101
+Stopping hub hillary on port 8102
+Stopping hub holly on port 8103
+Stopping hub hugo on port 8104
 </pre>
 
 # The key distribution problem

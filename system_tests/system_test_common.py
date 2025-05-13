@@ -8,14 +8,19 @@ import re
 import subprocess
 import time
 
+from common import TOPOLOGY_BASE_PORT
 
 _DEFAULT_TOPOLOGY = "topology.yaml"
 _DEFAULT_TOPOLOGY_CLIENTS = ["carol", "celia", "cindy", "connie", "curtis"]
 # TODO: Is it hilary or hillary?
 _DEFAULT_TOPOLOGY_HUBS = ["hank", "helen", "hillary", "holly", "hugo"]
-_NODE_START_DELAY = 2.0
-_NODE_STOP_DELAY = 2.0
-_INITIAL_NODE_PORT = 8000
+# During coverage testing the delays need to be longer
+if os.getenv("DSKE_COVERAGE_DELAY"):
+    _NODE_START_DELAY = 5.0
+    _NODE_STOP_DELAY = 10.0
+else:
+    _NODE_START_DELAY = 3.0
+    _NODE_STOP_DELAY = 3.0
 
 
 def start_topology(topology=_DEFAULT_TOPOLOGY, already_started=False):
@@ -106,13 +111,13 @@ def status_node(topology, node_type, node_name):
 
 
 def _hub_port(hub):
-    port = _INITIAL_NODE_PORT
+    port = TOPOLOGY_BASE_PORT
     port += _DEFAULT_TOPOLOGY_HUBS.index(hub)
     return port
 
 
 def _client_port(client):
-    port = _INITIAL_NODE_PORT
+    port = TOPOLOGY_BASE_PORT
     port += len(_DEFAULT_TOPOLOGY_HUBS)
     port += _DEFAULT_TOPOLOGY_CLIENTS.index(client)
     return port

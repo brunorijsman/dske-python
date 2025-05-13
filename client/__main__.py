@@ -10,7 +10,7 @@ import signal
 import fastapi
 import uvicorn
 
-from common import create_pid_file, delete_pid_file
+from common import create_pid_file, delete_pid_file, TOPOLOGY_BASE_PORT
 from .client import Client
 
 
@@ -20,12 +20,14 @@ def parse_command_line_arguments():
     """
     parser = argparse.ArgumentParser(description="DSKE Client")
     parser.add_argument("name", type=str, help="Client name")
-    parser.add_argument("--port", type=int, default=8000, help="Port number")
+    parser.add_argument(
+        "--port", type=int, default=TOPOLOGY_BASE_PORT, help="Port number"
+    )
     parser.add_argument(
         "--hubs",
         nargs="+",
         type=str,
-        help="Base URLs for hubs (e.g., http://localhost:8000)",
+        help=f"Base URLs for hubs (e.g., http://localhost:{TOPOLOGY_BASE_PORT})",
     )
     args = parser.parse_args()
     return args

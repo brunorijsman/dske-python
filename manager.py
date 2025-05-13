@@ -24,8 +24,6 @@ class Manager:
     DSKE manager.
     """
 
-    _BASE_PORT = 8000
-
     _args: argparse.Namespace
     _config: dict
     _port_assignments: dict[(str, str), int]  # (node_type, node_name) -> port
@@ -153,7 +151,7 @@ class Manager:
         """
         Assign port numbers to the nodes.
         """
-        port = self._BASE_PORT
+        port = common.TOPOLOGY_BASE_PORT
         for hub_config in self._config["hubs"]:
             self._port_assignments[("hub", hub_config["name"])] = port
             port += 1
