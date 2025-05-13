@@ -265,7 +265,6 @@ class Manager:
         """
         Start all hubs and clients.
         """
-        # TODO: For all nodes, check if port is already bound, and if so, don't start any node
         client_extra_args = ["--hubs"]
         for hub_config in self._config["hubs"]:
             hub_name = hub_config["name"]
