@@ -250,17 +250,14 @@ class Manager:
         it means the DSKE node cannot be started on that port)?
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # TODO: sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         port = self.node_port(node_type, node_name)
         try:
             sock.bind(("", port))
         except OSError as error:
             if error.errno == errno.EADDRINUSE:
-                print(
-                    f"TCP port {port} needed for {node_type} {node_name} already in use"
-                )
+                print(f"TCP port {port} for {node_type} {node_name} already in use")
                 return True
+            return False
         sock.close()
         return False
 
