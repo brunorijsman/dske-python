@@ -2,7 +2,7 @@
 System test for starting and stopping nodes.
 """
 
-import system_test_common
+from . import system_test_common
 
 
 def test_start_stop():
@@ -27,8 +27,5 @@ def test_start_twice():
     Starting the nodes twice without stopping them in between should produce an error message.
     """
     system_test_common.start_topology()
-    # Starting the nodes again should produce an error message
-    # TODO: Implement this
-    system_test_common.start_topology()
-    # Stop the nodes to clean up for the next test
+    system_test_common.start_topology(already_started=True)
     system_test_common.stop_topology()

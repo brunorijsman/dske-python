@@ -1,4 +1,4 @@
-TODO: Finish the test case for starting a node twice
+TODO: Stop all nodes after each test (to make sure they are stopped if test case fails)
 
 TODO: Add a test cases with a netcat (nc) listener squatting the port
 

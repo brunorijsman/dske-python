@@ -12,12 +12,12 @@ _DEFAULT_TOPOLOGY = "topology.yaml"
 _DEFAULT_TOPOLOGY_CLIENTS = ["carol", "celia", "cindy", "connie", "curtis"]
 # TODO: Is it hilary or hillary?
 _DEFAULT_TOPOLOGY_HUBS = ["hank", "helen", "hillary", "holly", "hugo"]
-_NODE_START_DELAY = 0.5
-_NODE_STOP_DELAY = 0.5
+_NODE_START_DELAY = 2.0
+_NODE_STOP_DELAY = 2.0
 _INITIAL_NODE_PORT = 8000
 
 
-def start_topology(topology=_DEFAULT_TOPOLOGY):
+def start_topology(topology=_DEFAULT_TOPOLOGY, already_started=False):
     """
     Start a topology.
     """
@@ -25,9 +25,17 @@ def start_topology(topology=_DEFAULT_TOPOLOGY):
     output = _run_manager(args)
     expected_output = ""
     for hub in _DEFAULT_TOPOLOGY_HUBS:
-        expected_output += f"Starting hub {hub} on port {_hub_port(hub)}\n"
+        port = _hub_port(hub)
+        if already_started:
+            expected_output += f"TCP port {port} for hub {hub} already in use\n"
+        else:
+            expected_output += f"Starting hub {hub} on port {port}\n"
     for client in _DEFAULT_TOPOLOGY_CLIENTS:
-        expected_output += f"Starting client {client} on port {_client_port(client)}\n"
+        port = _client_port(client)
+        if already_started:
+            expected_output += f"TCP port {port} for client {client} already in use\n"
+        else:
+            expected_output += f"Starting client {client} on port {port}\n"
     assert output == expected_output
     time.sleep(_NODE_START_DELAY)
 
