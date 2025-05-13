@@ -16,11 +16,11 @@ _DEFAULT_TOPOLOGY_CLIENTS = ["carol", "celia", "cindy", "connie", "curtis"]
 _DEFAULT_TOPOLOGY_HUBS = ["hank", "helen", "hillary", "holly", "hugo"]
 # During coverage testing the delays need to be longer
 if os.getenv("DSKE_COVERAGE_DELAY"):
-    _NODE_START_DELAY = 5.0
-    _NODE_STOP_DELAY = 10.0
+    _NODE_START_DELAY = 10.0
+    _NODE_STOP_DELAY = 15.0
 else:
-    _NODE_START_DELAY = 3.0
-    _NODE_STOP_DELAY = 3.0
+    _NODE_START_DELAY = 5.0
+    _NODE_STOP_DELAY = 5.0
 
 
 def start_topology(topology=_DEFAULT_TOPOLOGY, already_started=False):
@@ -146,6 +146,7 @@ def _run_manager(args):
         stderr=subprocess.PIPE,
         check=False,
     )
+    print(f"{result=}")  ### DEBUG
     assert result.returncode == 0
     assert result.stderr == b""
     output = result.stdout.decode(encoding="utf-8")

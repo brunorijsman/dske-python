@@ -291,11 +291,27 @@ class Manager:
         # TODO: Should we be using a context manager here?
         # pylint: disable=consider-using-with
         out_file = open(out_filename, "w", encoding="utf-8")
+        # If code coverage is being done on the manager, also do it on the sub-processes
+        # See https://coverage.readthedocs.io/en/coverage-5.1/subprocess.html
+        # TODO: Don't use hard-coded path
+        env = {
+            "COVERAGE_PROCESS_START": "/Users/brunorijsman/git-personal/dske-python/.coveragerc",
+        }
         # TODO: Error handling (e.g., if the process fails to start)
         # TODO: Append to stdout and stderr instead of replacing it (here and elsewhere)
         _process = subprocess.Popen(
-            ["python", "-m", f"{node_type}", node_name, "--port", str(port)]
+            # ["python", "-m", f"{node_type}", node_name, "--port", str(port)]
+            [
+                # TODO: Coverage doesn't work ("python not found" crash) unless full path is given
+                "/Users/brunorijsman/git-personal/dske-python/venv/bin/python",
+                "-m",
+                f"{node_type}",
+                node_name,
+                "--port",
+                str(port),
+            ]
             + extra_args,
+            env=env,
             stdout=out_file,
             stderr=out_file,
         )
