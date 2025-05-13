@@ -123,6 +123,17 @@ def _client_port(client):
     return port
 
 
+def get_key_pair(master_client: str, slave_client: str) -> None:
+    """
+    Get a key pair from a pair of DSKE clients using the ETSI QKD API.
+    """
+    topology = _DEFAULT_TOPOLOGY
+    args = [topology, "etsi-qkd", master_client, slave_client, "get-key-pair"]
+    output = _run_manager(args)
+    expected_output = r".*Key values match"
+    assert re.search(expected_output, output)
+
+
 def _run_manager(args):
     """
     Run the manager.
