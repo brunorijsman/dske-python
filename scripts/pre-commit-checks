@@ -31,6 +31,7 @@ ALL_OK=$TRUE
 ISSUES=""
 
 ACTION="all"
+VERBOSE=$FALSE
 
 fatal_error ()
 {
@@ -52,12 +53,38 @@ usage ()
     echo  >&2
     echo "OPTIONS:"  >&2
     echo "  -h, --help: Display this help message"  >&2
+    echo "  -v, --verbose: Verbose output"  >&2
 }
 
 progress ()
 {
     local message="$1"
     echo "${NORMAL}${message}"
+}
+
+verbose ()
+{
+    local message="$1"
+    if [[ $VERBOSE == $TRUE ]]; then
+        echo "${BLUE}${message}${NORMAL}"
+    fi
+}
+
+record_problem ()
+{
+    local output="$1"
+    echo "${MAGENTA}${output}${NORMAL}"
+    ALL_OK=$FALSE
+}
+
+run_command ()
+{
+    local command="$1"
+    verbose "$command"
+    output=$(eval $command 2>&1)
+    if [ "$?" -ne 0 ]; then
+        record_problem "$output"
+    fi
 }
 
 issue ()
@@ -74,6 +101,12 @@ parse_command_line_arguments ()
             -h|--help)
                 usage
                 exit 0
+                ;;
+            -v|--verbose)
+                VERBOSE=$TRUE
+                ;;
+            -*)
+                fatal_error "Unrecognized OPTION $1"
                 ;;
             *)
                 if [[ $action_set == $TRUE ]]; then
@@ -98,27 +131,12 @@ check_virtual_environment ()
     fi
 }
 
-record_problem ()
-{
-    local output="$1"
-    echo "${MAGENTA}${output}${NORMAL}"
-    ALL_OK=$FALSE
-}
-
 lint_all_code_using_pylint ()
 {
     local dir
     for dir in $MODULE_DIRS; do
         progress "Lint $dir using pylint"
-        output=$( \
-            pylint \
-            --rcfile $REPO_ROOT_DIR/pylintrc \
-            $dir \
-            2>&1 \
-        )
-        if [ "$?" -ne 0 ]; then
-            record_problem "$output"
-        fi
+        run_command "pylint --rcfile $REPO_ROOT_DIR/pylintrc $dir"
     done
 }
 
@@ -135,10 +153,7 @@ unit_test_all_code_using_pytest ()
         cov_modules="$cov_modules --cov=${dir}"
     done    
     progress "Test using pytest"
-    output=$(DSKE_COVERAGE=1 pytest -vv ${cov_modules} --cov-report=html --cov-report=term ${DIR} 2>&1)
-    if [ "$?" -ne 0 ]; then
-        record_problem "$output"
-    fi
+    run_command "DSKE_COVERAGE=1 pytest -vv ${cov_modules} --cov-report=html --cov-report=term"
     coverage_percent=$(coverage report | grep TOTAL | cut -f 4 -w)
     echo "Code coverage: ${coverage_percent} ("open htmlcov/index.html" for details)"
 }
@@ -153,10 +168,7 @@ format_check_all_code_using_black ()
     local dir
     for dir in $MODULE_DIRS; do
         progress "Format $dir using black"
-        output=$(black --check ${REPO_ROOT_DIR}/${dir} 2>&1)
-        if [ "$?" -ne 0 ]; then
-            record_problem "$output"
-        fi
+        run_command "black --check ${REPO_ROOT_DIR}/${dir}"
     done
 }
 
@@ -198,4 +210,4 @@ main ()
     fi
 }
 
-main $@
+main "$@"
