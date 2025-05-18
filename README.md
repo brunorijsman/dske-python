@@ -8,7 +8,7 @@
 
 * [Distributed Symmetric Key Establishment (DSKE)](#distributed-symmetric-key-establishment-dske)
 
-* [The DSKE protocol described in draft-mwag-dske-01](#the-dske-protocol-described-in-draft-mwag-dske-01)
+* [The DSKE protocol described in draft-mwag-dske-02](#the-dske-protocol-described-in-draft-mwag-dske-02)
 
 * [Implementation notes](#implementation-notes)
 
@@ -16,7 +16,7 @@
 
 This repository contains an open source implementation of Distributed Symmetric Key Establishment (DSKE) as
 specified in IETF draft
-[draft-mwag-dske-01](https://datatracker.ietf.org/doc/draft-mwag-dske/01/).
+[draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/).
 
 **WARNING**: The code is far from complete (definitely less than 50% done), but it is already at the
 point that it can create Shamir-sharded keys between two clients and deliver it over an ETSI QKD 014
@@ -702,9 +702,9 @@ DSKE is described in detail in the following arXiv papers:
 
 There is also an Internet Engineering Task Force (IETF) Internet-Draft (I-D):
 
-* draft-mwag-dske-01<br>
+* draft-mwag-dske-02<br>
   The Distributed Symmetric Key Establishment (DSKE) Protocol.<br>
-  [https://datatracker.ietf.org/doc/draft-mwag-dske/01/](https://datatracker.ietf.org/doc/draft-mwag-dske/01/)
+  [https://datatracker.ietf.org/doc/draft-mwag-dske/02/](https://datatracker.ietf.org/doc/draft-mwag-dske/02/)
 
 This draft describes the protocol in general terms.
 It does not (yet) describe the protocol in sufficient detail to enable interoperable
@@ -713,7 +713,7 @@ For example, only the semantics but not yet the syntax of protocol messages is d
 
 
 
-# The DSKE protocol described in draft-mwag-dske-01
+# The DSKE protocol described in draft-mwag-dske-02
 
 TODO: Finish this
 
