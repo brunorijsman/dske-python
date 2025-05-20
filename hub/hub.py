@@ -5,7 +5,13 @@ A DSKE hub.
 import os
 from copy import deepcopy
 from uuid import UUID
-from common import APIShare, Block, Share
+from common import (
+    APIShare,
+    Block,
+    ClientAlreadyRegisteredError,
+    ClientNotRegisteredError,
+    Share,
+)
 from .peer_client import PeerClient
 
 
@@ -49,9 +55,11 @@ class Hub:
         """
         Register a peer client.
         """
+        # TODO: Should we allow an already registered client to be re-registered? This could happen
+        #       if a client is restarted, and the hub is not restarted.
+        #       For now, we don't allow it.
         if client_name in self._peer_clients:
-            # TODO: Not the right kind of exception
-            raise ValueError(f"Client {client_name} already registered.")
+            raise ClientAlreadyRegisteredError(client_name)
         # TODO: Choose pre-shared key in PeerClient constructor?
         pre_shared_key = os.urandom(self._pre_shared_key_size)
         peer_client = PeerClient(client_name, pre_shared_key)
@@ -63,8 +71,7 @@ class Hub:
         Generate a block of PSRD for a peer client.
         """
         if client_name not in self._peer_clients:
-            # TODO: Not the right kind of exception
-            raise ValueError(f"Client {client_name} not registered.")
+            raise ClientNotRegisteredError(client_name)
         peer_client = self._peer_clients[client_name]
         psrd_block = peer_client.create_random_block(size)
         return psrd_block
@@ -75,8 +82,7 @@ class Hub:
         """
         client_name = api_share.client_name
         if client_name not in self._peer_clients:
-            # TODO: Not the right kind of exception
-            raise ValueError(f"Client {client_name} not registered.")
+            raise ClientNotRegisteredError(client_name)
         peer_client = self._peer_clients[client_name]
         pool = peer_client.pool
         share = Share.from_api(api_share, pool)
