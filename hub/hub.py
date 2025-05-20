@@ -98,6 +98,9 @@ class Hub:
         """
         Get a key share.
         """
+        # TODO: Should we rename this to get_share_requested_by_client?
+        # TODO: The encryption key should be chosen by the client, not the hub, because of possible
+        #       race conditions.
         # TODO: Error handling: key_id is not a valid UUID
         key_uuid = UUID(key_id)
         # TODO: Error handling: share is not in the store
