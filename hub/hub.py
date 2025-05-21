@@ -94,7 +94,7 @@ class Hub:
         share.decrypt()
         self._shares[share.key_uuid] = share
 
-    def get_api_share(self, client_name: str, key_id: str) -> APIShare:
+    def get_share_requested_by_client(self, client_name: str, key_id: str) -> APIShare:
         """
         Get a key share.
         """

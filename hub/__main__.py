@@ -82,7 +82,7 @@ async def get_key_share(client_name: str, key_id: str) -> APIShare:
     print(
         f"Received POST /dske/hub/api/v1/key-share {client_name=} {key_id=}", flush=True
     )
-    return _HUB.get_api_share(client_name, key_id)
+    return _HUB.get_share_requested_by_client(client_name, key_id)
 
 
 @_APP.get("/dske/hub/mgmt/v1/status")
