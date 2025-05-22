@@ -5,7 +5,8 @@ jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
     steps:
-      - run: python3.13 -m venv venv
-      - run: source venv/bin/activate
-      - run: pip install -r requirements.txt
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'     
       - run: scripts/pre-commit-checks --verbose
