@@ -11,4 +11,4 @@ jobs:
           python-version: '3.13'
       - run: python -m venv venv
       - run: source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt
-      - run: source venv/bin/activate && scripts/pre-commit-checks --verbose
+      - run: source venv/bin/activate && scripts/check-and-test --verbose

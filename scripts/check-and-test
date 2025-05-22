@@ -186,16 +186,16 @@ format_check_all_code ()
     format_check_all_code_using_black
 }
 
-okay_to_commit ()
+all_checks_and_tests_passed ()
 {
-    echo "${GREEN}All good; you can commit."
+    echo "${GREEN}All checks and tests passed."
     exit 0
 
 }
 
-not_okay_to_commit ()
+not_all_checks_and_tests_passed ()
 {
-    echo "${RED}There was at least one issue; do not commit."
+    echo "${RED}At least one check or test failed."
     exit 1
 }
 
@@ -213,9 +213,9 @@ main ()
         all|test) unit_test_all_code ;;
     esac    
     if [ $ALL_OK == $TRUE ]; then
-        okay_to_commit
+        all_checks_and_tests_passed
     else
-        not_okay_to_commit
+        not_all_checks_and_tests_passed
     fi
 }
 
