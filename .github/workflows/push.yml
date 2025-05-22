@@ -10,5 +10,4 @@ jobs:
         with:
           python-version: '3.13'
       - run: python -m venv venv
-      - run: source venv/bin/activate     
-      - run: scripts/pre-commit-checks --verbose
+      - run: source venv/bin/activate && scripts/pre-commit-checks --verbose
