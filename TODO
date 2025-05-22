@@ -4,8 +4,6 @@ TODO: Stop all nodes after each test (to make sure they are stopped if test case
 
 TODO: Add a test cases with a netcat (nc) listener squatting the port
 
-TODO: Zero out bytes when they are allocated
-
 TODO: Make sure key has unique key UUID
 
 TODO: Key initiator: Select N peer hub (initially: all peer hubs)
