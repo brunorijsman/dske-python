@@ -17,7 +17,7 @@ _DEFAULT_TOPOLOGY_HUBS = ["hank", "helen", "hillary", "holly", "hugo"]
 # During coverage testing the delays need to be longer
 if os.getenv("DSKE_COVERAGE"):
     _NODE_START_DELAY = 10.0
-    _NODE_STOP_DELAY = 30.0
+    _NODE_STOP_DELAY = 40.0
 else:
     _NODE_START_DELAY = 5.0
     _NODE_STOP_DELAY = 5.0
