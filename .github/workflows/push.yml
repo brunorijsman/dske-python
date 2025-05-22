@@ -1,0 +1,11 @@
+name: Workflow that runs on every push.
+run-name: ${{ github.actor }} pushed to ${{ github.ref }}
+on: [push]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: python3.13 -m venv venv
+      - run: source venv/bin/activate
+      - run: pip install -r requirements.txt
+      - run: scripts/pre-commit-checks --verbose
