@@ -163,7 +163,7 @@ unit_test_all_code_using_pytest ()
     done    
     progress "Test using pytest"
     run_command "DSKE_COVERAGE=1 pytest -vv ${cov_modules} --cov-report=html --cov-report=term"
-    coverage_percent=$(coverage report | grep TOTAL | cut -f 4 -w)
+    coverage_percent=$(coverage report | grep TOTAL | tr -s ' ' | cut -d ' ' -f 4)
     echo "Code coverage: ${coverage_percent} ("open htmlcov/index.html" for details)"
 }
 

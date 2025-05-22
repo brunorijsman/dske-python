@@ -138,15 +138,14 @@ def _run_manager(args):
     """
     Run the manager.
     """
-    # TODO: Better method for choosing the directory where manager.py lives
-    os.chdir("/Users/brunorijsman/git-personal/dske-python")
+    root_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+    os.chdir(root_dir)
     result = subprocess.run(
         ["python", "manager.py"] + args,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         check=False,
     )
-    print(f"{result=}")  ### DEBUG
     assert result.returncode == 0
     assert result.stderr == b""
     output = result.stdout.decode(encoding="utf-8")
