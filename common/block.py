@@ -132,7 +132,6 @@ class Block:
         """
         Create a Block from an APIBlock.
         """
-        # TODO: Error handling
         return Block(UUID(api_block.block_uuid), str_to_bytes(api_block.data))
 
     def to_api(self) -> APIBlock:
