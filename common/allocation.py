@@ -65,6 +65,19 @@ class Allocation:
         self._consumed = True
         return self._value
 
+    def deallocate(self) -> None:
+        """
+        Deallocate the allocation, i.e. return the allocated bytes back to the pool. This is needed
+        when we try to allocate multiple allocations. If a latter allocation fails, the previous
+        allocations must be deallocated. It is not allowed to deallocate an allocation after it has
+        been consumed.
+        """
+        assert not self._consumed
+        assert self._value is None
+        for fragment in self._fragments:
+            fragment.block.deallocate_fragment(fragment)
+        self._fragments = []
+
     @classmethod
     def from_api(
         cls,
