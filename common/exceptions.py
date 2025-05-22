@@ -29,6 +29,18 @@ class ClientNotRegisteredError(HTTPException):
         )
 
 
+class GetShareFromPeerHubFailedError(HTTPException):
+    """
+    Exception raised when getting a share from the peer hub fails.
+    """
+
+    def __init__(self, peer_hub_name: str, detail: str):
+        super().__init__(
+            status_code=400,
+            detail=f"Failed to get share from peer hub {peer_hub_name}. {detail}",
+        )
+
+
 class InvalidKeyIDError(HTTPException):
     """
     Exception raised when an invalid key ID is provided.

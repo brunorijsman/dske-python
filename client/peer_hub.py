@@ -4,7 +4,17 @@ A peer hub.
 
 from uuid import UUID
 import httpx
-from common import APIBlock, APIShare, Block, bytes_to_str, Pool, Share, str_to_bytes
+from pydantic import ValidationError
+from common import (
+    APIBlock,
+    APIShare,
+    Block,
+    bytes_to_str,
+    GetShareFromPeerHubFailedError,
+    Pool,
+    Share,
+    str_to_bytes,
+)
 
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
 #       the hub decide?
@@ -131,14 +141,19 @@ class PeerHub:
             get_params = {"client_name": self._client.name, "key_id": str(key_uuid)}
             response = await httpx_client.get(url, params=get_params)
             if response.status_code != 200:
-                # TODO: Error handling (throw an exception? retry?)
-                print(
-                    f"Error: {response.status_code=}, {response.content=}", flush=True
+                detail = (
+                    "HTTP GET failed. "
+                    f"URL: {url}. "
+                    f"Params: {get_params}. "
+                    f"Status code: {response.status_code}. "
+                    f"Response: {response.content}."
                 )
-                return
-            # TODO: Error handling: handle the case that the response does not contain the
-            # expected fields (is that even possible with FastAPI?)
-            response_data = response.json()
+                raise GetShareFromPeerHubFailedError(self._name, detail)
+            try:
+                response_data = response.json()
+            except ValidationError as exc:
+                detail = f"Response validation failed. Error: {exc}"
+                raise GetShareFromPeerHubFailedError(self._name, detail) from exc
             api_share = APIShare.model_validate(response_data)
             share = Share.from_api(api_share, self._pool)
             return share

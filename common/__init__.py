@@ -8,6 +8,7 @@ from .common import *  # TODO: Not wildcard
 from .exceptions import (
     ClientAlreadyRegisteredError,
     ClientNotRegisteredError,
+    GetShareFromPeerHubFailedError,
     InvalidKeyIDError,
     UnknownKeyIDError,
 )
