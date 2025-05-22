@@ -85,15 +85,19 @@ run_command ()
     verbose "$command"
     if [[ $VERBOSE == $TRUE ]]; then
         echo -n $GRAY
+        set -o pipefail
         eval "$command 2>&1 | tee /tmp/dske_output"
+        result="$?"
+        set +o pipefail
+        echo -n $NORMAL
     else
         eval "$command 2>&1 >/tmp/dske_output"
+        result="$?"
     fi
-    if [ "$?" -ne 0 ]; then
+    if [ "$result" -ne 0 ]; then
         output=$(cat /tmp/dske_output)
         record_problem "$output"
     fi
-    echo -n $NORMAL
 }
 
 issue ()
