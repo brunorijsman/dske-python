@@ -10,7 +10,9 @@ from common import (
     Block,
     ClientAlreadyRegisteredError,
     ClientNotRegisteredError,
+    InvalidKeyIDError,
     Share,
+    UnknownKeyIDError,
 )
 from .peer_client import PeerClient
 
@@ -100,10 +102,15 @@ class Hub:
         """
         # TODO: The encryption key should be chosen by the client, not the hub, because of possible
         #       race conditions.
-        # TODO: Error handling: key_id is not a valid UUID
-        key_uuid = UUID(key_id)
+        try:
+            key_uuid = UUID(key_id)
+        except ValueError as exc:
+            raise InvalidKeyIDError(key_id) from exc
         # TODO: Error handling: share is not in the store
-        share = self._shares[key_uuid]
+        try:
+            share = self._shares[key_uuid]
+        except KeyError as exc:
+            raise UnknownKeyIDError(key_id) from exc
         # Make a copy of the share, we don't want to change the unencrypted share in the store.
         share = deepcopy(share)
         # Allocate encryption and authentication keys for the share
