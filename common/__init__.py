@@ -2,13 +2,16 @@
 Classes and functions that are common to clients and hubs.
 """
 
+# TODO: Replace all of these by from . import <module>
+
 from .allocation import APIAllocation, Allocation
 from .block import APIBlock, Block
 from .common import *  # TODO: Not wildcard
 from .exceptions import (
     ClientAlreadyRegisteredError,
     ClientNotRegisteredError,
-    GetShareFromPeerHubFailedError,
+    HTTPGetFailedError,
+    HTTPPostFailedError,
     InvalidKeyIDError,
     UnknownKeyIDError,
 )

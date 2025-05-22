@@ -4,17 +4,8 @@ A peer hub.
 
 from uuid import UUID
 import httpx
-from pydantic import ValidationError
-from common import (
-    APIBlock,
-    APIShare,
-    Block,
-    bytes_to_str,
-    GetShareFromPeerHubFailedError,
-    Pool,
-    Share,
-    str_to_bytes,
-)
+import pydantic
+import common
 
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
 #       the hub decide?
@@ -29,7 +20,7 @@ class PeerHub:
     _client: "Client"  # type: ignore
     _url: str
     _registered: bool
-    _pool: Pool
+    _pool: common.Pool
     # The following attributes are set after registration
     _name: None | str
     _pre_shared_key: None | bytes  # TODO: Get rid of pre-shared keys
@@ -41,7 +32,7 @@ class PeerHub:
             url += "/"
         url += "dske/hub"
         self._registered = False
-        self._pool = Pool()
+        self._pool = common.Pool()
         self._url = url
         self._hub_name = None
         self._pre_shared_key = None
@@ -59,34 +50,32 @@ class PeerHub:
         """
         return {
             "hub_name": self._hub_name,
-            "pre_shared_key": bytes_to_str(self._pre_shared_key),
+            "pre_shared_key": common.bytes_to_str(self._pre_shared_key),
             "registered": self._registered,
             "psrd_pool": self._pool.to_mgmt(),
         }
 
     async def register(self) -> None:
         """
-        Register the peer hub.
+        Register this client with the peer hub.
         """
         async with httpx.AsyncClient() as httpx_client:
             url = f"{self._url}/oob/v1/register-client"
-            get_params = {"client_name": self._client.name}
-            response = await httpx_client.get(url, params=get_params)
+            params = {"client_name": self._client.name}
+            response = await httpx_client.get(url, params=params)
             if response.status_code != 200:
-                # TODO: Error handling (throw an exception? retry?)
-                print(
-                    f"Error: {response.status_code=}, {response.content=}", flush=True
+                raise common.HTTPGetFailedError(
+                    url, params, response.status_code, response.content
                 )
-                return
             # TODO: Handle the case that the response does not contain the expected fields
             data = response.json()
             self._hub_name = data["hub_name"]
-            self._pre_shared_key = str_to_bytes(data["pre_shared_key"])
+            self._pre_shared_key = common.str_to_bytes(data["pre_shared_key"])
             self._registered = True
 
     async def unregister(self) -> None:
         """
-        Unregister the peer hub.
+        Unregister this client from the peer hub.
         """
         # TODO: Implement this
 
@@ -97,65 +86,56 @@ class PeerHub:
         async with httpx.AsyncClient() as httpx_client:
             size = _PSRD_BLOCK_SIZE_IN_BYTES
             url = f"{self._url}/oob/v1/psrd"
-            get_params = {"client_name": self._client.name, "size": size}
-            response = await httpx_client.get(url, params=get_params)
+            params = {"client_name": self._client.name, "size": size}
+            response = await httpx_client.get(url, params=params)
             if response.status_code != 200:
-                # TODO: Error handling (throw an exception? retry?)
-                print(
-                    f"Error: {response.status_code=}, {response.content=}", flush=True
+                raise common.HTTPGetFailedError(
+                    url, params, response.status_code, response.content
                 )
-                return
             # TODO: Error handling: handle the case that the response does not contain the expected
             #       fields (is that even possible with FastAPI?)
             response_data = response.json()
-            api_block = APIBlock.model_validate(response_data)
-            block = Block.from_api(api_block)
+            api_block = common.APIBlock.model_validate(response_data)
+            block = common.Block.from_api(api_block)
             self._pool.add_block(block)
 
-    async def post_share(self, share: Share) -> None:
+    async def post_share(self, share: common.Share) -> None:
         """
         Post a key share to the peer hub.
         """
         async with httpx.AsyncClient() as httpx_client:
             url = f"{self._url}/api/v1/key-share"
             api_share = share.to_api(self._client.name)
-            post_data = api_share.model_dump()
-            response = await httpx_client.post(url, json=post_data)
+            json = api_share.model_dump()
+            response = await httpx_client.post(url, json=json)
             if response.status_code != 200:
-                # TODO: Error handling (throw an exception? retry?)
-                print(
-                    f"Error: {response.status_code=}, {response.content=}", flush=True
+                raise common.HTTPPostFailedError(
+                    url, json, response.status_code, response.content
                 )
-                return
             # TODO: Error handling: handle the case that the response does not contain the
             # expected fields (is that even possible with FastAPI?)
             _response_data = response.json()
             # TODO: For now, there is nothing meaningful in the response data
 
-    async def get_share(self, key_uuid: UUID) -> Share:
+    async def get_share(self, key_uuid: UUID) -> common.Share:
         """
         Get a key share from the peer hub.
         """
         async with httpx.AsyncClient() as httpx_client:
             url = f"{self._url}/api/v1/key-share"
-            get_params = {"client_name": self._client.name, "key_id": str(key_uuid)}
-            response = await httpx_client.get(url, params=get_params)
+            params = {"client_name": self._client.name, "key_id": str(key_uuid)}
+            response = await httpx_client.get(url, params=params)
             if response.status_code != 200:
-                detail = (
-                    "HTTP GET failed. "
-                    f"URL: {url}. "
-                    f"Params: {get_params}. "
-                    f"Status code: {response.status_code}. "
-                    f"Response: {response.content}."
+                raise common.HTTPGetFailedError(
+                    url, params, response.status_code, response.content
                 )
-                raise GetShareFromPeerHubFailedError(self._name, detail)
             try:
                 response_data = response.json()
-            except ValidationError as exc:
-                detail = f"Response validation failed. Error: {exc}"
-                raise GetShareFromPeerHubFailedError(self._name, detail) from exc
-            api_share = APIShare.model_validate(response_data)
-            share = Share.from_api(api_share, self._pool)
+            except pydantic.ValidationError:
+                # TODO: Raise an exception
+                pass
+            api_share = common.APIShare.model_validate(response_data)
+            share = common.Share.from_api(api_share, self._pool)
             return share
 
     def delete_fully_consumed_blocks(self) -> None:
