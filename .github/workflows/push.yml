@@ -1,6 +1,6 @@
 name: Workflow that runs on every push.
 run-name: ${{ github.actor }} pushed to ${{ github.ref }}
-on: [push]
+on: [push, pull_request, workflow_dispatch]
 jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
