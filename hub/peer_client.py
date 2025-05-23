@@ -2,7 +2,9 @@
 A peer DSKE client.
 """
 
-from common import Block, bytes_to_str, Pool
+from common import utils
+from common.block import Block
+from common.pool import Pool
 
 
 class PeerClient:
@@ -40,7 +42,7 @@ class PeerClient:
         """
         return {
             "client_name": self._client_name,
-            "pre_shared_key": bytes_to_str(self._pre_shared_key),
+            "pre_shared_key": utils.bytes_to_str(self._pre_shared_key),
             "pool": self._pool.to_mgmt(),
         }
 

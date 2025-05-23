@@ -8,14 +8,9 @@ import signal
 import fastapi
 import pydantic
 import uvicorn
-from common import (
-    APIBlock,
-    APIShare,
-    bytes_to_str,
-    create_pid_file,
-    delete_pid_file,
-    TOPOLOGY_BASE_PORT,
-)
+from common import utils
+from common.block import APIBlock
+from common.share import APIShare
 from .hub import Hub
 
 
@@ -26,7 +21,7 @@ def parse_command_line_arguments():
     parser = argparse.ArgumentParser(description="DSKE Hub")
     parser.add_argument("name", type=str, help="Hub name")
     parser.add_argument(
-        "-p", "--port", type=int, default=TOPOLOGY_BASE_PORT, help="Port number"
+        "-p", "--port", type=int, default=utils.TOPOLOGY_BASE_PORT, help="Port number"
     )
     args = parser.parse_args()
     return args
@@ -50,7 +45,7 @@ async def get_oob_register_client(client_name: str):
     #       peer.
     return {
         "hub_name": _HUB_NAME,
-        "pre_shared_key": bytes_to_str(peer_client.pre_shared_key),
+        "pre_shared_key": utils.bytes_to_str(peer_client.pre_shared_key),
     }
 
 
@@ -100,7 +95,7 @@ async def post_mgmt_stop():
     Management: Post stop.
     """
     # TODO: Can we delete the PID file later, when the process actually terminates?
-    delete_pid_file("hub", _HUB.name)
+    utils.delete_pid_file("hub", _HUB.name)
     os.kill(os.getpid(), signal.SIGTERM)
     # TODO: Does this result actually get returned
     return {"result": "Hub stopped"}
@@ -110,7 +105,7 @@ def main():
     """
     Main entry point for the hub package.
     """
-    create_pid_file("hub", _HUB.name)
+    utils.create_pid_file("hub", _HUB.name)
     config = uvicorn.Config(app=_APP, port=_ARGS.port)
     server = uvicorn.Server(config)
     server.run()

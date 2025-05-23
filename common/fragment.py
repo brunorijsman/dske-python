@@ -4,7 +4,7 @@ A Pre-Shared Random Data (PSRD) fragment.
 
 from uuid import UUID
 import pydantic
-from .common import bytes_to_str
+from . import utils
 
 
 class APIFragment(pydantic.BaseModel):
@@ -70,7 +70,7 @@ class Fragment:
             "block_uuid": str(self._block.uuid),
             "start_byte": self._start_byte,
             "size": self._size,
-            "value": bytes_to_str(self._value, truncate=True),
+            "value": utils.bytes_to_str(self._value, truncate=True),
             "consumed": self._consumed,
         }
 

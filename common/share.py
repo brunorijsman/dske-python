@@ -5,7 +5,7 @@ A share of a key.
 from uuid import UUID
 import pydantic
 from .allocation import Allocation, APIAllocation
-from .common import bytes_to_str, str_to_bytes, to_mgmt
+from .utils import bytes_to_str, str_to_bytes, to_mgmt
 from .pool import Pool
 
 

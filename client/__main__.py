@@ -10,7 +10,7 @@ import signal
 import fastapi
 import uvicorn
 
-from common import create_pid_file, delete_pid_file, TOPOLOGY_BASE_PORT
+from common import utils
 from .client import Client
 
 
@@ -21,13 +21,13 @@ def parse_command_line_arguments():
     parser = argparse.ArgumentParser(description="DSKE Client")
     parser.add_argument("name", type=str, help="Client name")
     parser.add_argument(
-        "--port", type=int, default=TOPOLOGY_BASE_PORT, help="Port number"
+        "--port", type=int, default=utils.TOPOLOGY_BASE_PORT, help="Port number"
     )
     parser.add_argument(
         "--hubs",
         nargs="+",
         type=str,
-        help=f"Base URLs for hubs (e.g., http://localhost:{TOPOLOGY_BASE_PORT})",
+        help=f"Base URLs for hubs (e.g., http://localhost:{utils.TOPOLOGY_BASE_PORT})",
     )
     args = parser.parse_args()
     return args
@@ -94,7 +94,7 @@ async def post_mgmt_stop():
     Management: Post stop.
     """
     # TODO: Can we delete the PID file later, when the process actually terminates?
-    delete_pid_file("client", _CLIENT.name)
+    utils.delete_pid_file("client", _CLIENT.name)
     os.kill(os.getpid(), signal.SIGTERM)
     # TODO: Does this result actually get returned
     return {"result": "Hub stopped"}
@@ -104,7 +104,7 @@ def main():
     """
     Main entry point for the hub package.
     """
-    create_pid_file("client", _CLIENT.name)
+    utils.create_pid_file("client", _CLIENT.name)
     config = uvicorn.Config(app=_APP, port=_ARGS.port)
     server = uvicorn.Server(config)
     server.run()

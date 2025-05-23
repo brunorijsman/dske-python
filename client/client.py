@@ -3,7 +3,9 @@ A DSKE client.
 """
 
 from uuid import UUID
-from common import bytes_to_str, Key, reconstruct_binary_secret_from_shares
+from common import shamir
+from common import utils
+from common.key import Key
 from .peer_hub import PeerHub
 
 # TODO: Make this configurable
@@ -80,7 +82,7 @@ class Client:
         return {
             "keys": {
                 "key_ID": key.key_uuid,
-                "key": bytes_to_str(key.value),
+                "key": utils.bytes_to_str(key.value),
             }
         }
 
@@ -96,7 +98,7 @@ class Client:
             "keys": [
                 {
                     "key_ID": key.key_uuid,
-                    "key": bytes_to_str(key.value),
+                    "key": utils.bytes_to_str(key.value),
                 }
             ]
         }
@@ -166,6 +168,8 @@ class Client:
         # TODO: Reconstruct the key using Shamir secret sharing algorithm
         # Reconstruct the key from the shares
         shamir_input = [(share.share_index, share.value) for share in shares]
-        key_value = reconstruct_binary_secret_from_shares(_MIN_NR_SHARES, shamir_input)
+        key_value = shamir.reconstruct_binary_secret_from_shares(
+            _MIN_NR_SHARES, shamir_input
+        )
         key = Key(key_uuid, key_value)
         return key

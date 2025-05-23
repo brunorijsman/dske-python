@@ -7,8 +7,7 @@ import os
 import re
 import subprocess
 import time
-
-from common import TOPOLOGY_BASE_PORT
+from common import utils
 
 _DEFAULT_TOPOLOGY = "topology.yaml"
 _DEFAULT_TOPOLOGY_CLIENTS = ["carol", "celia", "cindy", "connie", "curtis"]
@@ -111,13 +110,13 @@ def status_node(topology, node_type, node_name):
 
 
 def _hub_port(hub):
-    port = TOPOLOGY_BASE_PORT
+    port = utils.TOPOLOGY_BASE_PORT
     port += _DEFAULT_TOPOLOGY_HUBS.index(hub)
     return port
 
 
 def _client_port(client):
-    port = TOPOLOGY_BASE_PORT
+    port = utils.TOPOLOGY_BASE_PORT
     port += len(_DEFAULT_TOPOLOGY_HUBS)
     port += _DEFAULT_TOPOLOGY_CLIENTS.index(client)
     return port

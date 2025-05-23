@@ -32,7 +32,8 @@ TODO: Implement mTLS authentication of SAEs on the ETSI QKD interface.
 
 TODO: Implement authentication on DSKE interface
       Using either pre-shared authentication keys, or authentication keys harvested from pre-shared
-      random data
+      random data. In the latter case, get rid of the explicit pre-shared key in the registration
+      response.
 
 TODO: Graceful handling of a client registering more than once
       Don't just fail - the client will re-register when it restarts
@@ -108,3 +109,5 @@ TODO: Implement and test get non-default key size over ETSI QKD API
 TODO: Tests get wrong key-id over ETSI QKD API
 
 TODO: Test creation and deletion of PID file
+
+TODO: Figure out how to debug the code (set breakpoint from VSC and document that)

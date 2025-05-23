@@ -17,7 +17,7 @@ import cerberus
 import requests
 import yaml
 
-from common import common
+from common import utils
 
 
 class Manager:
@@ -152,7 +152,7 @@ class Manager:
         """
         Assign port numbers to the nodes.
         """
-        port = common.TOPOLOGY_BASE_PORT
+        port = utils.TOPOLOGY_BASE_PORT
         for hub_config in self._config["hubs"]:
             self._port_assignments[("hub", hub_config["name"])] = port
             port += 1
@@ -236,7 +236,7 @@ class Manager:
         """
         Does a PID file for the node exists, and if so, is there a process running with that PID?
         """
-        if not common.pid_file_exists(node_type, node_name):
+        if not utils.pid_file_exists(node_type, node_name):
             return False
         # TODO: Check if PID is already running
         return False

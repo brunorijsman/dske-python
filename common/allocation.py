@@ -3,7 +3,7 @@ A PSRD allocation.
 """
 
 import pydantic
-from .common import bytes_to_str
+from . import utils
 from .fragment import APIFragment, Fragment
 
 
@@ -47,7 +47,7 @@ class Allocation:
         """
         return {
             "fragments": [fragment.to_mgmt() for fragment in self._fragments],
-            "value": bytes_to_str(self._value, truncate=True),
+            "value": utils.bytes_to_str(self._value, truncate=True),
             "consumed": self._consumed,
         }
 

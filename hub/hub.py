@@ -5,15 +5,9 @@ A DSKE hub.
 import os
 from copy import deepcopy
 from uuid import UUID
-from common import (
-    APIShare,
-    Block,
-    ClientAlreadyRegisteredError,
-    ClientNotRegisteredError,
-    InvalidKeyIDError,
-    Share,
-    UnknownKeyIDError,
-)
+from common import exceptions
+from common.block import Block
+from common.share import APIShare, Share
 from .peer_client import PeerClient
 
 
@@ -61,7 +55,7 @@ class Hub:
         #       if a client is restarted, and the hub is not restarted.
         #       For now, we don't allow it.
         if client_name in self._peer_clients:
-            raise ClientAlreadyRegisteredError(client_name)
+            raise exceptions.ClientAlreadyRegisteredError(client_name)
         # TODO: Choose pre-shared key in PeerClient constructor?
         pre_shared_key = os.urandom(self._pre_shared_key_size)
         peer_client = PeerClient(client_name, pre_shared_key)
@@ -73,7 +67,7 @@ class Hub:
         Generate a block of PSRD for a peer client.
         """
         if client_name not in self._peer_clients:
-            raise ClientNotRegisteredError(client_name)
+            raise exceptions.ClientNotRegisteredError(client_name)
         peer_client = self._peer_clients[client_name]
         psrd_block = peer_client.create_random_block(size)
         return psrd_block
@@ -84,7 +78,7 @@ class Hub:
         """
         client_name = api_share.client_name
         if client_name not in self._peer_clients:
-            raise ClientNotRegisteredError(client_name)
+            raise exceptions.ClientNotRegisteredError(client_name)
         peer_client = self._peer_clients[client_name]
         pool = peer_client.pool
         share = Share.from_api(api_share, pool)
@@ -105,12 +99,12 @@ class Hub:
         try:
             key_uuid = UUID(key_id)
         except ValueError as exc:
-            raise InvalidKeyIDError(key_id) from exc
+            raise exceptions.InvalidKeyIDError(key_id) from exc
         # TODO: Error handling: share is not in the store
         try:
             share = self._shares[key_uuid]
         except KeyError as exc:
-            raise UnknownKeyIDError(key_id) from exc
+            raise exceptions.UnknownKeyIDError(key_id) from exc
         # Make a copy of the share, we don't want to change the unencrypted share in the store.
         share = deepcopy(share)
         # Allocate encryption and authentication keys for the share

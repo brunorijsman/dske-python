@@ -4,10 +4,7 @@ Unit tests for Shamir Secret Sharing.
 
 from os import urandom
 from random import sample
-from common import (
-    reconstruct_binary_secret_from_shares,
-    split_binary_secret_into_shares,
-)
+from common import shamir
 
 
 def shamir_split_reconstruct_scenario(size: int, nr_shares: int, min_shares: int):
@@ -18,10 +15,10 @@ def shamir_split_reconstruct_scenario(size: int, nr_shares: int, min_shares: int
     """
     info = f"size={size} nr_shares={nr_shares} min_shares={min_shares}"
     secret = urandom(size)
-    shares = split_binary_secret_into_shares(secret, nr_shares, min_shares)
+    shares = shamir.split_binary_secret_into_shares(secret, nr_shares, min_shares)
     assert len(shares) == nr_shares, info
     selected_shares = sample(shares, min_shares)
-    reconstructed_secret = reconstruct_binary_secret_from_shares(
+    reconstructed_secret = shamir.reconstruct_binary_secret_from_shares(
         min_shares, selected_shares
     )
     assert secret == reconstructed_secret, info

@@ -7,7 +7,7 @@ import os
 import pydantic
 from bitarray import bitarray
 from pydantic import PositiveInt
-from .common import bytes_to_str, str_to_bytes
+from . import utils
 from .fragment import Fragment
 
 
@@ -53,7 +53,7 @@ class Block:
         return {
             "uuid": str(self._block_uuid),
             "size": self._size,
-            "data": bytes_to_str(self._data, truncate=True),
+            "data": utils.bytes_to_str(self._data, truncate=True),
             "allocated": self._allocated.count(),
             "consumed": self._consumed.count(),
         }
@@ -132,7 +132,7 @@ class Block:
         """
         Create a Block from an APIBlock.
         """
-        return Block(UUID(api_block.block_uuid), str_to_bytes(api_block.data))
+        return Block(UUID(api_block.block_uuid), utils.str_to_bytes(api_block.data))
 
     def to_api(self) -> APIBlock:
         """
@@ -140,5 +140,5 @@ class Block:
         """
         return APIBlock(
             block_uuid=str(self._block_uuid),
-            data=bytes_to_str(self._data),
+            data=utils.bytes_to_str(self._data),
         )

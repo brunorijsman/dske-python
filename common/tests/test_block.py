@@ -3,7 +3,8 @@ Unit tests for the Block class.
 """
 
 from uuid import uuid4
-from common import Block, bytes_to_str
+from common import utils
+from common.block import Block
 
 
 # pylint: disable=missing-function-docstring
@@ -44,7 +45,7 @@ def test_block_to_mgmt():
     assert management_json == {
         "uuid": str(uuid),
         "size": 20,
-        "data": bytes_to_str(data, truncate=True),
+        "data": utils.bytes_to_str(data, truncate=True),
         "allocated": 0,
         "consumed": 0,
     }
