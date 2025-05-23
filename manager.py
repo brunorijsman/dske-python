@@ -12,6 +12,7 @@ import pprint
 import socket
 import subprocess
 import sys
+import time
 
 import cerberus
 import requests
@@ -226,13 +227,13 @@ class Manager:
         """
         Check if a node has already been started.
         """
-        return self.is_node_already_started_check_using_pid(
-            node_type, node_name
-        ) or self.is_node_already_started_check_using_port(node_type, node_name)
+        if self.is_node_pid_in_use(node_type, node_name):
+            return True
+        if self.is_node_port_in_use(node_type, node_name):
+            return True
+        return False
 
-    def is_node_already_started_check_using_pid(
-        self, node_type: str, node_name: str
-    ) -> bool:
+    def is_node_pid_in_use(self, node_type: str, node_name: str) -> bool:
         """
         Does a PID file for the node exists, and if so, is there a process running with that PID?
         """
@@ -241,9 +242,7 @@ class Manager:
         # TODO: Check if PID is already running
         return False
 
-    def is_node_already_started_check_using_port(
-        self, node_type: str, node_name: str
-    ) -> bool:
+    def is_node_port_in_use(self, node_type: str, node_name: str) -> bool:
         """
         Is the TCP port already in use by some process (might not be a DSKE node, but nevertheless
         it means the DSKE node cannot be started on that port)?
@@ -254,7 +253,7 @@ class Manager:
             sock.bind(("", port))
         except OSError as error:
             if error.errno == errno.EADDRINUSE:
-                print(f"TCP port {port} for {node_type} {node_name} already in use")
+                print(f"TCP port {port} for {node_type} {node_name} in use")
                 return True
             return False
         sock.close()
@@ -316,6 +315,7 @@ class Manager:
             if self.is_node_filtered("hub", hub_name):
                 continue
             self.stop_node("hub", hub_name)
+        self.wait_for_topology_all_ports_available()
 
     def stop_node(self, node_type: str, node_name: str):
         """
@@ -329,6 +329,39 @@ class Manager:
         except requests.exceptions.RequestException as exc:
             print(f"Failed to stop {node_type} {node_name}: {exc}")
         # TODO: Check response (error handling)
+
+    def are_topology_all_ports_available(self):
+        """
+        After a topology is stopped (explicitly or as a result of a crash) and the TCP ports are
+        closed, the TCP sockets may go into state TIME-WAIT for 60 seconds. As long as any socket
+        is in state TIME-WAIT, the topology cannot be restarted. Are all ports currently
+        available, i.e. not in state TIME-WAIT?
+        """
+        for client_config in self._config["clients"]:
+            client_name = client_config["name"]
+            if self.is_node_port_in_use("client", client_name):
+                return False
+        for hub_config in self._config["hubs"]:
+            hub_name = hub_config["name"]
+            if self.is_node_port_in_use("hub", hub_name):
+                return False
+        return True
+
+    def wait_for_topology_all_ports_available(self):
+        """
+        Wait for all ports to become available (exit state TIME-WAIT) again. We give up after a
+        maximum number of tries.
+        """
+        print("Waiting for all ports to become available")
+        max_attempts = 13
+        seconds_between_attempts = 5
+        total_time = max_attempts * seconds_between_attempts
+        assert total_time > 60
+        for _ in range(max_attempts):
+            if self.are_topology_all_ports_available():
+                return
+            time.sleep(seconds_between_attempts)
+        print(f"Ports are still not available after waiting for {total_time} seconds")
 
     def status_topology(self):
         """
