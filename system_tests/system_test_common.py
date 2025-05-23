@@ -31,13 +31,13 @@ def start_topology(topology=_DEFAULT_TOPOLOGY, already_started=False):
     for hub in _DEFAULT_TOPOLOGY_HUBS:
         port = _hub_port(hub)
         if already_started:
-            expected_output += f"TCP port {port} for hub {hub} already in use\n"
+            expected_output += f"TCP port {port} for hub {hub} in use\n"
         else:
             expected_output += f"Starting hub {hub} on port {port}\n"
     for client in _DEFAULT_TOPOLOGY_CLIENTS:
         port = _client_port(client)
         if already_started:
-            expected_output += f"TCP port {port} for client {client} already in use\n"
+            expected_output += f"TCP port {port} for client {client} in use\n"
         else:
             expected_output += f"Starting client {client} on port {port}\n"
     assert output == expected_output
