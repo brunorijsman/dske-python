@@ -5,7 +5,7 @@ System test for starting and stopping nodes.
 from . import system_test_common
 
 
-def test_start_stop():
+def test_start_stop_only():
     """
     Start all nodes, then stop all nodes.
     """
