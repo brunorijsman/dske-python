@@ -73,7 +73,7 @@ $ <b>cat topology.yaml</b>
 hubs:
   - name: hank
   - name: helen
-  - name: hillary
+  - name: hilary
   - name: holly
   - name: hugo
 clients:
@@ -143,7 +143,7 @@ To start the DSKE topology:
 $ <b>./manager.py topology.yaml start</b>
 Starting hub hank on port 8100
 Starting hub helen on port 8101
-Starting hub hillary on port 8102
+Starting hub hilary on port 8102
 Starting hub holly on port 8103
 Starting hub hugo on port 8104
 Starting client carol on port 8105
@@ -167,7 +167,7 @@ You can see these processed using `ps` command:
   PID TTY           TIME CMD
 81631 ttys000    0:01.57 Python -m hub hank --port 8100
 81632 ttys000    0:01.56 Python -m hub helen --port 8101
-81633 ttys000    0:01.56 Python -m hub hillary --port 8102
+81633 ttys000    0:01.56 Python -m hub hilary --port 8102
 81634 ttys000    0:01.57 Python -m hub holly --port 8103
 81635 ttys000    0:01.56 Python -m hub hugo --port 8104
 81636 ttys000    0:01.96 Python -m client carol --port 8105 --hubs http://localhost:8100 http://localhost:8101 http://localhost:8102 http://localhost:8103 http://localhost:8104
@@ -527,7 +527,7 @@ Stopping client connie on port 8108
 Stopping client curtis on port 8109
 Stopping hub hank on port 8100
 Stopping hub helen on port 8101
-Stopping hub hillary on port 8102
+Stopping hub hilary on port 8102
 Stopping hub holly on port 8103
 Stopping hub hugo on port 8104
 </pre>

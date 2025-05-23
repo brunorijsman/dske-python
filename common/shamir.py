@@ -86,7 +86,6 @@ from typing import List, NamedTuple, Sequence, Tuple
 DIGEST_LENGTH_BYTES = 4
 """The length of the digest of the shared secret in bytes."""
 
-
 MIN_KEY_LENGTH = DIGEST_LENGTH_BYTES
 """The minimum length of the shared secret in bytes."""
 

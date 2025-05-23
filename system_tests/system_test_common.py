@@ -11,8 +11,7 @@ from common import utils
 
 _DEFAULT_TOPOLOGY = "topology.yaml"
 _DEFAULT_TOPOLOGY_CLIENTS = ["carol", "celia", "cindy", "connie", "curtis"]
-# TODO: Is it hilary or hillary?
-_DEFAULT_TOPOLOGY_HUBS = ["hank", "helen", "hillary", "holly", "hugo"]
+_DEFAULT_TOPOLOGY_HUBS = ["hank", "helen", "hilary", "holly", "hugo"]
 # During coverage testing the delays need to be longer
 if os.getenv("DSKE_COVERAGE"):
     _NODE_START_DELAY = 10.0
