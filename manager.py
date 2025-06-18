@@ -44,7 +44,7 @@ class Manager:
         self.assign_ports()
         match self._args.command:
             case "start":
-                if self.is_topology_already_started():
+                if self.is_topology_started():
                     return
                 self.start_topology()
             case "stop":
@@ -184,6 +184,26 @@ class Manager:
             f"{self.node_url(node_type, node_name)}/dske/{node_type}/etsi/api/v1/keys"
         )
 
+    def nodes(self, reverse_order=False) -> list[(str, str)]:
+        """
+        Return a list of all nodes in the topology (except those that are filtered), where each node
+        is a (node_type, node_name) tuple. Hubs are listed before clients in normal order.
+        """
+        nodes = []
+        for hub_config in self._config["hubs"]:
+            hub_name = hub_config["name"]
+            if self.is_node_filtered("hub", hub_name):
+                continue
+            nodes.append(("hub", hub_name))
+        for client_config in self._config["clients"]:
+            client_name = client_config["name"]
+            if self.is_node_filtered("client", client_name):
+                continue
+            nodes.append(("client", client_name))
+        if reverse_order:
+            nodes.reverse()
+        return nodes
+
     def is_node_filtered(self, node_type: str, node_name: str) -> bool:
         """
         Determine if a node should be filtered out.
@@ -202,45 +222,20 @@ class Manager:
                     return node_name != self._args.hub
         return False
 
-    def is_topology_already_started(self):
+    def is_topology_started(self):
         """
-        Check if any of the hubs or clients have already been started using two mechanisms:
-        1. Does a PID file exist, and if so, does a process with that PID exist?
-        2. Is the port already in use?
+        Check if any of the hubs or clients have already been started.
         """
-        some_node_already_started = False
-        for hub_config in self._config["hubs"]:
-            hub_name = hub_config["name"]
-            if self.is_node_filtered("hub", hub_name):
-                continue
-            some_node_already_started |= self.is_node_already_started("hub", hub_name)
-        for client_config in self._config["clients"]:
-            client_name = client_config["name"]
-            if self.is_node_filtered("client", client_name):
-                continue
-            some_node_already_started |= self.is_node_already_started(
-                "client", client_name
-            )
-        return some_node_already_started
-
-    def is_node_already_started(self, node_type: str, node_name: str) -> bool:
-        """
-        Check if a node has already been started.
-        """
-        if self.is_node_pid_in_use(node_type, node_name):
-            return True
-        if self.is_node_port_in_use(node_type, node_name):
-            return True
+        for node_type, node_name in self.nodes():
+            if self.is_node_started(node_type, node_name):
+                return True
         return False
 
-    def is_node_pid_in_use(self, node_type: str, node_name: str) -> bool:
+    def is_node_started(self, node_type: str, node_name: str) -> bool:
         """
-        Does a PID file for the node exists, and if so, is there a process running with that PID?
+        Check if a node has been started and is ready to accept API calls.
         """
-        if not utils.pid_file_exists(node_type, node_name):
-            return False
-        # TODO: Check if PID is already running
-        return False
+        return self.is_node_port_in_use(node_type, node_name)
 
     def is_node_port_in_use(self, node_type: str, node_name: str) -> bool:
         """
@@ -264,18 +259,14 @@ class Manager:
         Start all hubs and clients.
         """
         client_extra_args = ["--hubs"]
-        for hub_config in self._config["hubs"]:
-            hub_name = hub_config["name"]
-            if self.is_node_filtered("hub", hub_name):
-                continue
-            self.start_node("hub", hub_name)
-            hub_url = self.node_url("hub", hub_name)
-            client_extra_args.append(hub_url)
-        for client_config in self._config["clients"]:
-            client_name = client_config["name"]
-            if self.is_node_filtered("client", client_name):
-                continue
-            self.start_node("client", client_name, client_extra_args)
+        # This code relies on the fact that function nodes() returns hubs before clients
+        for node_type, node_name in self.nodes():
+            if node_type == "hub":
+                self.start_node(node_type, node_name)
+                hub_url = self.node_url("hub", node_name)
+                client_extra_args.append(hub_url)
+            else:
+                self.start_node(node_type, node_name, client_extra_args)
 
     def start_node(
         self, node_type: str, node_name: str, extra_args: list | None = None
@@ -305,16 +296,8 @@ class Manager:
         Stop all hubs and clients.
         """
         # Stop the clients first, so that they can cleanly unregister from the hubs.
-        for client_config in self._config["clients"]:
-            client_name = client_config["name"]
-            if self.is_node_filtered("client", client_name):
-                continue
-            self.stop_node("client", client_name)
-        for hub_config in self._config["hubs"]:
-            hub_name = hub_config["name"]
-            if self.is_node_filtered("hub", hub_name):
-                continue
-            self.stop_node("hub", hub_name)
+        for node_type, node_name in self.nodes(reverse_order=True):
+            self.stop_node(node_type, node_name)
         self.wait_for_topology_all_ports_available()
 
     def stop_node(self, node_type: str, node_name: str):
@@ -330,23 +313,6 @@ class Manager:
             print(f"Failed to stop {node_type} {node_name}: {exc}")
         # TODO: Check response (error handling)
 
-    def are_topology_all_ports_available(self):
-        """
-        After a topology is stopped (explicitly or as a result of a crash) and the TCP ports are
-        closed, the TCP sockets may go into state TIME-WAIT for 60 seconds. As long as any socket
-        is in state TIME-WAIT, the topology cannot be restarted. Are all ports currently
-        available, i.e. not in state TIME-WAIT?
-        """
-        for client_config in self._config["clients"]:
-            client_name = client_config["name"]
-            if self.is_node_port_in_use("client", client_name):
-                return False
-        for hub_config in self._config["hubs"]:
-            hub_name = hub_config["name"]
-            if self.is_node_port_in_use("hub", hub_name):
-                return False
-        return True
-
     def wait_for_topology_all_ports_available(self):
         """
         Wait for all ports to become available (exit state TIME-WAIT) again. We give up after a
@@ -358,7 +324,7 @@ class Manager:
         total_time = max_attempts * seconds_between_attempts
         assert total_time > 60
         for _ in range(max_attempts):
-            if self.are_topology_all_ports_available():
+            if self.is_topology_started():
                 return
             time.sleep(seconds_between_attempts)
         print(f"Ports are still not available after waiting for {total_time} seconds")
@@ -367,16 +333,8 @@ class Manager:
         """
         Report status for all hubs and clients.
         """
-        for hub_config in self._config["hubs"]:
-            hub_name = hub_config["name"]
-            if self.is_node_filtered("hub", hub_name):
-                continue
-            self.status_node("hub", hub_name)
-        for client_config in self._config["clients"]:
-            client_name = client_config["name"]
-            if self.is_node_filtered("client", client_name):
-                continue
-            self.status_node("client", client_name)
+        for node_type, node_name in self.nodes():
+            self.status_node(node_type, node_name)
 
     def status_node(self, node_type: str, node_name: str):
         """
