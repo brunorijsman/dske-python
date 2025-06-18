@@ -44,7 +44,7 @@ class Manager:
         self.assign_ports()
         match self._args.command:
             case "start":
-                if self.is_topology_started():
+                if self.is_any_node_started():
                     return
                 self.start_topology()
             case "stop":
@@ -222,7 +222,7 @@ class Manager:
                     return node_name != self._args.hub
         return False
 
-    def is_topology_started(self):
+    def is_any_node_started(self) -> bool:
         """
         Check if any of the hubs or clients have already been started.
         """
@@ -250,6 +250,7 @@ class Manager:
             if error.errno == errno.EADDRINUSE:
                 print(f"TCP port {port} for {node_type} {node_name} in use")
                 return True
+            print(error.errno)
             return False
         sock.close()
         return False
@@ -298,7 +299,7 @@ class Manager:
         # Stop the clients first, so that they can cleanly unregister from the hubs.
         for node_type, node_name in self.nodes(reverse_order=True):
             self.stop_node(node_type, node_name)
-        self.wait_for_topology_all_ports_available()
+        self.wait_for_all_nodes_to_be_stopped()
 
     def stop_node(self, node_type: str, node_name: str):
         """
@@ -313,21 +314,23 @@ class Manager:
             print(f"Failed to stop {node_type} {node_name}: {exc}")
         # TODO: Check response (error handling)
 
-    def wait_for_topology_all_ports_available(self):
+    def wait_for_all_nodes_to_be_stopped(self):
         """
         Wait for all ports to become available (exit state TIME-WAIT) again. We give up after a
         maximum number of tries.
         """
-        print("Waiting for all ports to become available")
+        print("Waiting for all nodes to be stopped")
         max_attempts = 13
-        seconds_between_attempts = 5
+        seconds_before_first_attempt = 1.0
+        seconds_between_attempts = 5.0
         total_time = max_attempts * seconds_between_attempts
         assert total_time > 60
+        time.sleep(seconds_before_first_attempt)
         for _ in range(max_attempts):
-            if self.is_topology_started():
+            if not self.is_any_node_started():
                 return
             time.sleep(seconds_between_attempts)
-        print(f"Ports are still not available after waiting for {total_time} seconds")
+        print(f"Not all nodes stopped after waiting for {total_time} seconds")
 
     def status_topology(self):
         """

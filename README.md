@@ -520,16 +520,17 @@ To stop the topology, use the manager stop command:
 
 <pre>
 $ <b>./manager.py topology.yaml stop</b>
-Stopping client carol on port 8105
-Stopping client celia on port 8106
-Stopping client cindy on port 8107
-Stopping client connie on port 8108
 Stopping client curtis on port 8109
-Stopping hub hank on port 8100
-Stopping hub helen on port 8101
-Stopping hub hilary on port 8102
-Stopping hub holly on port 8103
+Stopping client connie on port 8108
+Stopping client cindy on port 8107
+Stopping client celia on port 8106
+Stopping client carol on port 8105
 Stopping hub hugo on port 8104
+Stopping hub holly on port 8103
+Stopping hub hilary on port 8102
+Stopping hub helen on port 8101
+Stopping hub hank on port 8100
+Waiting for all nodes to be stopped
 </pre>
 
 # The key distribution problem
