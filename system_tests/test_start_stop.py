@@ -27,7 +27,7 @@ def test_start_twice():
     Starting the nodes twice without stopping them in between produces an error message.
     """
     system_test_common.start_topology()
-    system_test_common.start_topology(already_started=True)
+    system_test_common.start_topology_again()
     system_test_common.stop_topology()
 
 

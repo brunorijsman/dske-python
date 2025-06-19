@@ -253,7 +253,11 @@ class Manager:
         """
         Start all hubs and clients.
         """
-        self.wait_for_all_nodes_stopped()
+        if not self.wait_for_all_nodes_stopped():
+            print(
+                "Not starting topology since nodes from previous topology run were not stopped"
+            )
+            return
         client_extra_args = ["--hubs"]
         # This code relies on the fact that function nodes() returns hubs before clients
         for node_type, node_name in self.nodes():
@@ -316,7 +320,7 @@ class Manager:
         """
         # TODO: Function type in signature
         print(f"Waiting for all nodes to be {condition_description}")
-        max_attempts = 21
+        max_attempts = 25
         seconds_between_attempts = 3.0
         total_time = max_attempts * seconds_between_attempts
         assert total_time > 60
@@ -332,25 +336,26 @@ class Manager:
                             f"to be {condition_description}"
                         )
             if all_nodes_meet_condition:
-                return
+                return True
             time.sleep(seconds_between_attempts)
             first_check = False
         print(
-            f"Giving up on waiting for {condition_description} "
+            f"Giving up on waiting for all nodes to be {condition_description} "
             f"after waiting for {total_time} seconds"
         )
+        return False
 
     def wait_for_all_nodes_started(self):
         """
         Wait for all nodes to be started (or fail if it takes too long)
         """
-        self.wait_for_all_nodes_condition(self.is_node_started, "started")
+        return self.wait_for_all_nodes_condition(self.is_node_started, "started")
 
     def wait_for_all_nodes_stopped(self):
         """
         Wait for all nodes to be stopped (or fail if it takes too long)
         """
-        self.wait_for_all_nodes_condition(self.is_node_stopped, "stopped")
+        return self.wait_for_all_nodes_condition(self.is_node_stopped, "stopped")
 
     def status_topology(self):
         """

@@ -14,42 +14,122 @@ _DEFAULT_TOPOLOGY_NODES = [
 ] + [("client", name) for name in ["carol", "celia", "cindy", "connie", "curtis"]]
 
 
-def start_topology(topology=_DEFAULT_TOPOLOGY, already_started=False):
+def start_topology(topology=_DEFAULT_TOPOLOGY):
     """
     Start a topology.
     """
     args = [topology, "start"]
     output = _run_manager(args)
-    expected_output = ""
+    check_wait_for_all_nodes_stopped_output(output)
     for node_type, node_name in _DEFAULT_TOPOLOGY_NODES:
         port = _node_port(node_type, node_name)
-        if already_started:
-            expected_output += f"TCP port {port} for {node_type} {node_name} in use\n"
-        else:
-            expected_output += f"Starting {node_type} {node_name} on port {port}\n"
-    assert output == expected_output
+        expected_line = rf"Starting {node_type} {node_name} on port {port}"
+        assert next_output_matches(output, expected_line)
+    check_wait_for_all_nodes_started_output(output)
+    check_no_more_output(output)
+
+
+def start_topology_again(topology=_DEFAULT_TOPOLOGY):
+    """
+    Start a topology again (after it has already been started).
+    This is expected to fail: waiting for the nodes from the "previous run" to stop will time out.
+    """
+    args = [topology, "start"]
+    output = _run_manager(args)
+    some_output_matches(output, r"Giving up on waiting for all nodes to be stopped")
 
 
 def stop_topology(topology=_DEFAULT_TOPOLOGY, not_started=False):
     """
     Stop a topology.
     """
+    # Initiate shutdown of each node
     args = [topology, "stop"]
     output = _run_manager(args)
-    output_lines = output.split("\n")
-    for node_type, node_name in _DEFAULT_TOPOLOGY_NODES.reverse:
-        assert len(output_lines) > 0
-        output_line = output_lines[0]
-        output_lines = output_lines[1:]
+    for node_type, node_name in reversed(_DEFAULT_TOPOLOGY_NODES):
         port = _node_port(node_type, node_name)
-        expected_output = rf"Stopping {node_type} {node_name} on port {port}"
-        assert re.search(expected_output, output_line)
+        line = rf"Stopping {node_type} {node_name} on port {port}"
+        assert next_output_matches(output, line)
+        line = rf"Failed to stop {node_type} {node_name}"
         if not_started:
-            assert len(output_lines) > 0
-            output_line = output_lines[0]
-            output_lines = output_lines[1:]
-            expected_output = rf"Failed to stop {node_type} {node_name}.*"
-            assert re.search(expected_output, output_line)
+            assert next_output_matches(output, line)
+        else:
+            assert not next_output_matches(output, line)
+    check_wait_for_all_nodes_stopped_output(output)
+
+
+def next_output_matches(output, expected_line):
+    """
+    Check that the NEXT line of output from the manager matches an expected string.
+    If the line matches, return True and consume the line from the output.
+    If the line does not match, return False and do not consume the line from the output.
+    """
+    assert len(output) > 0
+    output_line = output[0]
+    if re.search(expected_line, output_line):
+        consume_line(output)
+        return True
+    return False
+
+
+def some_output_matches(output, expected_line):
+    """
+    Check that SOME line of output from the manager matches an expected string.
+    If the line matches, return True and consume the line from the output.
+    If the line does not match, return False and do not consume the line from the output.
+    """
+    while len(output) > 0:
+        if next_output_matches(output, expected_line):
+            return True
+        consume_line(output)
+    return False
+
+
+def consume_line(output):
+    """
+    Consume a line of output.
+    """
+    # Note: output = output[1:] does not work here, because it only changes the local
+    # parameter output in this function and not the argument passed in by the caller.
+    output.reverse()
+    output.pop()
+    output.reverse()
+
+
+def check_no_more_output(output):
+    """
+    Check that there is no more output.
+    """
+    # Consume blank lines
+    while len(output) > 0 and next_output_matches(output, r" *"):
+        pass
+    # Do this instead of assert len(output) != 0 to see the offending output in the assert message
+    if len(output) != 0:
+        assert not output[0]
+
+
+def check_wait_for_all_nodes_stopped_output(output):
+    """
+    Check the output of the manager for the part where it waits for all nodes to be stopped.
+    """
+    assert next_output_matches(output, r"Waiting for all nodes to be stopped")
+    while next_output_matches(output, r"Still waiting for .* to be stopped"):
+        pass
+    assert not next_output_matches(
+        output, r"Giving up on waiting for all nodes to be stopped"
+    )
+
+
+def check_wait_for_all_nodes_started_output(output):
+    """
+    Check the output of the manager for the part where it waits for all nodes to be started.
+    """
+    assert next_output_matches(output, r"Waiting for all nodes to be started")
+    while next_output_matches(output, r"Still waiting for .* to be started"):
+        pass
+    assert not next_output_matches(
+        output, r"Giving up on waiting for all nodes to be started"
+    )
 
 
 def status_topology(topology=_DEFAULT_TOPOLOGY):
@@ -69,9 +149,7 @@ def status_node(topology, node_type, node_name):
     """
     args = [topology, f"--{node_type}", node_name, "status"]
     output = _run_manager(args)
-    # Remove header line "Status for {node_type} {node_name} on port {port_nr}"
-    output = output.split("\n")
-    output = output[1:]
+    assert next_output_matches(output, r"Status for .* .* on port .*")
     output = "\n".join(output)
     status = json.loads(output)
     return status
@@ -90,8 +168,7 @@ def get_key_pair(master_client: str, slave_client: str) -> None:
     topology = _DEFAULT_TOPOLOGY
     args = [topology, "etsi-qkd", master_client, slave_client, "get-key-pair"]
     output = _run_manager(args)
-    expected_output = r".*Key values match"
-    assert re.search(expected_output, output)
+    assert some_output_matches(output, r"Key values match")
 
 
 def _run_manager(args):
@@ -108,5 +185,5 @@ def _run_manager(args):
     )
     assert result.returncode == 0
     assert result.stderr == b""
-    output = result.stdout.decode(encoding="utf-8")
+    output = result.stdout.decode(encoding="utf-8").split("\n")
     return output
