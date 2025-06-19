@@ -320,7 +320,6 @@ class Manager:
         seconds_between_attempts = 3.0
         total_time = max_attempts * seconds_between_attempts
         assert total_time > 60
-        # time.sleep(seconds_before_first_attempt)
         first_check = True
         for _ in range(max_attempts):
             all_nodes_meet_condition = True
