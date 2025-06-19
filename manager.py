@@ -28,7 +28,7 @@ class Manager:
 
     _args: argparse.Namespace
     _config: dict
-    _port_assignments: dict[(str, str), int]  # (node_type, node_name) -> port
+    _port_assignments: dict[(str, str), int]  # (node_type, node_name) -> port_nr
 
     def __init__(self):
         self._args = None
@@ -44,8 +44,6 @@ class Manager:
         self.assign_ports()
         match self._args.command:
             case "start":
-                if self.is_any_node_started():
-                    return
                 self.start_topology()
             case "stop":
                 self.stop_topology()
@@ -222,20 +220,17 @@ class Manager:
                     return node_name != self._args.hub
         return False
 
-    def is_any_node_started(self) -> bool:
-        """
-        Check if any of the hubs or clients have already been started.
-        """
-        for node_type, node_name in self.nodes():
-            if self.is_node_started(node_type, node_name):
-                return True
-        return False
-
     def is_node_started(self, node_type: str, node_name: str) -> bool:
         """
         Check if a node has been started and is ready to accept API calls.
         """
         return self.is_node_port_in_use(node_type, node_name)
+
+    def is_node_stopped(self, node_type: str, node_name: str) -> bool:
+        """
+        Check if a node has been stopped and is ready to be restarted.
+        """
+        return not self.is_node_port_in_use(node_type, node_name)
 
     def is_node_port_in_use(self, node_type: str, node_name: str) -> bool:
         """
@@ -248,7 +243,6 @@ class Manager:
             sock.bind(("", port))
         except OSError as error:
             if error.errno == errno.EADDRINUSE:
-                print(f"TCP port {port} for {node_type} {node_name} in use")
                 return True
             print(error.errno)
             return False
@@ -259,6 +253,7 @@ class Manager:
         """
         Start all hubs and clients.
         """
+        self.wait_for_all_nodes_stopped()
         client_extra_args = ["--hubs"]
         # This code relies on the fact that function nodes() returns hubs before clients
         for node_type, node_name in self.nodes():
@@ -268,6 +263,7 @@ class Manager:
                 client_extra_args.append(hub_url)
             else:
                 self.start_node(node_type, node_name, client_extra_args)
+        self.wait_for_all_nodes_started()
 
     def start_node(
         self, node_type: str, node_name: str, extra_args: list | None = None
@@ -299,7 +295,7 @@ class Manager:
         # Stop the clients first, so that they can cleanly unregister from the hubs.
         for node_type, node_name in self.nodes(reverse_order=True):
             self.stop_node(node_type, node_name)
-        self.wait_for_all_nodes_to_be_stopped()
+        self.wait_for_all_nodes_stopped()
 
     def stop_node(self, node_type: str, node_name: str):
         """
@@ -314,23 +310,48 @@ class Manager:
             print(f"Failed to stop {node_type} {node_name}: {exc}")
         # TODO: Check response (error handling)
 
-    def wait_for_all_nodes_to_be_stopped(self):
+    def wait_for_all_nodes_condition(self, condition_func, condition_description: str):
         """
-        Wait for all ports to become available (exit state TIME-WAIT) again. We give up after a
-        maximum number of tries.
+        Wait for some condition to be true for all nodes (or give up if it takes too long)
         """
-        print("Waiting for all nodes to be stopped")
-        max_attempts = 13
-        seconds_before_first_attempt = 1.0
-        seconds_between_attempts = 5.0
+        # TODO: Function type in signature
+        print(f"Waiting for all nodes to be {condition_description}")
+        max_attempts = 21
+        seconds_between_attempts = 3.0
         total_time = max_attempts * seconds_between_attempts
         assert total_time > 60
-        time.sleep(seconds_before_first_attempt)
+        # time.sleep(seconds_before_first_attempt)
+        first_check = True
         for _ in range(max_attempts):
-            if not self.is_any_node_started():
+            all_nodes_meet_condition = True
+            for node_type, node_name in self.nodes():
+                if not condition_func(node_type, node_name):
+                    all_nodes_meet_condition = False
+                    if not first_check:
+                        print(
+                            f"Still waiting for {node_type} {node_name} "
+                            f"to be {condition_description}"
+                        )
+            if all_nodes_meet_condition:
                 return
             time.sleep(seconds_between_attempts)
-        print(f"Not all nodes stopped after waiting for {total_time} seconds")
+            first_check = False
+        print(
+            f"Giving up on waiting for {condition_description} "
+            f"after waiting for {total_time} seconds"
+        )
+
+    def wait_for_all_nodes_started(self):
+        """
+        Wait for all nodes to be started (or fail if it takes too long)
+        """
+        self.wait_for_all_nodes_condition(self.is_node_started, "started")
+
+    def wait_for_all_nodes_stopped(self):
+        """
+        Wait for all nodes to be stopped (or fail if it takes too long)
+        """
+        self.wait_for_all_nodes_condition(self.is_node_stopped, "stopped")
 
     def status_topology(self):
         """

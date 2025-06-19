@@ -6,19 +6,12 @@ import json
 import os
 import re
 import subprocess
-import time
 from common import utils
 
 _DEFAULT_TOPOLOGY = "topology.yaml"
-_DEFAULT_TOPOLOGY_CLIENTS = ["carol", "celia", "cindy", "connie", "curtis"]
-_DEFAULT_TOPOLOGY_HUBS = ["hank", "helen", "hilary", "holly", "hugo"]
-# During coverage testing the delays need to be longer
-if os.getenv("DSKE_COVERAGE"):
-    _NODE_START_DELAY = 10.0
-    _NODE_STOP_DELAY = 60.0
-else:
-    _NODE_START_DELAY = 5.0
-    _NODE_STOP_DELAY = 5.0
+_DEFAULT_TOPOLOGY_NODES = [
+    ("hub", name) for name in ["hank", "helen", "hilary", "holly", "hugo"]
+] + [("client", name) for name in ["carol", "celia", "cindy", "connie", "curtis"]]
 
 
 def start_topology(topology=_DEFAULT_TOPOLOGY, already_started=False):
@@ -28,20 +21,13 @@ def start_topology(topology=_DEFAULT_TOPOLOGY, already_started=False):
     args = [topology, "start"]
     output = _run_manager(args)
     expected_output = ""
-    for hub in _DEFAULT_TOPOLOGY_HUBS:
-        port = _hub_port(hub)
+    for node_type, node_name in _DEFAULT_TOPOLOGY_NODES:
+        port = _node_port(node_type, node_name)
         if already_started:
-            expected_output += f"TCP port {port} for hub {hub} in use\n"
+            expected_output += f"TCP port {port} for {node_type} {node_name} in use\n"
         else:
-            expected_output += f"Starting hub {hub} on port {port}\n"
-    for client in _DEFAULT_TOPOLOGY_CLIENTS:
-        port = _client_port(client)
-        if already_started:
-            expected_output += f"TCP port {port} for client {client} in use\n"
-        else:
-            expected_output += f"Starting client {client} on port {port}\n"
+            expected_output += f"Starting {node_type} {node_name} on port {port}\n"
     assert output == expected_output
-    time.sleep(_NODE_START_DELAY)
 
 
 def stop_topology(topology=_DEFAULT_TOPOLOGY, not_started=False):
@@ -51,33 +37,19 @@ def stop_topology(topology=_DEFAULT_TOPOLOGY, not_started=False):
     args = [topology, "stop"]
     output = _run_manager(args)
     output_lines = output.split("\n")
-    for client in _DEFAULT_TOPOLOGY_CLIENTS:
+    for node_type, node_name in _DEFAULT_TOPOLOGY_NODES.reverse:
         assert len(output_lines) > 0
         output_line = output_lines[0]
         output_lines = output_lines[1:]
-        port = _client_port(client)
-        expected_output = rf"Stopping client {client} on port {port}"
+        port = _node_port(node_type, node_name)
+        expected_output = rf"Stopping {node_type} {node_name} on port {port}"
         assert re.search(expected_output, output_line)
         if not_started:
             assert len(output_lines) > 0
             output_line = output_lines[0]
             output_lines = output_lines[1:]
-            expected_output = rf"Failed to stop client {client}.*"
+            expected_output = rf"Failed to stop {node_type} {node_name}.*"
             assert re.search(expected_output, output_line)
-    for hub in _DEFAULT_TOPOLOGY_HUBS:
-        assert len(output_lines) > 0
-        output_line = output_lines[0]
-        output_lines = output_lines[1:]
-        port = _hub_port(hub)
-        expected_output = rf"Stopping hub {hub} on port {port}"
-        assert re.search(expected_output, output_line)
-        if not_started:
-            assert len(output_lines) > 0
-            output_line = output_lines[0]
-            output_lines = output_lines[1:]
-            expected_output = rf"Failed to stop hub {hub}.*"
-            assert re.search(expected_output, output_line)
-    time.sleep(_NODE_STOP_DELAY)
 
 
 def status_topology(topology=_DEFAULT_TOPOLOGY):
@@ -86,11 +58,8 @@ def status_topology(topology=_DEFAULT_TOPOLOGY):
     """
     status = {}
     status["clients"] = {}
-    for client in _DEFAULT_TOPOLOGY_CLIENTS:
-        status["clients"][client] = status_node(topology, "client", client)
-    status["hubs"] = {}
-    for hub in _DEFAULT_TOPOLOGY_HUBS:
-        status["hubs"][hub] = status_node(topology, "hub", hub)
+    for node_type, node_name in _DEFAULT_TOPOLOGY_NODES:
+        status[(node_type, node_name)] = status_node(topology, node_type, node_name)
     return status
 
 
@@ -108,16 +77,9 @@ def status_node(topology, node_type, node_name):
     return status
 
 
-def _hub_port(hub):
+def _node_port(node_type: str, node_name: str) -> int:
     port = utils.TOPOLOGY_BASE_PORT
-    port += _DEFAULT_TOPOLOGY_HUBS.index(hub)
-    return port
-
-
-def _client_port(client):
-    port = utils.TOPOLOGY_BASE_PORT
-    port += len(_DEFAULT_TOPOLOGY_HUBS)
-    port += _DEFAULT_TOPOLOGY_CLIENTS.index(client)
+    port += _DEFAULT_TOPOLOGY_NODES.index((node_type, node_name))
     return port
 
 
