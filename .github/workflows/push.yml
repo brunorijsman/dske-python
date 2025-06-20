@@ -3,12 +3,13 @@ run-name: ${{ github.actor }} pushed to ${{ github.ref }}
 on: [push, pull_request, workflow_dispatch]
 jobs:
   Explore-GitHub-Actions:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - run: netstat -tnl
       - run: python -m venv venv
       - run: source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt
       - run: source venv/bin/activate && scripts/check-and-test --verbose
