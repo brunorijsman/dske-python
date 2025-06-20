@@ -13,3 +13,4 @@ jobs:
       - run: python -m venv venv
       - run: source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt
       - run: source venv/bin/activate && scripts/check-and-test --verbose
+      - run: for f in *.out ; do echo === $f ===; cat $f ; done
