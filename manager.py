@@ -118,7 +118,7 @@ class Manager:
         port = self.node_port(node_type, node_name)
         # TODO: Perhaps include the node name as well, so that they can all be hosted on the same
         #       server, which something like Nginx routing requests to the appropriate process.
-        return f"http://localhost:{port}"
+        return f"http://127.0.0.1:{port}"
 
     def etsi_url(self, node_type: str, node_name: str) -> str:
         """
