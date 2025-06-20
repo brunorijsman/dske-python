@@ -5,10 +5,7 @@ A node (i.e. a hub or a client).
 import errno
 import dataclasses
 import enum
-import os
-import pathlib
 import socket
-import sys
 
 
 class NodeType(enum.IntEnum):
