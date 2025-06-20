@@ -191,11 +191,11 @@ You can see these processed using `ps` command:
 81633 ttys000    0:01.56 Python -m hub hilary --port 8102
 81634 ttys000    0:01.57 Python -m hub holly --port 8103
 81635 ttys000    0:01.56 Python -m hub hugo --port 8104
-81636 ttys000    0:01.96 Python -m client carol --port 8105 --hubs http://localhost:8100 http://localhost:8101 http://localhost:8102 http://localhost:8103 http://localhost:8104
-81637 ttys000    0:01.96 Python -m client celia --port 8106 --hubs http://localhost:8100 http://localhost:8101 http://localhost:8102 http://localhost:8103 http://localhost:8104
-81638 ttys000    0:01.97 Python -m client cindy --port 8107 --hubs http://localhost:8100 http://localhost:8101 http://localhost:8102 http://localhost:8103 http://localhost:8104
-81639 ttys000    0:01.97 Python -m client connie --port 8108 --hubs http://localhost:8100 http://localhost:8101 http://localhost:8102 http://localhost:8103 http://localhost:8104
-81640 ttys000    0:01.96 Python -m client curtis --port 8109 --hubs http://localhost:8100 http://localhost:8101 http://localhost:8102 http://localhost:8103 http://localhost:8104
+81636 ttys000    0:01.96 Python -m client carol --port 8105 --hubs http://127.0.0.1:8100 http://127.0.0.1:8101 http://127.0.0.1:8102 http://127.0.0.1:8103 http://127.0.0.1:8104
+81637 ttys000    0:01.96 Python -m client celia --port 8106 --hubs http://127.0.0.1:8100 http://127.0.0.1:8101 http://127.0.0.1:8102 http://127.0.0.1:8103 http://127.0.0.1:8104
+81638 ttys000    0:01.97 Python -m client cindy --port 8107 --hubs http://127.0.0.1:8100 http://127.0.0.1:8101 http://127.0.0.1:8102 http://127.0.0.1:8103 http://127.0.0.1:8104
+81639 ttys000    0:01.97 Python -m client connie --port 8108 --hubs http://127.0.0.1:8100 http://127.0.0.1:8101 http://127.0.0.1:8102 http://127.0.0.1:8103 http://127.0.0.1:8104
+81640 ttys000    0:01.96 Python -m client curtis --port 8109 --hubs http://127.0.0.1:8100 http://127.0.0.1:8101 http://127.0.0.1:8102 http://127.0.0.1:8103 http://127.0.0.1:8104
 ...
 </pre>
 
@@ -424,7 +424,7 @@ In the following example we as master SAE "carol" for a key which is shared with
  $ <b>./manager.py topology.yaml etsi-qkd carol celia get-key</b>
 Invoke ETSI QKD Get Key API for client carol on port 8105
 master_sae_id='carol' slave_sae_id='celia'
-url='http://localhost:8105/dske/client/etsi/api/v1/keys/celia/enc_keys'
+url='http://127.0.0.1:8105/dske/client/etsi/api/v1/keys/celia/enc_keys'
 response=<Response [200]>
 {
   "keys": {
@@ -530,7 +530,7 @@ Share constructor: value=b'\x11\x9c\x84\x19\x93\xed\xac\xa516Z\x07\xfaf\xe7\xfa'
 Share constructor: value=b'\xe8\xfc\x0f\xedN\xdc\xea5`\x01\xe3\xac\tqM\xf4' encrypted_value=None
 Share constructor: value=b'\xf5yZ_2o\xca\xba\xa9tN<\x1adLa' encrypted_value=None
 api_share=APIShare(client_name='carol', key_id='6050fccc-b882-402e-8ca1-62f0147999de', share_index=0, encrypted_value='e2wgFBkt7R8FGubnZesLJw==', encryption_key_allocation=APIAllocation(fragments=[APIFragment(block_uuid='14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5', start_byte=0, size=16)]), signature_key_allocation=APIAllocation(fragments=[APIFragment(block_uuid='14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5', start_byte=16, size=2)]))
-url='http://localhost:8100/dske/hub/api/v1/key-share'
+url='http://127.0.0.1:8100/dske/hub/api/v1/key-share'
 ... snip ...
 </pre>
 
