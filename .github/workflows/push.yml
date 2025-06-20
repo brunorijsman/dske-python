@@ -5,11 +5,15 @@ jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+    - name: Checkout code and set up Python
+      uses: actions/checkout@v4
+      uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - run: python -m venv venv
-      - run: source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt
-      - run: source venv/bin/activate && scripts/check-and-test --verbose
-      - run: for f in *.out ; do echo === $f ===; cat $f ; done
+      run: python -m venv venv
+      run: source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt
+    - name: Check code and run
+      run: source venv/bin/activate && scripts/check-and-test --verbose
+    - name: Collect information useful for debugging
+      if: always()
+      run: for f in *.out ; do echo === $f ===; cat $f ; done
