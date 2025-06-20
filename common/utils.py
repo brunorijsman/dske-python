@@ -8,9 +8,6 @@ import sys
 import pathlib
 
 
-TOPOLOGY_BASE_PORT = 8100
-
-
 def bytes_to_str(data: bytes | None, truncate: bool = False) -> str | None:
     """
     Convert bytes to a base64-encoded string. But None gets converted to None.

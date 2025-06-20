@@ -8,6 +8,7 @@ import signal
 import fastapi
 import pydantic
 import uvicorn
+from common import configuration
 from common import utils
 from common.block import APIBlock
 from common.share import APIShare
@@ -21,7 +22,11 @@ def parse_command_line_arguments():
     parser = argparse.ArgumentParser(description="DSKE Hub")
     parser.add_argument("name", type=str, help="Hub name")
     parser.add_argument(
-        "-p", "--port", type=int, default=utils.TOPOLOGY_BASE_PORT, help="Port number"
+        "-p",
+        "--port",
+        type=int,
+        default=configuration.DEFAULT_BASE_PORT,
+        help="Port number",
     )
     args = parser.parse_args()
     return args

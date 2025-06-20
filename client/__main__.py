@@ -10,6 +10,7 @@ import signal
 import fastapi
 import uvicorn
 
+from common import configuration
 from common import utils
 from .client import Client
 
@@ -21,13 +22,13 @@ def parse_command_line_arguments():
     parser = argparse.ArgumentParser(description="DSKE Client")
     parser.add_argument("name", type=str, help="Client name")
     parser.add_argument(
-        "--port", type=int, default=utils.TOPOLOGY_BASE_PORT, help="Port number"
+        "--port", type=int, default=configuration.DEFAULT_BASE_PORT, help="Port number"
     )
     parser.add_argument(
         "--hubs",
         nargs="+",
         type=str,
-        help=f"Base URLs for hubs (e.g., http://localhost:{utils.TOPOLOGY_BASE_PORT})",
+        help=f"Base URLs for hubs (e.g., http://localhost:{configuration.DEFAULT_BASE_PORT})",
     )
     args = parser.parse_args()
     return args

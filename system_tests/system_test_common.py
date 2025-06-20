@@ -6,48 +6,45 @@ import json
 import os
 import re
 import subprocess
-from common import utils
-
-_DEFAULT_TOPOLOGY = "topology.yaml"
-_DEFAULT_TOPOLOGY_NODES = [
-    ("hub", name) for name in ["hank", "helen", "hilary", "holly", "hugo"]
-] + [("client", name) for name in ["carol", "celia", "cindy", "connie", "curtis"]]
+from common import configuration
 
 
-def start_topology(topology=_DEFAULT_TOPOLOGY):
+def start_topology():
     """
     Start a topology.
     """
-    args = [topology, "start"]
+    args = [configuration.DEFAULT_CONFIGURATION_FILE, "start"]
     output = _run_manager(args)
     check_wait_for_all_nodes_stopped_output(output)
-    for node_type, node_name in _DEFAULT_TOPOLOGY_NODES:
-        port = _node_port(node_type, node_name)
+    config = configuration.parse_configuration_file()
+    for node_type, node_name in config.nodes:
+        port = config.node_port(node_type, node_name)
         expected_line = rf"Starting {node_type} {node_name} on port {port}"
         assert next_output_matches(output, expected_line)
     check_wait_for_all_nodes_started_output(output)
     check_no_more_output(output)
 
 
-def start_topology_again(topology=_DEFAULT_TOPOLOGY):
+def start_topology_again():
     """
     Start a topology again (after it has already been started).
     This is expected to fail: waiting for the nodes from the "previous run" to stop will time out.
     """
-    args = [topology, "start"]
+    args = [configuration.DEFAULT_CONFIGURATION_FILE, "start"]
     output = _run_manager(args)
     some_output_matches(output, r"Giving up on waiting for all nodes to be stopped")
 
 
-def stop_topology(topology=_DEFAULT_TOPOLOGY, not_started=False):
+def stop_topology(not_started=False):
     """
     Stop a topology.
     """
     # Initiate shutdown of each node
-    args = [topology, "stop"]
+    args = [configuration.DEFAULT_CONFIGURATION_FILE, "stop"]
     output = _run_manager(args)
-    for node_type, node_name in reversed(_DEFAULT_TOPOLOGY_NODES):
-        port = _node_port(node_type, node_name)
+    config = configuration.parse_configuration_file()
+    for node_type, node_name in reversed(config.nodes):
+        port = config.node_port(node_type, node_name)
         line = rf"Stopping {node_type} {node_name} on port {port}"
         assert next_output_matches(output, line)
         line = rf"Failed to stop {node_type} {node_name}"
@@ -132,22 +129,28 @@ def check_wait_for_all_nodes_started_output(output):
     )
 
 
-def status_topology(topology=_DEFAULT_TOPOLOGY):
+def status_topology():
     """
     Get status for a topology.
     """
     status = {}
     status["clients"] = {}
-    for node_type, node_name in _DEFAULT_TOPOLOGY_NODES:
-        status[(node_type, node_name)] = status_node(topology, node_type, node_name)
+    config = configuration.parse_configuration_file()
+    for node_type, node_name in config.nodes:
+        status[(node_type, node_name)] = status_node(node_type, node_name)
     return status
 
 
-def status_node(topology, node_type, node_name):
+def status_node(node_type, node_name):
     """
     Get status for a client.
     """
-    args = [topology, f"--{node_type}", node_name, "status"]
+    args = [
+        configuration.DEFAULT_CONFIGURATION_FILE,
+        f"--{node_type}",
+        node_name,
+        "status",
+    ]
     output = _run_manager(args)
     assert next_output_matches(output, r"Status for .* .* on port .*")
     output = "\n".join(output)
@@ -155,18 +158,17 @@ def status_node(topology, node_type, node_name):
     return status
 
 
-def _node_port(node_type: str, node_name: str) -> int:
-    port = utils.TOPOLOGY_BASE_PORT
-    port += _DEFAULT_TOPOLOGY_NODES.index((node_type, node_name))
-    return port
-
-
 def get_key_pair(master_client: str, slave_client: str) -> None:
     """
     Get a key pair from a pair of DSKE clients using the ETSI QKD API.
     """
-    topology = _DEFAULT_TOPOLOGY
-    args = [topology, "etsi-qkd", master_client, slave_client, "get-key-pair"]
+    args = [
+        configuration.DEFAULT_CONFIGURATION_FILE,
+        "etsi-qkd",
+        master_client,
+        slave_client,
+        "get-key-pair",
+    ]
     output = _run_manager(args)
     assert some_output_matches(output, r"Key values match")
 

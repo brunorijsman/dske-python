@@ -8,17 +8,13 @@ import argparse
 import errno
 import json
 import os
-import pprint
 import socket
 import subprocess
-import sys
 import time
 
-import cerberus
 import requests
-import yaml
 
-from common import utils
+from common import configuration
 
 
 class Manager:
@@ -27,7 +23,7 @@ class Manager:
     """
 
     _args: argparse.Namespace
-    _config: dict
+    _nodes: list[(str, str)]  # (node_type, node_name)
     _port_assignments: dict[(str, str), int]  # (node_type, node_name) -> port_nr
 
     def __init__(self):
@@ -41,7 +37,6 @@ class Manager:
         """
         self.parse_command_line_arguments()
         self.parse_configuration()
-        self.assign_ports()
         match self._args.command:
             case "start":
                 self.start_topology()
@@ -106,58 +101,9 @@ class Manager:
         """
         Parse the configuration file.
         """
-        hub_schema = {
-            "type": "dict",
-            "schema": {
-                "name": {"type": "string"},
-            },
-        }
-        client_schema = {
-            "type": "dict",
-            "schema": {
-                "name": {"type": "string"},
-            },
-        }
-        schema = {
-            "hubs": {"type": "list", "schema": hub_schema},
-            "clients": {"type": "list", "schema": client_schema},
-        }
-        filename = self._args.configfile
-        try:
-            with open(filename, "r", encoding="utf-8") as file:
-                try:
-                    config = yaml.safe_load(file)
-                except yaml.YAMLError as err:
-                    print(
-                        f"Could not load configuration file {filename}: {str(err)}",
-                        file=sys.stderr,
-                    )
-                    sys.exit(1)
-        except (OSError, IOError) as err:
-            print(
-                f"Could not open configuration file {filename} ({err})", file=sys.stderr
-            )
-            sys.exit(1)
-        validator = cerberus.Validator()
-        if not validator.validate(config, schema):
-            print(f"Could not parse configuration file {filename}", file=sys.stderr)
-            pretty_printer = pprint.PrettyPrinter()
-            pretty_printer.pprint(validator.errors)
-            sys.exit(1)
-        config = validator.normalized(config)
-        self._config = config
-
-    def assign_ports(self):
-        """
-        Assign port numbers to the nodes.
-        """
-        port = utils.TOPOLOGY_BASE_PORT
-        for hub_config in self._config["hubs"]:
-            self._port_assignments[("hub", hub_config["name"])] = port
-            port += 1
-        for client_config in self._config["clients"]:
-            self._port_assignments[("client", client_config["name"])] = port
-            port += 1
+        config = configuration.parse_configuration_file(self._args.configfile)
+        self._nodes = config.nodes
+        self._port_assignments = config.port_assignments
 
     def node_port(self, node_type: str, node_name: str) -> int:
         """
@@ -182,25 +128,18 @@ class Manager:
             f"{self.node_url(node_type, node_name)}/dske/{node_type}/etsi/api/v1/keys"
         )
 
-    def nodes(self, reverse_order=False) -> list[(str, str)]:
+    def filtered_nodes(self, reverse_order=False) -> list[(str, str)]:
         """
         Return a list of all nodes in the topology (except those that are filtered), where each node
         is a (node_type, node_name) tuple. Hubs are listed before clients in normal order.
         """
-        nodes = []
-        for hub_config in self._config["hubs"]:
-            hub_name = hub_config["name"]
-            if self.is_node_filtered("hub", hub_name):
-                continue
-            nodes.append(("hub", hub_name))
-        for client_config in self._config["clients"]:
-            client_name = client_config["name"]
-            if self.is_node_filtered("client", client_name):
-                continue
-            nodes.append(("client", client_name))
+        filtered_nodes = []
+        for node_type, node_name in self._nodes:
+            if not self.is_node_filtered(node_type, node_name):
+                filtered_nodes.append((node_type, node_name))
         if reverse_order:
-            nodes.reverse()
-        return nodes
+            filtered_nodes.reverse()
+        return filtered_nodes
 
     def is_node_filtered(self, node_type: str, node_name: str) -> bool:
         """
@@ -260,7 +199,7 @@ class Manager:
             return
         client_extra_args = ["--hubs"]
         # This code relies on the fact that function nodes() returns hubs before clients
-        for node_type, node_name in self.nodes():
+        for node_type, node_name in self.filtered_nodes():
             if node_type == "hub":
                 self.start_node(node_type, node_name)
                 hub_url = self.node_url("hub", node_name)
@@ -297,7 +236,7 @@ class Manager:
         Stop all hubs and clients.
         """
         # Stop the clients first, so that they can cleanly unregister from the hubs.
-        for node_type, node_name in self.nodes(reverse_order=True):
+        for node_type, node_name in self.filtered_nodes(reverse_order=True):
             self.stop_node(node_type, node_name)
         self.wait_for_all_nodes_stopped()
 
@@ -327,7 +266,7 @@ class Manager:
         first_check = True
         for _ in range(max_attempts):
             all_nodes_meet_condition = True
-            for node_type, node_name in self.nodes():
+            for node_type, node_name in self.filtered_nodes():
                 if not condition_func(node_type, node_name):
                     all_nodes_meet_condition = False
                     if not first_check:
@@ -361,7 +300,7 @@ class Manager:
         """
         Report status for all hubs and clients.
         """
-        for node_type, node_name in self.nodes():
+        for node_type, node_name in self.filtered_nodes():
             self.status_node(node_type, node_name)
 
     def status_node(self, node_type: str, node_name: str):
