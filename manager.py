@@ -5,16 +5,15 @@ Main entry point for the topology package.
 """
 
 import argparse
-import errno
 import json
 import os
-import socket
 import subprocess
+import sys
 import time
-
+import typing
 import requests
-
 from common import configuration
+from common.node import Node, NodeType
 
 
 class Manager:
@@ -22,14 +21,12 @@ class Manager:
     DSKE manager.
     """
 
-    _args: argparse.Namespace
-    _nodes: list[(str, str)]  # (node_type, node_name)
-    _port_assignments: dict[(str, str), int]  # (node_type, node_name) -> port_nr
+    _args: None | argparse.Namespace
+    _nodes: None | list[Node]
 
     def __init__(self):
         self._args = None
-        self._config = None
-        self._port_assignments = {}
+        self._nodes = None
 
     def main(self):
         """
@@ -46,6 +43,14 @@ class Manager:
                 self.status_topology()
             case "etsi-qkd":
                 self.etsi_qkd()
+
+    @staticmethod
+    def fatal_error(message: str) -> typing.NoReturn:
+        """
+        Print a fatal error message and exit.
+        """
+        print(f"Fatal error: {message}", file=sys.stderr)
+        sys.exit(1)
 
     def parse_command_line_arguments(self):
         """
@@ -103,94 +108,40 @@ class Manager:
         """
         config = configuration.parse_configuration_file(self._args.configfile)
         self._nodes = config.nodes
-        self._port_assignments = config.port_assignments
 
-    def node_port(self, node_type: str, node_name: str) -> int:
+    def filtered_nodes(self, reverse_order=False) -> list[Node]:
         """
-        Determine the port number for a given node.
-        """
-        return self._port_assignments[(node_type, node_name)]
-
-    def node_url(self, node_type: str, node_name: str) -> str:
-        """
-        The HTTP base URL for a given node.
-        """
-        port = self.node_port(node_type, node_name)
-        # TODO: Perhaps include the node name as well, so that they can all be hosted on the same
-        #       server, which something like Nginx routing requests to the appropriate process.
-        return f"http://127.0.0.1:{port}"
-
-    def etsi_url(self, node_type: str, node_name: str) -> str:
-        """
-        The HTTP URL for the ETSI QKD API for a given node.
-        """
-        return (
-            f"{self.node_url(node_type, node_name)}/dske/{node_type}/etsi/api/v1/keys"
-        )
-
-    def filtered_nodes(self, reverse_order=False) -> list[(str, str)]:
-        """
-        Return a list of all nodes in the topology (except those that are filtered), where each node
-        is a (node_type, node_name) tuple. Hubs are listed before clients in normal order.
+        Return a list of all nodes in the topology (except those that are filtered).
         """
         filtered_nodes = []
-        for node_type, node_name in self._nodes:
-            if not self.is_node_filtered(node_type, node_name):
-                filtered_nodes.append((node_type, node_name))
+        for node in self._nodes:
+            if not self.is_node_filtered(node):
+                filtered_nodes.append(node)
         if reverse_order:
             filtered_nodes.reverse()
         return filtered_nodes
 
-    def is_node_filtered(self, node_type: str, node_name: str) -> bool:
+    def is_node_filtered(self, node: Node) -> bool:
         """
         Determine if a node should be filtered out.
         """
         if self._args.client is not None:
-            match node_type:
-                case "client":
-                    return node_name != self._args.client
-                case "hub":
+            match node.type:
+                case NodeType.CLIENT:
+                    return node.name != self._args.client
+                case NodeType.HUB:
                     return True
         if self._args.hub is not None:
-            match node_type:
-                case "client":
+            match node.type:
+                case NodeType.CLIENT:
                     return True
-                case "hub":
-                    return node_name != self._args.hub
-        return False
-
-    def is_node_started(self, node_type: str, node_name: str) -> bool:
-        """
-        Check if a node has been started and is ready to accept API calls.
-        """
-        return self.is_node_port_in_use(node_type, node_name)
-
-    def is_node_stopped(self, node_type: str, node_name: str) -> bool:
-        """
-        Check if a node has been stopped and is ready to be restarted.
-        """
-        return not self.is_node_port_in_use(node_type, node_name)
-
-    def is_node_port_in_use(self, node_type: str, node_name: str) -> bool:
-        """
-        Is the TCP port already in use by some process (might not be a DSKE node, but nevertheless
-        it means the DSKE node cannot be started on that port)?
-        """
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        port = self.node_port(node_type, node_name)
-        try:
-            sock.bind(("", port))
-        except OSError as error:
-            if error.errno == errno.EADDRINUSE:
-                return True
-            print(error.errno)
-            return False
-        sock.close()
+                case NodeType.HUB:
+                    return node.name != self._args.hub
         return False
 
     def start_topology(self):
         """
-        Start all hubs and clients.
+        Start all nodes.
         """
         if not self.wait_for_all_nodes_stopped():
             print(
@@ -198,25 +149,22 @@ class Manager:
             )
             return
         client_extra_args = ["--hubs"]
-        # This code relies on the fact that function nodes() returns hubs before clients
-        for node_type, node_name in self.filtered_nodes():
-            if node_type == "hub":
-                self.start_node(node_type, node_name)
-                hub_url = self.node_url("hub", node_name)
-                client_extra_args.append(hub_url)
+        # This code relies on the fact that nodes are ordered to have hubs before clients, so that
+        # client_extra_args is built up before the first client is started.
+        for node in self.filtered_nodes():
+            if node.type == NodeType.HUB:
+                self.start_node(node)
+                client_extra_args.append(node.base_url)
             else:
-                self.start_node(node_type, node_name, client_extra_args)
+                self.start_node(node, client_extra_args)
         self.wait_for_all_nodes_started()
 
-    def start_node(
-        self, node_type: str, node_name: str, extra_args: list | None = None
-    ):
+    def start_node(self, node: Node, extra_args: list | None = None):
         """
-        Start a node (hub or client).
+        Start a node.
         """
-        port = self.node_port(node_type, node_name)
-        print(f"Starting {node_type} {node_name} on port {port}")
-        out_filename = f"{node_type}-{node_name}.out"
+        print(f"Starting {node.type} {node.name} on port {node.port}")
+        out_filename = f"{node.type}-{node.name}.out"
         # TODO: Should we be using a context manager here?
         # pylint: disable=consider-using-with
         out_file = open(out_filename, "w", encoding="utf-8")
@@ -226,38 +174,38 @@ class Manager:
             command = ["python", "-m", "coverage", "run", "-m"]
         else:
             command = ["python", "-m"]
-        command += [f"{node_type}", node_name, "--port", str(port)]
+        command += [f"{node.type}", node.name, "--port", str(node.port)]
         if extra_args is not None:
             command += extra_args
         _process = subprocess.Popen(command, stdout=out_file, stderr=out_file)
 
     def stop_topology(self):
         """
-        Stop all hubs and clients.
+        Stop all nodes.
         """
         # Stop the clients first, so that they can cleanly unregister from the hubs.
-        for node_type, node_name in self.filtered_nodes(reverse_order=True):
-            self.stop_node(node_type, node_name)
+        for node in self.filtered_nodes(reverse_order=True):
+            self.stop_node(node)
         self.wait_for_all_nodes_stopped()
 
-    def stop_node(self, node_type: str, node_name: str):
+    def stop_node(self, node: Node):
         """
-        Stop a node (hub or client).
+        Stop a node.
         """
-        port = self.node_port(node_type, node_name)
-        print(f"Stopping {node_type} {node_name} on port {port}")
-        url = f"{self.node_url(node_type, node_name)}/dske/{node_type}/mgmt/v1/stop"
+        print(f"Stopping {node.type} {node.name} on port {node.port}")
+        url = f"{node.base_url}/mgmt/v1/stop"
         try:
             _response = requests.post(url, timeout=1.0)
         except requests.exceptions.RequestException as exc:
-            print(f"Failed to stop {node_type} {node_name}: {exc}")
+            print(f"Failed to stop {node.type} {node.name}: {exc}")
         # TODO: Check response (error handling)
 
-    def wait_for_all_nodes_condition(self, condition_func, condition_description: str):
+    def wait_for_all_nodes_condition(
+        self, condition_func: typing.Callable[[Node], bool], condition_description: str
+    ):
         """
         Wait for some condition to be true for all nodes (or give up if it takes too long)
         """
-        # TODO: Function type in signature
         print(f"Waiting for all nodes to be {condition_description}")
         max_attempts = 25
         seconds_between_attempts = 3.0
@@ -266,12 +214,12 @@ class Manager:
         first_check = True
         for _ in range(max_attempts):
             all_nodes_meet_condition = True
-            for node_type, node_name in self.filtered_nodes():
-                if not condition_func(node_type, node_name):
+            for node in self.filtered_nodes():
+                if not condition_func(node):
                     all_nodes_meet_condition = False
                     if not first_check:
                         print(
-                            f"Still waiting for {node_type} {node_name} "
+                            f"Still waiting for {node.type} {node.name} "
                             f"to be {condition_description}"
                         )
             if all_nodes_meet_condition:
@@ -288,32 +236,35 @@ class Manager:
         """
         Wait for all nodes to be started (or fail if it takes too long)
         """
-        return self.wait_for_all_nodes_condition(self.is_node_started, "started")
+        return self.wait_for_all_nodes_condition(
+            lambda node: node.is_started(), "started"
+        )
 
     def wait_for_all_nodes_stopped(self):
         """
         Wait for all nodes to be stopped (or fail if it takes too long)
         """
-        return self.wait_for_all_nodes_condition(self.is_node_stopped, "stopped")
+        return self.wait_for_all_nodes_condition(
+            lambda node: node.is_stopped(), "stopped"
+        )
 
     def status_topology(self):
         """
         Report status for all hubs and clients.
         """
-        for node_type, node_name in self.filtered_nodes():
-            self.status_node(node_type, node_name)
+        for node in self.filtered_nodes():
+            self.status_node(node)
 
-    def status_node(self, node_type: str, node_name: str):
+    def status_node(self, node: Node):
         """
-        Report status for a node (common processing for hubs and clients).
+        Report status for a node.
         """
-        port = self.node_port(node_type, node_name)
-        print(f"Status for {node_type} {node_name} on port {port}")
-        url = f"{self.node_url(node_type, node_name)}/dske/{node_type}/mgmt/v1/status"
+        print(f"Status for {node.type} {node.name} on port {node.port}")
+        url = f"{node.base_url}/mgmt/v1/status"
         try:
             response = requests.get(url, timeout=1.0)
         except requests.exceptions.RequestException as exc:
-            print(f"Failed get status for {node_type} {node_name}: {exc}")
+            print(f"Failed get status for {node.type} {node.name}: {exc}")
             return
         # TODO: Check response (error handling)
         print(json.dumps(response.json(), indent=2))
@@ -322,135 +273,92 @@ class Manager:
         """
         ETSI QKD operations.
         """
+        master_node = self.find_kme_node_for_sae(self._args.master_sae_id)
+        slave_node = self.find_kme_node_for_sae(self._args.slave_sae_id)
         match self._args.etsi_qkd_command:
             case "status":
-                self.etsi_qkd_status()
+                self.etsi_qkd_status(master_node, slave_node)
             case "get-key":
-                self.etsi_qkd_get_key()
+                self.etsi_qkd_get_key(master_node, slave_node)
             case "get-key-with-key-ids":
-                self.etsi_qkd_get_key_with_key_ids()
+                key_id = self._args.key_id
+                self.etsi_qkd_get_key_with_key_ids(master_node, slave_node, key_id)
             case "get-key-pair":
-                self.etsi_qkd_get_key_pair()
+                self.etsi_qkd_get_key_pair(master_node, slave_node)
 
-    def etsi_qkd_status(self):
+    def find_kme_node_for_sae(self, sae_id: str) -> Node:
+        """
+        Given an SAE ID, find the KME node that is associated with it.
+        TODO: For now we make the simplifying assumption that there is only one SAE attached
+              to each KME, and that the KME has the same name as the KME
+        """
+        for node in self._nodes:
+            if node.type == NodeType.CLIENT and node.name == sae_id:
+                return node
+        self.fatal_error(f"Could not find KME client node for SAE ID {sae_id}")
+
+    def etsi_qkd_status(self, master_node: Node, slave_node: Node):
         """
         Invoke the ETSI QKD Status API.
         """
-        master_sae_id = self._args.master_sae_id
-        slave_sae_id = self._args.slave_sae_id
-        # See remark about ETSI QKD API in file TODO
-        master_client_name = master_sae_id
-        port = self.node_port("client", master_client_name)
         print(
-            f"Invoke ETSI QKD Status API for client {master_client_name} on port {port}"
+            f"Invoke ETSI QKD Status API for client {master_node.name} on port {master_node.port}"
         )
-        print(f"{master_sae_id=} {slave_sae_id=}")
-        url = f"{self.etsi_url("client", master_client_name)}/{slave_sae_id}/status"
+        url = f"{master_node.base_url}/etsi/api/v1/keys/{slave_node.name}/status"
         try:
             response = requests.get(url, timeout=1.0)
             # TODO: Check response (error handling)
         except requests.exceptions.RequestException as exc:
-            print(f"Failed to invoke ETSI QKD Status API: {exc}")
-            return
+            self.fatal_error(f"Failed to invoke ETSI QKD Status API: {exc}")
         print(json.dumps(response.json(), indent=2))
 
-    def etsi_qkd_get_key(self):
+    def etsi_qkd_get_key(self, master_node: Node, slave_node: Node) -> dict:
         """
         Invoke the ETSI QKD Get Key API.
         """
-        # TODO: There is common code with the other ETSI API calls
-        master_sae_id = self._args.master_sae_id
-        slave_sae_id = self._args.slave_sae_id
-        # See remark about ETSI QKD API in file TODO
-        master_client_name = master_sae_id
-        port = self.node_port("client", master_client_name)
         print(
-            f"Invoke ETSI QKD Get Key API for client {master_client_name} on port {port}"
+            f"Invoke ETSI QKD Get Key API for client {master_node.name} on port {master_node.port}"
         )
-        print(f"{master_sae_id=} {slave_sae_id=}")
-        url = f"{self.etsi_url("client", master_client_name)}/{slave_sae_id}/enc_keys"
+        url = f"{master_node.base_url}/etsi/api/v1/keys/{slave_node.name}/enc_keys"
         try:
             response = requests.get(url, timeout=1.0)
             # TODO: Check response (error handling)
         except requests.exceptions.RequestException as exc:
-            print(f"Failed to invoke ETSI QKD Get Key API: {exc}")
-            return
+            self.fatal_error(f"Failed to invoke ETSI QKD Get Key API: {exc}")
         print(json.dumps(response.json(), indent=2))
+        return response.json()
 
-    def etsi_qkd_get_key_with_key_ids(self):
+    def etsi_qkd_get_key_with_key_ids(
+        self, master_node: Node, slave_node: Node, key_id: str
+    ) -> dict:
         """
         Invoke the ETSI QKD Get Key with Key IDs API.
         """
-        # TODO: There is common code with the other ETSI API calls
-        master_sae_id = self._args.master_sae_id
-        slave_sae_id = self._args.slave_sae_id
-        # See remark about ETSI QKD API in file TODO
-        master_client_name = master_sae_id
-        slave_client_name = slave_sae_id
-        port = self.node_port("client", master_client_name)
         print(
-            f"Invoke ETSI QKD Get Key with Key IDs API for client {slave_client_name} "
-            f"on port {port}"
+            f"Invoke ETSI QKD Get Key with Key IDs API for client {slave_node.name} "
+            f"on port {slave_node.port}"
         )
-        key_id = self._args.key_id
-        print(f"{slave_client_name=} {master_sae_id=} {key_id}")
-        url = (
-            f"{self.etsi_url("client", slave_client_name)}/{master_sae_id}/dec_keys"
-            f"?key_ID={key_id}"
-        )
+        url = f"{master_node.base_url}/etsi/api/v1/keys/{master_node.name}/dec_keys?key_ID={key_id}"
         try:
             response = requests.get(url, timeout=1.0)
             # TODO: Check response (error handling)
         except requests.exceptions.RequestException as exc:
-            print(f"Failed to invoke ETSI QKD Get Key API: {exc}")
-            return
+            self.fatal_error(f"Failed to invoke ETSI QKD Get Key API: {exc}")
         print(json.dumps(response.json(), indent=2))
+        return response.json()
 
-    def etsi_qkd_get_key_pair(self):
+    def etsi_qkd_get_key_pair(self, master_node: Node, slave_node: Node):
         """
         Invoke the ETSI QKD Get Key API on master, followed by Get Key with Key IDs API on slave.
         """
-        # TODO: Don't crash if non-existent client name is given
-        # TODO: There is common code with the other ETSI API calls
-        master_sae_id = self._args.master_sae_id
-        slave_sae_id = self._args.slave_sae_id
-        # See remark about ETSI QKD API in file TODO
-        master_client_name = master_sae_id
-        slave_client_name = slave_sae_id
-        master_port = self.node_port("client", master_client_name)
-        slave_port = self.node_port("client", slave_client_name)
-        print(
-            f"Invoke ETSI QKD Get Key API for client {master_client_name} on port {master_port}"
+        master_response_json = self.etsi_qkd_get_key(master_node, slave_node)
+        key_id = master_response_json["keys"]["key_ID"]
+        slave_response_json = self.etsi_qkd_get_key_with_key_ids(
+            master_node, slave_node, key_id
         )
-        print(f"{master_sae_id=} {slave_sae_id=}")
-        url = f"{self.etsi_url("client", master_client_name)}/{slave_sae_id}/enc_keys"
-        try:
-            get_key_response = requests.get(url, timeout=1.0)
-            # TODO: Check response (error handling)
-        except requests.exceptions.RequestException as exc:
-            print(f"Failed to invoke ETSI QKD Get Key API: {exc}")
-            return
-        print(json.dumps(get_key_response.json(), indent=2))
-        print(
-            f"Invoke ETSI QKD Get Key with Key IDs API for client {slave_client_name} "
-            f"on port {slave_port}"
-        )
-        key_id = get_key_response.json()["keys"]["key_ID"]
-        key_value_1 = get_key_response.json()["keys"]["key"]
-        print(f"{master_sae_id=} {slave_sae_id=} {key_id}")
-        url = (
-            f"{self.etsi_url("client", slave_client_name)}/{master_sae_id}/dec_keys"
-            f"?key_ID={key_id}"
-        )
-        try:
-            get_key_with_key_ids_response = requests.get(url, timeout=1.0)
-            # TODO: Check response (error handling)
-        except requests.exceptions.RequestException as exc:
-            print(f"Failed to invoke ETSI QKD Get Key API: {exc}")
-            return
-        print(json.dumps(get_key_with_key_ids_response.json(), indent=2))
-        key_value_2 = get_key_with_key_ids_response.json()["keys"][0]["key"]
-        if key_value_1 == key_value_2:
+        master_key_value = master_response_json["keys"]["key"]
+        slave_key_value = slave_response_json["keys"][0]["key"]
+        if master_key_value == slave_key_value:
             print("Key values match")
         else:
             print("Key values do not match")

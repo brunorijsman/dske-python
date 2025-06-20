@@ -17,9 +17,8 @@ def start_topology():
     output = _run_manager(args)
     check_wait_for_all_nodes_stopped_output(output)
     config = configuration.parse_configuration_file()
-    for node_type, node_name in config.nodes:
-        port = config.node_port(node_type, node_name)
-        expected_line = rf"Starting {node_type} {node_name} on port {port}"
+    for node in config.nodes:
+        expected_line = rf"Starting {node.type} {node.name} on port {node.port}"
         assert next_output_matches(output, expected_line)
     check_wait_for_all_nodes_started_output(output)
     check_no_more_output(output)
@@ -43,11 +42,10 @@ def stop_topology(not_started=False):
     args = [configuration.DEFAULT_CONFIGURATION_FILE, "stop"]
     output = _run_manager(args)
     config = configuration.parse_configuration_file()
-    for node_type, node_name in reversed(config.nodes):
-        port = config.node_port(node_type, node_name)
-        line = rf"Stopping {node_type} {node_name} on port {port}"
+    for node in reversed(config.nodes):
+        line = rf"Stopping {node.type} {node.name} on port {node.port}"
         assert next_output_matches(output, line)
-        line = rf"Failed to stop {node_type} {node_name}"
+        line = rf"Failed to stop {node.type} {node.name}"
         if not_started:
             assert next_output_matches(output, line)
         else:
@@ -136,19 +134,18 @@ def status_topology():
     status = {}
     status["clients"] = {}
     config = configuration.parse_configuration_file()
-    for node_type, node_name in config.nodes:
-        status[(node_type, node_name)] = status_node(node_type, node_name)
-    return status
+    for node in config.nodes:
+        status_node(node)
 
 
-def status_node(node_type, node_name):
+def status_node(node):
     """
     Get status for a client.
     """
     args = [
         configuration.DEFAULT_CONFIGURATION_FILE,
-        f"--{node_type}",
-        node_name,
+        f"--{node.type}",
+        node.name,
         "status",
     ]
     output = _run_manager(args)

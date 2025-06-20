@@ -70,6 +70,7 @@ class Client:
         """
         ETSI QKD 014 V1.1.1 Get Key API.
         """
+        # TODO: Use the Slave SAE ID?
         # TODO: Store the _slave_sae_id somewhere. It should be used to determine who is allowed
         #       to retrieve the key on the other side by calling Get Key with Key IDs.
         #       Perhaps also store the master_sae_id to keep track of who the initiator/master is.
@@ -86,10 +87,11 @@ class Client:
             }
         }
 
-    async def etsi_get_key_with_key_ids(self, _slave_sae_id: str, key_id: str):
+    async def etsi_get_key_with_key_ids(self, _master_sae_id: str, key_id: str):
         """
         ETSI QKD 014 V1.1.1 Get Key API.
         """
+        # TODO: Use the Master SAE ID?
         # TODO: key_id should be a list; allow to get more than one key in a single call.
         # TODO: Error handling; the gather could fail for any number of reasons.
         key_uuid = UUID(key_id)

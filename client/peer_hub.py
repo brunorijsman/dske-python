@@ -21,7 +21,7 @@ class PeerHub:
     """
 
     _client: "Client"  # type: ignore
-    _url: str
+    _base_url: str
     _registered: bool
     _pool: Pool
     # The following attributes are set after registration
@@ -30,10 +30,9 @@ class PeerHub:
 
     def __init__(self, client, base_url):
         self._client = client
-        self._url = base_url
-        if not self._url.endswith("/"):
-            self._url += "/"
-        self._url += "dske/hub"
+        self._base_url = base_url
+        if self._base_url.endswith("/"):
+            self._base_url = self._base_url[:-1]
         self._registered = False
         self._pool = Pool()
         self._hub_name = None
@@ -61,7 +60,7 @@ class PeerHub:
         """
         Register this client with the peer hub.
         """
-        url = f"{self._url}/oob/v1/register-client"
+        url = f"{self._base_url}/dske/oob/v1/register-client"
         params = {"client_name": self._client.name}
         registration = await http.get(url, params, APIRegistration)
         self._hub_name = registration.hub_name
@@ -78,7 +77,7 @@ class PeerHub:
         """
         Request a block of Pre-Shared Random Data (PSRD) from the peer hub.
         """
-        url = f"{self._url}/oob/v1/psrd"
+        url = f"{self._base_url}/dske/oob/v1/psrd"
         params = {"client_name": self._client.name, "size": _PSRD_BLOCK_SIZE_IN_BYTES}
         api_block = await http.get(url, params, APIBlock)
         block = Block.from_api(api_block)
@@ -88,7 +87,7 @@ class PeerHub:
         """
         Post a key share to the peer hub.
         """
-        url = f"{self._url}/api/v1/key-share"
+        url = f"{self._base_url}/dske/api/v1/key-share"
         api_share = share.to_api(self._client.name)
         await http.post(url, api_obj=api_share)
 
@@ -96,7 +95,7 @@ class PeerHub:
         """
         Get a key share from the peer hub.
         """
-        url = f"{self._url}/api/v1/key-share"
+        url = f"{self._base_url}/dske/api/v1/key-share"
         params = {"client_name": self._client.name, "key_id": str(key_uuid)}
         api_share = await http.get(url, params, APIShare)
         share = Share.from_api(api_share, self._pool)

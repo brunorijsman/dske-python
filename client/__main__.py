@@ -28,7 +28,7 @@ def parse_command_line_arguments():
         "--hubs",
         nargs="+",
         type=str,
-        help=f"Base URLs for hubs (e.g., http://localhost:{configuration.DEFAULT_BASE_PORT})",
+        help=f"Base URLs for hubs (e.g., http://127.0.0.1:{configuration.DEFAULT_BASE_PORT})",
     )
     args = parser.parse_args()
     return args
@@ -55,7 +55,7 @@ async def lifespan(_app: fastapi.FastAPI):
 _APP = fastapi.FastAPI(lifespan=lifespan)
 
 
-@_APP.get("/dske/client/etsi/api/v1/keys/{slave_sae_id}/status")
+@_APP.get(f"/client/{_CLIENT.name}/etsi/api/v1/keys/{{slave_sae_id}}/status")
 async def get_etsi_status(slave_sae_id: str):
     """
     ETSI QKD 014 API: Status.
@@ -63,7 +63,7 @@ async def get_etsi_status(slave_sae_id: str):
     return await _CLIENT.etsi_status(slave_sae_id)
 
 
-@_APP.get("/dske/client/etsi/api/v1/keys/{slave_sae_id}/enc_keys")
+@_APP.get(f"/client/{_CLIENT.name}/etsi/api/v1/keys/{{slave_sae_id}}/enc_keys")
 async def get_etsi_get_key(slave_sae_id: str):
     """
     ETSI QKD 014 API: Get Key.
@@ -71,17 +71,17 @@ async def get_etsi_get_key(slave_sae_id: str):
     return await _CLIENT.etsi_get_key(slave_sae_id)
 
 
-@_APP.get("/dske/client/etsi/api/v1/keys/{slave_sae_id}/dec_keys")
-async def get_eti_get_key_with_key_ids(slave_sae_id: str, key_ID: str):
+@_APP.get(f"/client/{_CLIENT.name}/etsi/api/v1/keys/{{master_sae_id}}/dec_keys")
+async def get_eti_get_key_with_key_ids(master_sae_id: str, key_ID: str):
     """
     ETSI QKD 014 API: Get Key with Key IDs.
     """
     # ETSI QKD 014 says that ID in key_ID has to be upper case, which lint doesn't like.
     # pylint: disable=invalid-name
-    return await _CLIENT.etsi_get_key_with_key_ids(slave_sae_id, key_ID)
+    return await _CLIENT.etsi_get_key_with_key_ids(master_sae_id, key_ID)
 
 
-@_APP.get("/dske/client/mgmt/v1/status")
+@_APP.get(f"/client/{_CLIENT.name}/mgmt/v1/status")
 async def get_mgmt_status():
     """
     Management: Get status.
@@ -89,7 +89,7 @@ async def get_mgmt_status():
     return _CLIENT.to_mgmt()
 
 
-@_APP.post("/dske/client/mgmt/v1/stop")
+@_APP.post(f"/client/{_CLIENT.name}/mgmt/v1/stop")
 async def post_mgmt_stop():
     """
     Management: Post stop.

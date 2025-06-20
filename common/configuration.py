@@ -4,9 +4,9 @@ Configuration for a DSKE topology.
 
 import pprint
 import sys
-
 import cerberus
 import yaml
+from common.node import Node, NodeType
 
 DEFAULT_BASE_PORT = 8100
 DEFAULT_CONFIGURATION_FILE = "topology.yaml"
@@ -17,11 +17,14 @@ class Configuration:
     Configuration for a DSKE topology.
     """
 
+    _nodes: list[Node]
+
     def __init__(self, nodes, base_port=DEFAULT_BASE_PORT):
-        self._nodes = nodes
+        # Sort nodes by type and name, so that clients are always before hubs (the order matters
+        # for startup and shutdown).
+        self._nodes = sorted(nodes)
         self._base_port = base_port
-        self._port_assignments = {}
-        self._assign_ports()
+        self._assign_ports_and_urls()
 
     @property
     def nodes(self):
@@ -30,26 +33,14 @@ class Configuration:
         """
         return self._nodes
 
-    @property
-    def port_assignments(self):
+    def _assign_ports_and_urls(self):
         """
-        Return the port assignments.
-        """
-        return self._port_assignments
-
-    def node_port(self, node_type: str, node_name: str) -> int:
-        """
-        Return the TCP port number assigned to a node.
-        """
-        return self._port_assignments[(node_type, node_name)]
-
-    def _assign_ports(self):
-        """
-        Assign port numbers to the nodes.
+        Assign port numbers and URLs to the nodes.
         """
         port = self._base_port
-        for node_type, node_name in self._nodes:
-            self._port_assignments[(node_type, node_name)] = port
+        for node in self._nodes:
+            node.port = port
+            node.base_url = f"http://127.0.0.1:{port}/{node.type}/{node.name}"
             port += 1
 
 
@@ -95,7 +86,9 @@ def parse_configuration_file(filename: str = DEFAULT_CONFIGURATION_FILE):
     parsed_config = validator.normalized(parsed_config)
     nodes = []
     for parsed_hub_config in parsed_config["hubs"]:
-        nodes.append(("hub", parsed_hub_config["name"]))
+        node = Node(NodeType.HUB, parsed_hub_config["name"])
+        nodes.append(node)
     for parsed_client_config in parsed_config["clients"]:
-        nodes.append(("client", parsed_client_config["name"]))
+        node = Node(NodeType.CLIENT, parsed_client_config["name"])
+        nodes.append(node)
     return Configuration(nodes)
