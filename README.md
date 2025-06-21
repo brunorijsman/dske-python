@@ -45,6 +45,7 @@ Change directory to the cloned repository:
 cd dske-python
 </pre>
 
+We use Python 3.13 to develop and test the code.
 Install Python 3.13 including venv(if needed):
 
 <pre>
@@ -64,8 +65,6 @@ Create a virtual environment:
 <pre>
 python3.13 -m venv venv
 </pre>
-
-Note: we use Python 3.13 to develop and test the code.
 
 Activate the virtual environment:
 

@@ -45,6 +45,13 @@ class Manager:
                 self.etsi_qkd()
 
     @staticmethod
+    def error(message: str):
+        """
+        Print an error message and continue.
+        """
+        print(f"Error: {message}", file=sys.stderr)
+
+    @staticmethod
     def fatal_error(message: str) -> typing.NoReturn:
         """
         Print a fatal error message and exit.
@@ -309,7 +316,8 @@ class Manager:
             response = requests.get(url, timeout=1.0)
             # TODO: Check response (error handling)
         except requests.exceptions.RequestException as exc:
-            self.fatal_error(f"Failed to invoke ETSI QKD Status API: {exc}")
+            self.error(f"Failed to invoke ETSI QKD Status API: {exc}")
+            return
         print(json.dumps(response.json(), indent=2))
 
     def etsi_qkd_get_key(self, master_node: Node, slave_node: Node) -> dict:
@@ -324,7 +332,8 @@ class Manager:
             response = requests.get(url, timeout=1.0)
             # TODO: Check response (error handling)
         except requests.exceptions.RequestException as exc:
-            self.fatal_error(f"Failed to invoke ETSI QKD Get Key API: {exc}")
+            self.error(f"Failed to invoke ETSI QKD Get Key API: {exc}")
+            return
         print(json.dumps(response.json(), indent=2))
         return response.json()
 
@@ -343,7 +352,7 @@ class Manager:
             response = requests.get(url, timeout=1.0)
             # TODO: Check response (error handling)
         except requests.exceptions.RequestException as exc:
-            self.fatal_error(f"Failed to invoke ETSI QKD Get Key API: {exc}")
+            self.error(f"Failed to invoke ETSI QKD Get Key API: {exc}")
         print(json.dumps(response.json(), indent=2))
         return response.json()
 
