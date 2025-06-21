@@ -65,7 +65,7 @@ class PeerHub:
         """
         assert self._startup_task is None
         self._startup_task = asyncio.create_task(self.start_task())
-        # TODO: Do we need a done_callback?
+        # TODO: Do we need a done_callback? Set start_task to None?
 
     async def start_task(self) -> None:
         """
