@@ -155,13 +155,17 @@ class Manager:
                 "Not starting topology since nodes from previous topology run were not stopped"
             )
             return
-        client_extra_args = ["--hubs"]
+        client_extra_args = []
+        for node in self.filtered_nodes():
+            if node.type == NodeType.HUB:
+                client_extra_args.append(node.base_url)
+        if client_extra_args:
+            client_extra_args = ["--hubs"] + client_extra_args
         # This code relies on the fact that nodes are ordered to have hubs before clients, so that
         # client_extra_args is built up before the first client is started.
         for node in self.filtered_nodes():
             if node.type == NodeType.HUB:
                 self.start_node(node)
-                client_extra_args.append(node.base_url)
             else:
                 self.start_node(node, client_extra_args)
         self.wait_for_all_nodes_started()
@@ -184,7 +188,9 @@ class Manager:
         command += [f"{node.type}", node.name, "--port", str(node.port)]
         if extra_args is not None:
             command += extra_args
-        _process = subprocess.Popen(command, stdout=out_file, stderr=out_file)
+        process = subprocess.Popen(command, stdout=out_file, stderr=out_file)
+        time.sleep(3.0)
+        print(f"{process=}")
 
     def stop_topology(self):
         """
@@ -320,7 +326,7 @@ class Manager:
             return
         print(json.dumps(response.json(), indent=2))
 
-    def etsi_qkd_get_key(self, master_node: Node, slave_node: Node) -> dict:
+    def etsi_qkd_get_key(self, master_node: Node, slave_node: Node) -> None | dict:
         """
         Invoke the ETSI QKD Get Key API.
         """
@@ -332,8 +338,9 @@ class Manager:
             response = requests.get(url, timeout=1.0)
             # TODO: Check response (error handling)
         except requests.exceptions.RequestException as exc:
+            # TODO Better error handling
             self.error(f"Failed to invoke ETSI QKD Get Key API: {exc}")
-            return
+            return None
         print(json.dumps(response.json(), indent=2))
         return response.json()
 

@@ -3,6 +3,7 @@ A peer hub.
 """
 
 from uuid import UUID
+from common import exceptions
 from common import http
 from common import utils
 from common.block import APIBlock, Block
@@ -62,7 +63,14 @@ class PeerHub:
         """
         url = f"{self._base_url}/dske/oob/v1/register-client"
         params = {"client_name": self._client.name}
-        registration = await http.get(url, params, APIRegistration)
+        try:
+            registration = await http.get(url, params, APIRegistration)
+        except exceptions.HTTPError:
+            print(
+                f"Failed to register client {self._client.name} with peer hub at {self._base_url}"
+            )
+            # TODO: Retry periodically until success
+            return
         self._hub_name = registration.hub_name
         self._pre_shared_key = utils.str_to_bytes(registration.pre_shared_key)
         self._registered = True
@@ -79,7 +87,13 @@ class PeerHub:
         """
         url = f"{self._base_url}/dske/oob/v1/psrd"
         params = {"client_name": self._client.name, "size": _PSRD_BLOCK_SIZE_IN_BYTES}
-        api_block = await http.get(url, params, APIBlock)
+        try:
+            # TODO: Don't attempt to do this until registration succeeded
+            api_block = await http.get(url, params, APIBlock)
+        except exceptions.HTTPError:
+            print(f"Failed to request PSRD block from peer hub at {self._base_url}")
+            # TODO: Retry periodically until success
+            return
         block = Block.from_api(api_block)
         self._pool.add_block(block)
 
