@@ -15,6 +15,8 @@ TODO: In key-share message: encrypted key-share
 TODO: In key-share message: none + HMAC over encrypted key-share + nonce + shared secret (+ more?)
 
 TODO: Have client unregister itself from all hubs when it shuts down.
+      Update: shutting down should not cause the client to unregister itself; make unregistration
+      an explicit option.
 
 TODO: Retry client registrations when they fail.
       Perhaps use tenacity
