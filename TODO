@@ -111,3 +111,5 @@ TODO: Tests get wrong key-id over ETSI QKD API
 TODO: Test creation and deletion of PID file
 
 TODO: Figure out how to debug the code (set breakpoint from VSC and document that)
+
+TODO: Store PSRDs in persistent storage. Resync after a hub or a client restarts.

@@ -13,17 +13,6 @@ class DSKEException(Exception):
         self.message = message
 
 
-class ClientAlreadyRegisteredError(DSKEException):
-    """
-    Exception raised when a client is already registered.
-    """
-
-    def __init__(self, client_name: str):
-        super().__init__(
-            message=f"Client {client_name} is already registered.",
-        )
-
-
 class ClientNotRegisteredError(DSKEException):
     """
     Exception raised when a client is not registered.

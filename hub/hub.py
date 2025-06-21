@@ -51,11 +51,9 @@ class Hub:
         """
         Register a peer client.
         """
-        # TODO: Should we allow an already registered client to be re-registered? This could happen
-        #       if a client is restarted, and the hub is not restarted.
-        #       For now, we don't allow it.
-        if client_name in self._peer_clients:
-            raise exceptions.ClientAlreadyRegisteredError(client_name)
+        # We don't check whether the client is already registered (this could happen when the
+        # client restarts without unregistering first). The registration of the newly started
+        # client will overwrite the existing client.
         # TODO: Choose pre-shared key in PeerClient constructor?
         pre_shared_key = os.urandom(self._pre_shared_key_size)
         peer_client = PeerClient(client_name, pre_shared_key)

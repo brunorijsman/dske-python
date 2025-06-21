@@ -45,8 +45,6 @@ async def get_oob_register_client(client_name: str):
     DSKE Out of band: Register a client.
     """
     peer_client = _HUB.register_peer_client(client_name)
-    # TODO: Return a proper error when there is an exception because the client already is
-    #       peer.
     return {
         "hub_name": _HUB.name,
         "pre_shared_key": utils.bytes_to_str(peer_client.pre_shared_key),
