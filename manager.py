@@ -174,7 +174,7 @@ class Manager:
         out_filename = f"{node.type}-{node.name}.out"
         # TODO: Should we be using a context manager here?
         # pylint: disable=consider-using-with
-        out_file = open(out_filename, "w", encoding="utf-8")
+        out_file = open(out_filename, "a", encoding="utf-8")
         # TODO: Error handling (e.g., if the process fails to start)
         # TODO: Append to stdout and stderr instead of replacing it (here and elsewhere)
         if os.getenv("DSKE_COVERAGE"):
