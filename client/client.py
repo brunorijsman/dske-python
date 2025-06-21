@@ -105,26 +105,20 @@ class Client:
             ]
         }
 
-    async def register_with_all_peer_hubs(self) -> None:
+    def start_all_peer_hubs(self) -> None:
         """
-        Register with all peer hubs.
+        Start all peer hubs.
         """
         for peer_hub in self._peer_hubs:
-            await peer_hub.register()
+            peer_hub.start()
 
     async def unregister_from_all_peer_hubs(self) -> None:
         """
         Unregister from all peer hubs.
         """
+        # TODO: Rename this to stop_all_peer_hubs()?
         for peer_hub in self._peer_hubs:
             await peer_hub.unregister()
-
-    async def request_block_from_all_peer_hubs(self) -> None:
-        """
-        Request PSRD from all peer hubs.
-        """
-        for peer_hub in self._peer_hubs:
-            await peer_hub.request_psrd()
 
     async def scatter_key_amongst_peer_hubs(self, key: Key) -> None:
         """

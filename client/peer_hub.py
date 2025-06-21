@@ -2,6 +2,7 @@
 A peer hub.
 """
 
+import asyncio
 from uuid import UUID
 from common import exceptions
 from common import http
@@ -23,6 +24,7 @@ class PeerHub:
 
     _client: "Client"  # type: ignore
     _base_url: str
+    _startup_task: asyncio.Task | None = None
     _registered: bool
     _pool: Pool
     # The following attributes are set after registration
@@ -57,23 +59,50 @@ class PeerHub:
             "pool": self._pool.to_mgmt(),
         }
 
-    async def register(self) -> None:
+    def start(self) -> None:
         """
-        Register this client with the peer hub.
+        Create a start task for the peer hub which runs in the background.
+        """
+        assert self._startup_task is None
+        self._startup_task = asyncio.create_task(self.start_task())
+        # TODO: Do we need a done_callback?
+
+    async def start_task(self) -> None:
+        """
+        Task for starting the peer hub:
+        - Register this client with the hub (periodically retrying if it fails).
+        - Request the initial block of Pre-Shared Random Data (PSRD) from the hub (also periodically
+          retrying if it fails).
+        """
+        try:
+            while not await self.attempt_registration():
+                await asyncio.sleep(1.0)
+            while not await self.attempt_request_psrd():
+                await asyncio.sleep(1.0)
+        except asyncio.CancelledError:
+            # The task is cancelled when the client is shut down before startup is complete.
+            # TODO: Do we need to do anything here? The un-registration is done elsewhere
+            pass
+
+    async def attempt_registration(self) -> bool:
+        """
+        Attempt to register this client with the peer hub. Returns true if successful.
         """
         url = f"{self._base_url}/dske/oob/v1/register-client"
         params = {"client_name": self._client.name}
         try:
+            print(f"{url=}")
             registration = await http.get(url, params, APIRegistration)
         except exceptions.HTTPError:
             print(
                 f"Failed to register client {self._client.name} with peer hub at {self._base_url}"
             )
             # TODO: Retry periodically until success
-            return
+            return False
         self._hub_name = registration.hub_name
         self._pre_shared_key = utils.str_to_bytes(registration.pre_shared_key)
         self._registered = True
+        return True
 
     async def unregister(self) -> None:
         """
@@ -81,9 +110,10 @@ class PeerHub:
         """
         # TODO: Implement this
 
-    async def request_psrd(self) -> None:
+    async def attempt_request_psrd(self) -> bool:
         """
-        Request a block of Pre-Shared Random Data (PSRD) from the peer hub.
+        Attempt to request a block of Pre-Shared Random Data (PSRD) from the peer hub. Returns true
+        if successful.
         """
         url = f"{self._base_url}/dske/oob/v1/psrd"
         params = {"client_name": self._client.name, "size": _PSRD_BLOCK_SIZE_IN_BYTES}
@@ -93,9 +123,10 @@ class PeerHub:
         except exceptions.HTTPError:
             print(f"Failed to request PSRD block from peer hub at {self._base_url}")
             # TODO: Retry periodically until success
-            return
+            return False
         block = Block.from_api(api_block)
         self._pool.add_block(block)
+        return True
 
     async def post_share(self, share: Share) -> None:
         """

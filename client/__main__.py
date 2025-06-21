@@ -47,10 +47,9 @@ async def lifespan(_app: fastapi.FastAPI):
     """
     Do the things that need to be done just after startup and just before shutdown.
     """
-    await _CLIENT.register_with_all_peer_hubs()
-    await _CLIENT.request_block_from_all_peer_hubs()
+    _CLIENT.start_all_peer_hubs()
     yield
-    await _CLIENT.unregister_from_all_peer_hubs()
+    # TODO: Unregister (attempt without retry or very limited)
 
 
 _APP = fastapi.FastAPI(lifespan=lifespan)
