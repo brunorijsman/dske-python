@@ -188,9 +188,7 @@ class Manager:
         command += [f"{node.type}", node.name, "--port", str(node.port)]
         if extra_args is not None:
             command += extra_args
-        process = subprocess.Popen(command, stdout=out_file, stderr=out_file)
-        time.sleep(3.0)
-        print(f"{process=}")
+        _process = subprocess.Popen(command, stdout=out_file, stderr=out_file)
 
     def stop_topology(self):
         """
