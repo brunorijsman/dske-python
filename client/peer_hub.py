@@ -91,7 +91,6 @@ class PeerHub:
         url = f"{self._base_url}/dske/oob/v1/register-client"
         params = {"client_name": self._client.name}
         try:
-            print(f"{url=}")
             registration = await http.get(url, params, APIRegistration)
         except exceptions.HTTPError:
             print(
