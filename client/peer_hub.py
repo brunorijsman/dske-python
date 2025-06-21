@@ -76,7 +76,7 @@ class PeerHub:
         """
         try:
             while not await self.attempt_registration():
-                await asyncio.sleep(1.0)
+                await asyncio.sleep(1.0)  # TODO: Introduce constants for this
             while not await self.attempt_request_psrd():
                 await asyncio.sleep(1.0)
         except asyncio.CancelledError:
