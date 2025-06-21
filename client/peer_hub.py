@@ -97,7 +97,6 @@ class PeerHub:
             print(
                 f"Failed to register client {self._client.name} with peer hub at {self._base_url}"
             )
-            # TODO: Retry periodically until success
             return False
         self._hub_name = registration.hub_name
         self._pre_shared_key = utils.str_to_bytes(registration.pre_shared_key)
