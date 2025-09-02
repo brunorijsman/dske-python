@@ -21,7 +21,7 @@ protocol encoding and would prefer a lighter-weight binary encoding.
 
 ## Network topology
 
-The following figure shows the network topology:
+The following figure shows typical example network topology:
 
 TODO: Add figure
 
