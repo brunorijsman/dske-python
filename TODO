@@ -117,3 +117,9 @@ TODO: Figure out how to debug the code (set breakpoint from VSC and document tha
 TODO: Store PSRDs in persistent storage. Resync after a hub or a client restarts
 
 TODO: In system tests, not only wait for the clients to be started but also started
+
+TODO: Put .out files in a sub-directory
+
+TODO: Reorganize documentation into separate files
+
+TODO: Add design chapter to documentation
