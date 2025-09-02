@@ -7,7 +7,7 @@ this repository.
 
 The DSKE protocol implementation in this repository is based on on IETF draft
 [draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/).
-This draft describes the DSKE protocol at a high level of abstraction and does **not** contain a
+This draft describes the DSKE protocol at a high level of abstraction but does **not** contain a
 detailed description of the message encoding.
 Our code generally follows the high-level description in the draft, although we deviate from the
 draft in certain aspects (see TODO for a list of deviations).
