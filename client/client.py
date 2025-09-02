@@ -68,7 +68,7 @@ class Client:
 
     async def etsi_get_key(self, _slave_sae_id: str):
         """
-        ETSI QKD 014 V1.1.1 Get Key API.
+        ETSI QKD 014 V1.1.1 Get key API.
         """
         # TODO: Use the Slave SAE ID?
         # TODO: Store the _slave_sae_id somewhere. It should be used to determine who is allowed
@@ -89,7 +89,7 @@ class Client:
 
     async def etsi_get_key_with_key_ids(self, _master_sae_id: str, key_id: str):
         """
-        ETSI QKD 014 V1.1.1 Get Key API.
+        ETSI QKD 014 V1.1.1 Get key with key IDs API.
         """
         # TODO: Use the Master SAE ID?
         # TODO: key_id should be a list; allow to get more than one key in a single call.
