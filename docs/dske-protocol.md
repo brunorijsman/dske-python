@@ -42,12 +42,7 @@ In our example scenario, clients Carol and Conny are responsible for producing a
 and for delivering this key to encryptors Patrick and Porter respectively.
 The other clients are faded out because they play no role in our example.
 
-The key is produced using the DSKE protocol, which runs between clients Carol and Conny
-(the two clients producing a pair-wise key in our example) and _all_ of the hubs.
-The DSKE protocol splits the client-to-client key into fragments, known as shares, and uses
-the hubs to securely relay these shares from client to client.
-This is done in such a manner that they key is security delivered from client to client even if
-a subset of the hubs is compromised or disabled by an attacker.
+The key is produced using the DSKE protocol, which runs between clients and hubs.
 
 The main responsibilities of the clients in the DSKE protocol are:
 
