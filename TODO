@@ -54,7 +54,7 @@ TODO: Remark about ETSI QKD API
       For now, we do not yet support the number or size parameters for the ETSI QKD Get Key API.
 
 TODO: Make registration more REST-like
-      POST registration resource to register
+      PUT registration resource to register (not POST, because we want idempotency)
       DELETE registration resource to unregister
       GET registration resource to query registration status
 
