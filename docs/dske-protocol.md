@@ -50,8 +50,9 @@ The main responsibilities of the clients in the DSKE protocol are:
 
 2. Each client receives a large pool of Pre-Shared Random Data (PSRD) from each hub in the network.
 
-3. Produce pairwise client-to-client encryption keys between an initiator client (Carol in our 
-   example) and a responder client (Conny in our example):
+3. The two clients involved in the key establishment (Carol and Conny in this example) run
+   the DSKE protocol with all of the hubs to produce the key.
+   One of the clients (Carol) is the initiator and the other client (Conny) is the responder.
 
    3.1. The initiator client allocates a key using locally generated random data.
 
