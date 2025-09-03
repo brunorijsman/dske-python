@@ -135,22 +135,40 @@ may contain multiple switch or router hops.
 
 ## Interfaces
 
-The topology contains the following interfaces:
+The topology contains the following software interfaces:
 * DSKE interface.
 * Key delivery interface.
 * Management interface.
 
 ### DSKE interface
 
-The DSKE interface is an interface between the clients and the hubs.
-
-The clients and hubs run the DSKE protocol over this interface that produces the key.
+The DSKE interface is the interface between the clients and the hubs.
+The clients and hubs run the DSKE protocol over this interface, which is described in detail
+[below](#dske-protocol).
+Using the DSKE protocol, the clients and the hubs collaborate with each other to establish the keys.
+As mentioned before, the code in this repository implements the DSKE protocol that is defined in 
+IETF draft
+[draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/).
 
 ### Key delivery interface
 
-The key delivery interface is an interface between the clients and the encryptors.
+The key delivery interface the the interface between the clients and the encryptors.
+The encryptors use the key delivery interface to retrieve keys from the clients.
 
+There are two standard key delivery protocols:
 
+1. [ETSI QKD 014](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf)
+   is standardized by
+   [ETSI](https://www.etsi.org/).
+   This protocol is supported by multiple encryptor devices from different vendors.
+
+2. The Secure Key Integration Protocol (SKIP) is defined in IETF draft
+   [IETF draft draft-cisco-skip](https://datatracker.ietf.org/doc/draft-cisco-skip).
+   This protocol is supported by some Cisco encryptors.
+
+The code in this repository uses a simplified implementation of ETSI QKD 014.
+(The point of this repository is not to have a full-blown implementation of ETSI QKD 014 but
+rather to implement the DSKE protocol.)
 
 ### Management interface
 
