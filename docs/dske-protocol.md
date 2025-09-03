@@ -202,8 +202,6 @@ As a result of this arrangement:
 
 ## DSKE protocol
 
-
-
 ### Out-of-band versus in-band
 
 Certain steps of the DSKE protocol, as described in the IETF draft, are not part of the DSKE
