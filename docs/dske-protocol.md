@@ -127,10 +127,11 @@ other side acts in the role of responder (also known as slave):
 
 ### Connectivity
 
-The lines between the clients and the hubs indicate that there is IP connectivity between the
-clients and the hubs.
-There may be multiple IP hops between the clients and the hubs, which is not shown in the diagram.
-The line is not intended to represent a direct point-to-point link
+The topology diagram above contains lines that represent the connectivity between the various
+network nodes (clients, hubs, encryptors).
+These lines are not intended to represent single-hop point-to-point connections.
+Instead they represent potentially multi-hop IP connectivity between the network nodes; each link
+may contain multiple switch or router hops.
 
 ## Interfaces
 
