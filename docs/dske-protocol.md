@@ -210,8 +210,10 @@ Certain steps of the DSKE protocol, as described in the IETF draft, are not part
 protocol per-se.
 Instead, these steps are implemented using some secure mechanism that is outside of the scope of
 the DSKE protocol itself.
-We refer to these steps as out-of-band steps.
-We refer to the steps that are actually part of the DSKE protocol itself as in-band steps.
+We refer to these steps as out-of-band steps;
+in ladder diagrams they are shown in red.
+We refer to the steps that are actually part of the DSKE protocol itself as in-band steps;
+in ladder diagrams they are shown in green.
 
 The out-of-band steps include:
 1. Clients registering themselves with hubs.
