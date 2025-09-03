@@ -95,11 +95,10 @@ There are two encryptors in our example: Patrick and Porter.
 
 The encryptors are responsible for:
 
-1. 
+1. Requesting an encryption key from the clients (they may periodically request a fresh key for
+   key roll-overs).
 
-2. 
-
-3. 
+2. Use that encryption key to encrypt the user data that is sent over the encrypted connection.
 
 When a key is established for a particular encrypted connection (e.g. an IPsec tunnel),
 one side (encryptor and client) acts in the initiator role (also known as master) and the
@@ -125,9 +124,6 @@ other side acts in the role of responder (also known as slave):
    secret key value and start encrypting the user data using some negotiated symmetric encryption
    protocol, such as 
    [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard).
-
-
-
 
 ### Connectivity
 
