@@ -202,14 +202,34 @@ As a result of this arrangement:
 
 ## DSKE protocol
 
-### Out-of-band versus 
-
-$$$
-
-In this section we describe the differences between the DSKE protocol as specified in
-[draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/)
 
 
+### Out-of-band versus in-band
+
+Certain steps of the DSKE protocol, as described in the IETF draft, are not part of the DSKE
+protocol per-se.
+Instead, these steps are implemented using some secure mechanism that is outside of the scope of
+the DSKE protocol itself.
+We refer to these steps as out-of-band steps.
+We refer to the steps that are actually part of the DSKE protocol itself as in-band steps.
+
+The out-of-band steps include:
+1. Clients registering themselves with hubs.
+2. Hubs delivering Pre-Shared Random Data (PSRD) to clients.
+
+The IETF draft gives some examples of how the out-of-band steps could be implemented in real life,
+including physical delivery using an HSM or encrypted USB, military key fillers, SIM cards, NFC,
+etc.
+
+Our code we implement the out-of-band DSKE interface as an HTTP REST interface.
+This allows us to simulate the out-of-band steps in automated test scripts;
+in real life an HTTP REST interface would not be used; we only 
+
+Our code also implements the in-band DSKE interface as an HTTP (not HTTPS) REST interface
+which is authenticated but not encrypted.
+Encryption is not needed because the DSKE protocol is secure, even if the in-band messages
+are allowed to be public.
+However, authentication is needed and implemented using a mechanism described below
 
 ### Client onboarding
 
@@ -336,6 +356,12 @@ registration.
 Our code doesn't to this.
 Instead, clients are identified by their name which is unique within the scope of the entire
 network.
+
+## Local distributor
+
+The IETF draft contains the concept of a local distributor, which sits between the hub and the
+client.
+Our code does not implement local distributors.
 
 ## Future enhancements
 
