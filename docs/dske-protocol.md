@@ -185,8 +185,20 @@ Before we describe the DSKE protocol, we first describe
 [Shamir's Secret Sharing (SSS)](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)
 algorithm, which is an essential component in the DSKE protocol.
 
+Shamir's Secret Sharing allows a secret to be split up into some number (_n_) parts.
+Each part is called a share of the secret.
+The original secret can be reconstructed if you have at least _k_ out of the original _n_ shares
+(were _k_ is some number smaller than _n_).
+If you have fewer than _k_ shares, no information about the secret can be extracted.
 
-TODO
+In the DSKE protocol, the key that is established for the encryptors is the secret.
+The key is split up into_n_ key shares, where _n_ is the number of hubs.
+Each key share is relayed from the initiator client to the responder client through a different hub.
+
+As a result of this arrangement:
+1. An attacker needs to compromise at least _k_ hub nodes to recover the key.
+2. The protocol is resilient against failures or denial-of-service attacks as long as at least
+   _k_ hubs survive.
 
 ## DSKE protocol
 
