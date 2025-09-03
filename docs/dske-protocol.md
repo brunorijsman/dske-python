@@ -45,7 +45,6 @@ The clients are responsible for:
 4. Splitting keys into key shares and relaying those keys shares from client to client through a set
    of hubs.
 
-
 In our example scenario, clients Carol and Conny are responsible for producing an encryption key
 and for delivering this key to encryptors Patrick and Porter respectively.
 The other clients are faded out because they play no role in our example.
@@ -76,7 +75,59 @@ Conny.
 
 ### Encryptors
 
-The encryptors
+The encryptors are the devices that consume the keys that are produced by the clients and use them
+to encrypt user traffic that is sent through a encrypted connection.
+[IETF ETSI QKD 014](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf)
+uses the term Secure Application Entity (SAE) instead of encryptor.
+
+Examples of encryptors include:
+* Optical encryptors, such as
+  [Ciena WaveLogic](https://www.ciena.com/solutions/data-security-and-encryption).
+* [MACsec](https://en.wikipedia.org/wiki/IEEE_802.1AE) encryptors, such as
+  [Juniper QFX switches](https://www.juniper.net/us/en/products/switches/qfx-series.html).
+* [IPsec](https://en.wikipedia.org/wiki/IPsec) encryptors, such as
+  [FortiNet FortiGate Next-Generation Firewalls](https://www.fortinet.com/products/next-generation-firewall).
+* [TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security) /
+  [SSL](https://en.wikipedia.org/wiki/Secure_Sockets_Layer) encryptors, such as
+  [F5 NGINX](https://www.f5.com/company/blog/nginx/nginx-ssl).
+
+There are two encryptors in our example: Patrick and Porter.
+
+The encryptors are responsible for:
+
+1. 
+
+2. 
+
+3. 
+
+When a key is established for a particular encrypted connection (e.g. an IPsec tunnel),
+one side (encryptor and client) acts in the initiator role (also known as master) and the
+other side acts in the role of responder (also known as slave):
+
+1. The initiator side initiates the key establishment.
+   The initiator encryptor invokes a "Get Key" API call on the initiator client to request a new
+   key. It gets back a (secret) key and a (non-secret) key identifier (key ID) which uniquely
+   identifies the key.
+
+2. The initiator encryptor somehow relays the key ID to the responder encryptor.
+   How this happens exactly depends on which encryption protocol is used.
+   For example, IPsec uses a mechanism that is described in
+   [RFC8784](https://datatracker.ietf.org/doc/html/rfc8784)
+   (see
+   [this blog](https://hikingandcoding.com/2024/07/16/how-to-configure-an-ipsec-tunnel-using-qkd-keys/)
+   for details.)
+
+3. When the responder encryptor receives the key ID, it invokes a "Get Key with Key ID" API call
+   on the responder client to request the secret key value for that key.
+
+4. At this point, both the initiator encryptor and the responder encryptor have the same symmetric
+   secret key value and start encrypting the user data using some negotiated symmetric encryption
+   protocol, such as 
+   [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard).
+
+
+
 
 ### Connectivity
 
