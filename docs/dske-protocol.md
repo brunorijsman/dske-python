@@ -221,9 +221,9 @@ The IETF draft gives some examples of how the out-of-band steps could be impleme
 including physical delivery using an HSM or encrypted USB, military key fillers, SIM cards, NFC,
 etc.
 
-Our code we implement the out-of-band DSKE interface as an HTTP REST interface.
+Our code we implement the out-of-band DSKE interface as an HTTP REST interface, which would not
+be used in real life.
 This allows us to simulate the out-of-band steps in automated test scripts;
-in real life an HTTP REST interface would not be used; we only 
 
 Our code also implements the in-band DSKE interface as an HTTP (not HTTPS) REST interface
 which is authenticated but not encrypted.
