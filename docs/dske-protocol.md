@@ -172,7 +172,12 @@ rather to implement the DSKE protocol.)
 
 ### Management interface
 
-TODO
+This repository contains a management script (`manager.py`) that is used to control the network
+nodes.
+It can start nodes, stop nodes, report the status of nodes, and request keys.
+See [the user guide](/docs/user-guide.md) for full documentation.
+The clients and the hubs expose a management interface, which is a REST API, to interact with the
+management script.
 
 ## Shamir's Secret Sharing (SSS)
 
