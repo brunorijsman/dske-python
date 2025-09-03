@@ -196,7 +196,7 @@ The key is split up into_n_ key shares, where _n_ is the number of hubs.
 Each key share is relayed from the initiator client to the responder client through a different hub.
 
 As a result of this arrangement:
-1. An attacker needs to compromise at least _k_ hub nodes to recover the key.
+1. An attacker needs to compromise at least _k_ hubs to recover the key.
 2. The protocol is resilient against failures or denial-of-service attacks as long as at least
    _k_ hubs survive.
 
