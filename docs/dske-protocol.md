@@ -8,7 +8,10 @@ this repository.
 The DSKE protocol implementation in this repository is based on on IETF draft
 [draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/).
 Our code generally follows the high-level description in the draft, although we deviate from the
-draft in certain aspects (see TODO for a list of deviations).
+draft in certain aspects
+(see
+[this list of deviations](#differences-between-the-ietf-draft-and-this-implementation)
+for details).
 
 ## Network topology
 
@@ -215,9 +218,11 @@ Like ML-KEM and BB84, DSKE can resist attacks by quantum computers.
 
 DSKE allows pairs of  to agree 
 
-## Differences between the IETF draft and the implementation in the repository
+## Differences between the IETF draft and this implementation
 
-TODO
+In this section we describe the differences between the DSKE protocol as specified in
+[draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/)
+and the DSKE protocol as implemented in this repository.
 
 ### REST message encoding
 
@@ -233,8 +238,8 @@ interfaces and use
 to encode the messages.
 
 Since the draft doesn't specify any particular encoding, using REST and HTTP is not a deviation
-from the draft per-se, but in a private email exchange one of the authors of the draft told us he
-does not consider HTTP a good choice for the the DSKE protocol encoding and would prefer a
+from the draft per-se, but in a private email exchange one of the authors of the draft told us
+that he does not consider HTTP a good choice for the the DSKE protocol encoding and would prefer a
 lighter-weight binary encoding.
 
 ## Future enhancements
