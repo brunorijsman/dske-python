@@ -7,17 +7,8 @@ this repository.
 
 The DSKE protocol implementation in this repository is based on on IETF draft
 [draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/).
-This draft describes the DSKE protocol at a high level of abstraction but does **not** contain a
-detailed description of the message encoding.
 Our code generally follows the high-level description in the draft, although we deviate from the
 draft in certain aspects (see TODO for a list of deviations).
-For educational reasons, we chose implement the protocol as a set of
-[REST](https://en.wikipedia.org/wiki/REST)
-interfaces and use
-[HTTP](https://en.wikipedia.org/wiki/HTTP)
-to encode the messages.
-One of the authors of the draft told us he does not consider HTTP a good choice for the the DSKE
-protocol encoding and would prefer a lighter-weight binary encoding.
 
 ## Network topology
 
@@ -32,17 +23,123 @@ The topology contains the following types of nodes:
 
 ### Clients
 
-The DSKE client nodes, or simply clients for short, are responsible for producing encryption keys
-and for delivering the produced keys to encryptors.
+The DSKE client nodes, or just clients for short, are represented by blue squares in the topology
+diagram above.
+Standard
+[IETF ETSI QKD 014](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf)
+uses the term Key Management Entity (KME) instead of client.
 
-In the topology diagram above the clients are represented by blue squares.
-There are five clients: Carol, Celia, Cindy, Conny, and Curtis.
+There are five clients in our example: Carol, Celia, Cindy, Conny, and Curtis.
+
+The clients are responsible for:
+
+1. Registering themselves with hubs.
+
+2. Requesting Pre-Shared Random Data (PSRD) from hubs when needed.
+
+3. Establishing keys and delivering those keys to encryptors upon request.
+
+4. Splitting keys into key shares and relaying those keys shares from client to client through a set
+   of hubs.
+
 
 In our example scenario, clients Carol and Conny are responsible for producing an encryption key
 and for delivering this key to encryptors Patrick and Porter respectively.
 The other clients are faded out because they play no role in our example.
 
 The key is produced using the DSKE protocol, which runs between clients and hubs.
+This DSKE protocol is described in detail in section TODO below.
+
+### Hubs
+
+The the DSKE hub nodes, or just hubs for short, are represented by blue circles in the topology
+diagram above.
+IETF draft
+[draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/)
+uses the term security hub.
+
+There are five hubs in our example: Hank, Helen, Hilary, Holly, and Hugo.
+
+The hubs are responsible for:
+
+1. Allowing clients to register themselves with the hubs.
+
+2. Distributing Pre-Shared Random Data (PSRD) to clients upon request.
+
+3. Relaying key shares from client to client (we explain what key shares are later).
+
+In our example, all five hubs are involved in relaying the key shares between clients Carol and
+Conny.
+
+### Encryptors
+
+The encryptors
+
+### Connectivity
+
+The lines between the clients and the hubs indicate that there is IP connectivity between the
+clients and the hubs.
+There may be multiple IP hops between the clients and the hubs, which is not shown in the diagram.
+The line is not intended to represent a direct point-to-point link
+
+## Interfaces
+
+The topology contains the following interfaces:
+* DSKE interface.
+* Key delivery interface.
+* Management interface.
+
+### DSKE interface
+
+The DSKE interface is an interface between the clients and the hubs.
+
+The clients and hubs run the DSKE protocol over this interface that produces the key.
+
+### Key delivery interface
+
+The key delivery interface is an interface between the clients and the encryptors.
+
+
+
+### Management interface
+
+TODO
+
+## Shamir's Secret Sharing (SSS)
+
+Before we describe the DSKE protocol, we first describe
+[Shamir's Secret Sharing (SSS)](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)
+algorithm, which is an essential component in the DSKE protocol.
+
+
+TODO
+
+## DSKE protocol
+
+### Out-of-band versus 
+
+
+### Client onboarding
+
+The following ladder diagram shows the onboarding of a new client in the network:
+
+![Client onboarding](/docs/figures/ladder-diagram-startup.png)
+
+The 
+
+The steps for onboarding a new client into the network are as follows:
+
+1. The client registers 
+
+2.
+
+
+
+### Key establishment
+
+The following ladder diagram shows the establishment of a new key:
+
+![Key establishment](/docs/figures/ladder-diagram-get-key.png)
 
 The main responsibilities of the clients in the DSKE protocol are:
 
@@ -77,69 +174,6 @@ The main responsibilities of the clients in the DSKE protocol are:
         algorithm allows the client-to-client key to be reconstructed, even if some of the shares
         are missing.
 
-This DSKE protocol is described in much more detail further below.
-
-Carol and Conny deliver the produced key to encryptors Patrick and Porter respectively over
-the key delivery interface.
-The key delivery interface is also described in detail further below.
-
-TODO: Continue from here.
-
-### Hubs
-
-The hubs are responsible for:
-
-1. Allowing clients to register themselves with the hubs.
-
-2. Distributing Pre-Shared Random Data (PSRD) to clients.
-
-3. Producing client-to-hub key shares by allocating blocks of bits from the PSRD.
-
-4. Relaying
-
-### Encryptors
-
-TODO
-
-### Connectivity
-
-The lines between the clients and the hubs indicate that there is IP connectivity between the
-clients and the hubs.
-There may be multiple IP hops between the clients and the hubs, which is not shown in the diagram.
-The line is not intended to represent a direct point-to-point link
-
-## Interfaces
-
-The topology contains the following interfaces:
-* DSKE interface.
-* Key delivery interface.
-* Management interface.
-
-### DSKE interface
-
-The DSKE interface is an interface between the clients and the hubs.
-
-The clients and hubs run the DSKE protocol over this interface that produces the key.
-
-### Key delivery interface
-
-The key delivery interface is an interface between the clients and the encryptors.
-
-
-
-### Management interface
-
-TODO
-
-## DSKE protocol
-
-### Client onboarding
-
-![Client onboarding](/docs/figures/ladder-diagram-startup.png)
-
-### Key establishment
-
-![Key establishment](/docs/figures/ladder-diagram-get-key.png)
 
 
 ### Placeholders
@@ -180,3 +214,43 @@ DSKE provides the same functionality, namely key agreement,
 Like ML-KEM and BB84, DSKE can resist attacks by quantum computers.
 
 DSKE allows pairs of  to agree 
+
+## Differences between the IETF draft and the implementation in the repository
+
+TODO
+
+### REST message encoding
+
+IETF draft
+[draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/).
+describes the DSKE protocol only at a high level of abstraction and does not contain a
+detailed description of the message encoding.
+We had to choose some encoding of the messages ourselves.
+For educational reasons, we chose implement the protocol as a set of
+[REST](https://en.wikipedia.org/wiki/REST)
+interfaces and use
+[HTTP](https://en.wikipedia.org/wiki/HTTP)
+to encode the messages.
+
+Since the draft doesn't specify any particular encoding, using REST and HTTP is not a deviation
+from the draft per-se, but in a private email exchange one of the authors of the draft told us he
+does not consider HTTP a good choice for the the DSKE protocol encoding and would prefer a
+lighter-weight binary encoding.
+
+## Future enhancements
+
+In this section we list some potential future enhancements to the DSKE protocol.
+
+### Clients register with a subset of the hubs
+
+In our current implementation and also in the IETF draft, it is required that the client registers
+itself with _all_ of the hubs in the network when the client is onboarded.
+As the network grows and the number of hubs becomes very large and dynamic, this may become a
+problem.
+In the future, it would be useful to enhance the protocol so that a client can register itself with
+only a subset of the hubs.
+This, however, introduces another challenge:
+when two clients want to establish a key, they have to agree on a set of hubs that they have in
+common that can act as relays.
+Or, alternatively, a mechanism could be introduced to do multi-hop relaying of key shares across
+a series of multiple hubs.
