@@ -204,6 +204,12 @@ As a result of this arrangement:
 
 ### Out-of-band versus 
 
+$$$
+
+In this section we describe the differences between the DSKE protocol as specified in
+[draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/)
+
+
 
 ### Client onboarding
 
@@ -309,10 +315,8 @@ and the DSKE protocol as implemented in this repository.
 
 ### REST message encoding
 
-IETF draft
-[draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/).
-describes the DSKE protocol only at a high level of abstraction and does not contain a
-detailed description of the message encoding.
+The IETF draft describes the DSKE protocol only at a high level of abstraction and does specify the
+message encoding.
 We had to choose some encoding of the messages ourselves.
 For educational reasons, we chose implement the protocol as a set of
 [REST](https://en.wikipedia.org/wiki/REST)
@@ -324,6 +328,14 @@ Since the draft doesn't specify any particular encoding, using REST and HTTP is 
 from the draft per-se, but in a private email exchange one of the authors of the draft told us
 that he does not consider HTTP a good choice for the the DSKE protocol encoding and would prefer a
 lighter-weight binary encoding.
+
+### Client ID
+
+The IETF draft calls for the hubs to assign a locally significant ID to the client upon
+registration.
+Our code doesn't to this.
+Instead, clients are identified by their name which is unique within the scope of the entire
+network.
 
 ## Future enhancements
 
