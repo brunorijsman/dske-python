@@ -23,7 +23,7 @@ protocol encoding and would prefer a lighter-weight binary encoding.
 
 The following figure shows a typical example network topology:
 
-TODO: Add figure
+![Example network topology](/docs/figures/topology.png)
 
 The topology contains the following types of nodes:
 * Clients.
@@ -133,7 +133,16 @@ TODO
 
 ## DSKE protocol
 
-For now, we just summarize the main steps:
+### Client onboarding
+
+![Client onboarding](/docs/figures/ladder-diagram-startup.png)
+
+### Key establishment
+
+![Key establishment](/docs/figures/ladder-diagram-get-key.png)
+
+
+### Placeholders
 
 1. Prior to the production of any keys, the hubs distribute blocks of Pre-Shared Random Data (PSRD)
    to the clients using a secure out-of-band mechanism.
