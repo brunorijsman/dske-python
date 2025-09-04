@@ -233,19 +233,21 @@ However, authentication is needed and implemented using a mechanism described be
 
 ### Client onboarding
 
-The following ladder diagram shows the onboarding of a new client in the network:
+The following ladder diagram shows the onboarding of a new client in the network.
+Note that all the steps in the ladder diagram are red, which means that they are all out-of-band
+steps.
 
 ![Client onboarding](/docs/figures/ladder-diagram-startup.png)
 
-The 
-
 The steps for onboarding a new client into the network are as follows:
 
-1. The client registers 
+1. The client registers itself with each hub.
 
-2.
+2. The client requests its initial block of Pre-Shared Random Data (PSRD) from each hub.
 
-
+The client registration is an HTTP PUT message.
+As a result, the client registration is idem-potent and it is not an error for a client to register
+itself multilpe 
 
 ### Key establishment
 

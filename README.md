@@ -14,9 +14,9 @@ or
 
 Documentation:
 
-* [User guide](/docs/user-guide.md)
-
 * [Distributed Distributed Symmetric Key Establishment (DSKE) protocol](docs/dske-protocol.md)
+
+* [User guide](/docs/user-guide.md)
 
 * [Developer guide](/docs/developer-guide.md)
 
