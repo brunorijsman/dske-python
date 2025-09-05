@@ -4,7 +4,9 @@ HTTP client for making GET and POST requests and decoding the response using Pyd
 
 import pydantic
 import httpx
+from common import authentication
 from common import exceptions
+from common.pool import Pool
 
 
 # TODO: Introduce common APIError to return and decode non-OK response
@@ -14,17 +16,34 @@ APIObject = pydantic.BaseModel
 APIClass = type[pydantic.BaseModel]
 
 
+def determine_headers(authentication_key_pool: Pool | None) -> dict:
+    """
+    If `authentication_key_pool` is not None, use it to allocate a key and compute an authentication
+    signature. Add the signature to the `headers` dictionary.
+    """
+    headers = {}
+    if authentication_key_pool is not None:
+        signature = authentication.compute_signature(authentication_key_pool)
+        headers["DSKE-Authentication"] = signature
+    return headers
+
+
 async def get(
     url: str,
     params: str,
     api_response_class: APIClass | None = None,
+    authentication_key_pool: Pool | None = None,
 ) -> APIObject | None:
     """
-    Send a HTTP GET request and use Pydantic to parse the response.
+    Send a HTTP GET request return the parsed response (if any).
+
+    If `authentication_key_pool` is None, no authentication is done. If it is not None, use it to
+    allocate a key the request authentication signature.
     """
+    headers = determine_headers(authentication_key_pool)
     async with httpx.AsyncClient() as httpx_client:
         try:
-            response = await httpx_client.get(url, params=params)
+            response = await httpx_client.get(url, params=params, headers=headers)
         except httpx.HTTPError as exc:
             raise exceptions.HTTPError(
                 method="GET",
@@ -62,22 +81,28 @@ async def post(
     url: str,
     api_request_obj: APIObject,
     api_response_class: APIClass | None = None,
+    authentication_key_pool: Pool | None = None,
 ) -> APIObject:
     """
-    Send a HTTP POST request.
+    Send a HTTP POST request and return the parsed response (if any).
     """
-    return await put_or_post("POST", url, api_request_obj, api_response_class)
+    return await put_or_post(
+        "POST", url, api_request_obj, api_response_class, authentication_key_pool
+    )
 
 
 async def put(
     url: str,
     api_request_obj: APIObject,
     api_response_class: APIClass | None = None,
+    authentication_key_pool: Pool | None = None,
 ) -> APIObject:
     """
-    Send a HTTP PUT request.
+    Send a HTTP PUT request and return the parsed response (if any).
     """
-    return await put_or_post("PUT", url, api_request_obj, api_response_class)
+    return await put_or_post(
+        "PUT", url, api_request_obj, api_response_class, authentication_key_pool
+    )
 
 
 async def put_or_post(
@@ -85,15 +110,19 @@ async def put_or_post(
     url: str,
     api_request_obj: APIObject,
     api_response_class: APIClass | None = None,
+    authentication_key_pool: Pool | None = None,
 ) -> APIObject:
     """
     Send a HTTP PUT or POST request. Use Pydantic to encode the request data and to decode the
     response data.
     """
+    headers = determine_headers(authentication_key_pool)
     async with httpx.AsyncClient() as httpx_client:
         json = api_request_obj.model_dump()
         try:
-            response = await httpx_client.request(method, url, json=json)
+            response = await httpx_client.request(
+                method, url, json=json, headers=headers
+            )
         except httpx.HTTPError as exc:
             raise exceptions.HTTPError(
                 method=method,

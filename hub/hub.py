@@ -75,10 +75,6 @@ class Hub:
         pool = peer_client.pool
         share = Share.from_api(api_share, pool)
         # TODO: Check if the key UUID is already present, and if so, do something sensible
-        # TODO: Decrypt key value
-        # TODO: Check signature
-        # Verify the signature and decrypt the share.
-        share.verify_signature()
         share.decrypt()
         self._shares[share.key_uuid] = share
 
@@ -101,13 +97,12 @@ class Hub:
         share = deepcopy(share)
         # Allocate encryption and authentication keys for the share
         peer_client = self._peer_clients[client_name]
-        share.allocate_encryption_and_authentication_keys_from_pool(peer_client.pool)
+        share.allocate_encryption_key_from_pool(peer_client.pool)
         # TODO: Error handling. If there was an issue allocating any one of the encryption or
         #       authentication keys, deallocate all of the ones that were allocated, and return
         #       and error to the caller.
-        # Encrypt and sign the share
+        # Encrypt the share
         share.encrypt()
-        share.sign()
         # TODO: Remove it from the store once all responder clients have retrieved it
         #       For now, we don't implement multicast, so we can remove it now
         #       Later, when we add multicast, we have to track which responders have and have not

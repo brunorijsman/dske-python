@@ -127,7 +127,12 @@ class PeerHub:
         """
         url = f"{self._base_url}/dske/api/v1/key-share"
         api_share = share.to_api(self._client.name)
-        await http.post(url, api_request_obj=api_share)
+        await http.post(
+            url=url,
+            api_request_obj=api_share,
+            api_response_class=None,
+            authentication_key_pool=self._pool,
+        )
 
     async def get_share(self, key_uuid: UUID) -> Share:
         """
@@ -135,7 +140,12 @@ class PeerHub:
         """
         url = f"{self._base_url}/dske/api/v1/key-share"
         params = {"client_name": self._client.name, "key_id": str(key_uuid)}
-        api_share = await http.get(url, params, APIShare)
+        api_share = await http.get(
+            url=url,
+            params=params,
+            api_response_class=APIShare,
+            authentication_key_pool=self._pool,
+        )
         share = Share.from_api(api_share, self._pool)
         return share
 

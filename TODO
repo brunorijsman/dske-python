@@ -136,3 +136,6 @@ TODO: Reorganize documentation into separate files
 TODO: Add design chapter to documentation
 
 TODO: OpenAPI (Swagger) documentation should show proper type for request and response data
+
+TODO: Error if get-key-with-key-ids if the API is invoked on client which is not actually one of the
+      slaves for that key.

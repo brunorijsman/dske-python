@@ -22,7 +22,6 @@ class APIShare(pydantic.BaseModel):
     share_index: int
     encrypted_value: str  # Base64 encoded
     encryption_key_allocation: APIAllocation
-    signature_key_allocation: APIAllocation
 
 
 class Share:
@@ -31,8 +30,6 @@ class Share:
     key can be reconstructed from a subset (`min_nr_shares`) of these key shares.
     """
 
-    _AUTHENTICATION_KEY_SIZE_IN_BYTES = 2
-
     def __init__(
         self,
         key_uuid: UUID,
@@ -40,14 +37,12 @@ class Share:
         value: bytes | None = None,
         encrypted_value: bytes | None = None,
         encryption_key_allocation: Allocation | None = None,
-        signature_key_allocation: Allocation | None = None,
     ):
         self._key_uuid = key_uuid
         self._share_index = share_index
         self._value = value
         self._encrypted_value = encrypted_value
         self._encryption_key_allocation = encryption_key_allocation
-        self._signature_key_allocation = signature_key_allocation
 
     @property
     def key_uuid(self) -> UUID:
@@ -77,13 +72,6 @@ class Share:
         """
         return self._encryption_key_allocation
 
-    @property
-    def signature_key_allocation(self) -> bytes:
-        """
-        Get the signature key PSRD allocation.
-        """
-        return self._signature_key_allocation
-
     def __repr__(self) -> str:
         """
         Get a string representation.
@@ -100,21 +88,16 @@ class Share:
             "value": bytes_to_str(self._value, truncate=True),
             "encrypted_value": bytes_to_str(self._encrypted_value, truncate=True),
             "encryption_key_allocation": to_mgmt(self._encryption_key_allocation),
-            "signature_key_allocation": to_mgmt(self._signature_key_allocation),
         }
 
-    def allocate_encryption_and_authentication_keys_from_pool(self, pool: Pool):
+    def allocate_encryption_key_from_pool(self, pool: Pool):
         """
-        Allocate encryption and authentication keys from the pool.
+        Allocate encryption key from the pool.
         """
-        # TODO: Error handling: if either fails, return the other the pool and raise an exception
         # We use one-time pad encryption for the share, so the encryption key must have the same
         # length as the data in the share.
         encryption_key_size_in_bytes = len(self._value)
         self._encryption_key_allocation = pool.allocate(encryption_key_size_in_bytes)
-        self._signature_key_allocation = pool.allocate(
-            self._AUTHENTICATION_KEY_SIZE_IN_BYTES
-        )
 
     def encrypt(self):
         """
@@ -152,26 +135,6 @@ class Share:
         self._encrypted_value = None
         self._encryption_key_allocation = None
 
-    def sign(self):
-        """
-        Create a signature over selected fields in the key share, using
-        signature_key_allocation signing secret.
-        """
-        assert self._value is not None
-        assert self._signature_key_allocation is not None
-        _signature_key = self._signature_key_allocation.consume()
-        # TODO: Finish this
-
-    def verify_signature(self):
-        """
-        Validate the signature. TODO: Better description
-        TODO: handle the case that the signature validation fails.
-        TODO: For now, always return success and clear the key
-        """
-        assert self._encrypted_value is not None
-        assert self._signature_key_allocation is not None
-        self._signature_key_allocation = None
-
     @classmethod
     def from_api(cls, api_share: APIShare, pool: Pool) -> "Share":
         """
@@ -185,12 +148,8 @@ class Share:
             encryption_key_allocation=Allocation.from_api(
                 api_share.encryption_key_allocation, pool
             ),
-            signature_key_allocation=Allocation.from_api(
-                api_share.signature_key_allocation, pool
-            ),
         )
         pool.mark_allocation_allocated(share.encryption_key_allocation)
-        pool.mark_allocation_allocated(share.signature_key_allocation)
         return share
 
     def to_api(self, client_name) -> APIShare:
@@ -203,6 +162,5 @@ class Share:
             share_index=self._share_index,
             encrypted_value=bytes_to_str(self._encrypted_value),
             encryption_key_allocation=self._encryption_key_allocation.to_api(),
-            signature_key_allocation=self._signature_key_allocation.to_api(),
         )
         return api_share

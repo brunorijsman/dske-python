@@ -129,14 +129,13 @@ class Client:
         shares = key.split_into_shares(nr_shares, _MIN_NR_SHARES)
         # Allocate encryption and authentication keys for each share
         for peer_hub, share in zip(self._peer_hubs, shares):
-            share.allocate_encryption_and_authentication_keys_from_pool(peer_hub.pool)
+            share.allocate_encryption_key_from_pool(peer_hub.pool)
         # TODO: Error handling. If there was an issue allocating any one of the encryption or
         #       authentication keys, deallocate all of the ones that were allocated, and return
         #       and error to the caller.
         # Encrypt and sign each share
         for share in shares:
             share.encrypt()
-            share.sign()
         # POST the key shares to the peer hubs
         for peer_hub, share in zip(self._peer_hubs, shares):
             await peer_hub.post_share(share)
@@ -157,7 +156,6 @@ class Client:
             # TODO: Handle exception. If an exception occurs, we just skip the peer hub, and move
             #       on to the next one. We just need K out of N shares to reconstruct the key.
             share = await peer_hub.get_share(key_uuid)
-            share.verify_signature()
             share.decrypt()
             shares.append(share)
         # TODO: Check if we have enough shares

@@ -352,13 +352,14 @@ class Manager:
             f"Invoke ETSI QKD Get Key with Key IDs API for client {slave_node.name} "
             f"on port {slave_node.port}"
         )
-        url = f"{master_node.base_url}/etsi/api/v1/keys/{master_node.name}/dec_keys?key_ID={key_id}"
+        url = f"{master_node.base_url}/etsi/api/v1/keys/{slave_node.name}/dec_keys?key_ID={key_id}"
         try:
             response = requests.get(url, timeout=1.0)
             # TODO: Check response (error handling)
         except requests.exceptions.RequestException as exc:
             self.error(f"Failed to invoke ETSI QKD Get Key API: {exc}")
-        print(json.dumps(response.json(), indent=2))
+        print(f"{response=}")
+        print(f"json={json.dumps(response.json(), indent=2)}")
         return response.json()
 
     def etsi_qkd_get_key_pair(self, master_node: Node, slave_node: Node):
