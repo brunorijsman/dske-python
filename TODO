@@ -1,8 +1,3 @@
-TODO: Make registration more REST-like
-      PUT registration resource to register (not POST, because we want idempotency)
-      DELETE registration resource to unregister
-      GET registration resource to query registration status
-
 TODO: Implement authentication on DSKE interface
       Using authentication keys harvested from pre-shared random data.
 
@@ -23,7 +18,8 @@ TODO: In key-share message: encrypted key-share
 TODO: In key-share message: none + HMAC over encrypted key-share + nonce + shared secret (+ more?)
 
 TODO: Have client unregister itself from all hubs when it shuts down.
-      Update: shutting down should not cause the client to unregister itself; make unregistration
+      The API call should use the DELETE method.
+      Shutting down should not cause the client to unregister itself; make unregistration
       an explicit option.
 
 TODO: Retry client registrations when they fail.
@@ -121,3 +117,5 @@ TODO: Put .out files in a sub-directory
 TODO: Reorganize documentation into separate files
 
 TODO: Add design chapter to documentation
+
+TODO: OpenAPI (Swagger) documentation should show proper type for request and response data

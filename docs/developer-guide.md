@@ -79,7 +79,7 @@ The hubs provides the following API endpoints:
 
 | Method | URL | Purpose | Authenticated |
 |-|-|-|-|
-| PUT | `/hub/HUB_NAME/dske/oob/v1/client-registration` | Register a client with a hub. | No |
+| PUT | `/hub/HUB_NAME/dske/oob/v1/registration` | Register a client with a hub. | No |
 | GET | `/hub/HUB_NAME/dske/oob/v1/psrd` | Allows a client to get a block of Pre-Shared Random Data (PSRD) from the hub. | No |
 | POST | `/hub/HUB_NAME/dske/api/v1/key-share` | Allows an initiator client to add a key share to the hub, so that it can later be retrieved by the responder client. | Yes |
 | GET | `/hub/HUB_NAME/dske/api/v1/key-share` | Allows a responder client to add a key share to the hub, that was previously added by the initiator client. | Yes |

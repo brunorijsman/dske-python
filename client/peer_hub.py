@@ -8,7 +8,7 @@ from common import exceptions
 from common import http
 from common.block import APIBlock, Block
 from common.pool import Pool
-from common.registration import APIRegistration
+from common.registration import APIRegistrationRequest, APIRegistrationResponse
 from common.share import APIShare, Share
 
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
@@ -84,10 +84,10 @@ class PeerHub:
         """
         Attempt to register this client with the peer hub. Returns true if successful.
         """
-        url = f"{self._base_url}/dske/oob/v1/register-client"
-        params = {"client_name": self._client.name}
+        url = f"{self._base_url}/dske/oob/v1/registration"
+        data = APIRegistrationRequest(client_name=self._client.name)
         try:
-            registration = await http.get(url, params, APIRegistration)
+            registration = await http.put(url, data, APIRegistrationResponse)
         except exceptions.HTTPError:
             print(
                 f"Failed to register client {self._client.name} with peer hub at {self._base_url}"
@@ -127,7 +127,7 @@ class PeerHub:
         """
         url = f"{self._base_url}/dske/api/v1/key-share"
         api_share = share.to_api(self._client.name)
-        await http.post(url, api_obj=api_share)
+        await http.post(url, api_request_obj=api_share)
 
     async def get_share(self, key_uuid: UUID) -> Share:
         """

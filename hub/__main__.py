@@ -12,6 +12,7 @@ from common import configuration
 from common import utils
 from common.block import APIBlock
 from common.share import APIShare
+from common.registration import APIRegistrationRequest
 from .hub import Hub
 
 
@@ -37,13 +38,12 @@ _HUB = Hub(_ARGS.name)
 _APP = fastapi.FastAPI()
 
 
-# This should be a POST instead of a GET
-@_APP.get(f"/hub/{_HUB.name}/dske/oob/v1/register-client")
-async def get_oob_register_client(client_name: str):
+@_APP.put(f"/hub/{_HUB.name}/dske/oob/v1/registration")
+async def put_oob_client_registration(registration_request: APIRegistrationRequest):
     """
     DSKE Out of band: Register a client.
     """
-    _peer_client = _HUB.register_client(client_name)
+    _peer_client = _HUB.register_client(client_name=registration_request.client_name)
     return {"hub_name": _HUB.name}
 
 
