@@ -358,13 +358,13 @@ from the draft per-se, but in a private email exchange one of the authors of the
 that he does not consider HTTP a good choice for the the DSKE protocol encoding and would prefer a
 lighter-weight binary encoding.
 
-## Local distributor
+### Local distributor
 
 The IETF draft contains the concept of a local distributor, which sits between the hub and the
 client.
 Our code does not implement local distributors.
 
-## Message wrapping
+### Message wrapping
 
 The draft calls for key establishment messages to be "_wrapped with Authenticated Encryption with
 Associated Data (AEAD) mode ... whose primary purpose is anti-DoS, anonymity and confidentiality of
@@ -372,7 +372,7 @@ control data_".
 We did not implement this since (according to the draft) this "_is not essential to the underlying
 security of DSKE_."
 
-## Initial keys
+### Initial keys
 
 The draft calls the hub delivering a set of "_initial keys_" the the client when the client
 registers itself with the hub.
