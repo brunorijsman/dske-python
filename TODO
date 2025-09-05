@@ -1,3 +1,8 @@
+TODO: Make registration more REST-like
+      PUT registration resource to register (not POST, because we want idempotency)
+      DELETE registration resource to unregister
+      GET registration resource to query registration status
+
 TODO: Implement authentication on DSKE interface
       Using either pre-shared authentication keys, or authentication keys harvested from pre-shared
       random data. In the latter case, get rid of the explicit pre-shared key in the registration
@@ -52,11 +57,6 @@ TODO: Remark about ETSI QKD API
 
 TODO: Remark about ETSI QKD API
       For now, we do not yet support the number or size parameters for the ETSI QKD Get Key API.
-
-TODO: Make registration more REST-like
-      PUT registration resource to register (not POST, because we want idempotency)
-      DELETE registration resource to unregister
-      GET registration resource to query registration status
 
 TODO: More unit test cases to get code coverage up
 
