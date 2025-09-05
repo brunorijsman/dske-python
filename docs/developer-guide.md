@@ -77,14 +77,16 @@ Here we provide a summary of the API endpoints and their purpose.
 
 The hubs provides the following API endpoints:
 
-| Method | URL | Purpose |
-|-|-|-|
-| PUT | `/hub/HUB_NAME/dske/oob/v1/client-registration` | Register a client with a hub. |
-| GET | `/hub/HUB_NAME/dske/oob/v1/psrd` | Allows a client to get a block of Pre-Shared Random Data (PSRD) from the hub. |
-| POST | `/hub/HUB_NAME/dske/api/v1/key-share` | Allows an initiator client to add a key share to the hub, so that it can later be retrieved by the responder client. |
-| GET | `/hub/HUB_NAME/dske/api/v1/key-share` | Allows a responder client to add a key share to the hub, that was previously added by the initiator client. |
-| GET | `/hub/HUB_NAME/mgmt/v1/status` | Get the status of the hub. |
-| POST | `/hub/HUB_NAME/mgmt/v1/stop` | Stop the hub. |
+| Method | URL | Purpose | Authenticated |
+|-|-|-|-|
+| PUT | `/hub/HUB_NAME/dske/oob/v1/client-registration` | Register a client with a hub. | No |
+| GET | `/hub/HUB_NAME/dske/oob/v1/psrd` | Allows a client to get a block of Pre-Shared Random Data (PSRD) from the hub. | No |
+| POST | `/hub/HUB_NAME/dske/api/v1/key-share` | Allows an initiator client to add a key share to the hub, so that it can later be retrieved by the responder client. | Yes |
+| GET | `/hub/HUB_NAME/dske/api/v1/key-share` | Allows a responder client to add a key share to the hub, that was previously added by the initiator client. | Yes |
+| GET | `/hub/HUB_NAME/mgmt/v1/status` | Get the status of the hub. | No |
+| POST | `/hub/HUB_NAME/mgmt/v1/stop` | Stop the hub. | No |
+
+See the [authentication section](#authentication) below for more details on authentication.
 
 HUB_NAME is the name of the hub.
 If each hub runs in a separate process (and hence has a separate port number) as is currently the
@@ -97,12 +99,28 @@ The API endpoints belong to one of the following groups:
 | Endpoint path | Purpose |
 |-|-|
 | `.../dske/...` | DSKE protocol. |
- | `.../dske/oob/...` | The out-of-band (OOB) portion of the DSKE protocol. These endpoints only exist to simulate actions that would be some secure out-of-band physical distribution mechanism in real life for the purpose of automated testing. For that reason they are not authenticated. |
-| `.../dske/api/...` | The in-band portion of the DSKE protocol. These endpoints are authenticated as described in the [authentication section](#authentication) below. |
+ | `.../dske/oob/...` | The out-of-band (OOB) portion of the DSKE protocol.  |
+| `.../dske/api/...` | The in-band portion of the DSKE protocol. . |
 | `../mgmt/...` | Used for management. Since this code is not intended for production deployment, these endpoints are also not authenticated. |
 
 All API endpoints are versioned (currently `v1`).
 
+
+
 ## Authentication
+
+Only the in-band DSKE protocol API endpoints (`.../dske/api/...`) are authenticated.
+
+The out-of-band DSKE protocol API endpoints (`.../dske/oob/...`) are not authenticated.
+They only exist to simulate actions that would be some secure out-of-band physical distribution
+mechanism in real life for the purpose of automated testing.
+
+The management API endpoints (`../mgmt/...`) are also not authenticated because this implementation
+is not intended for production deployment.
+
+And finally, the key delivery API endpoints (`.../etsi/api/...`) are also not authenticated because
+we only implement a simplified subset of the
+[ETSI QKD 014](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf)
+key delivery interface.
 
 TODO
