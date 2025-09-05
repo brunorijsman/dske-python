@@ -314,7 +314,8 @@ The main responsibilities of the clients in the DSKE protocol are:
 
 ## Comparison with other key establishment protocols
 
-DSKE provides the same functionality, namely key agreement, 
+DSKE provides the same functionality, namely key establishment (also referred to as key agreement
+or key distribution) as some other protocols:
 
 * Traditional classical protocols such as Diffie-Hellman (DH) and Elliptic Curve Diffie-Hellman
    (ECDH).
@@ -325,9 +326,15 @@ DSKE provides the same functionality, namely key agreement,
 * Quantum Key Distribution (QKD) protocols such as 
 [Bennett and Brassard 84 (BB84)](https://en.wikipedia.org/wiki/BB84).
 
-Like ML-KEM and BB84, DSKE can resist attacks by quantum computers.
+The following table compares these protocols:
 
-DSKE allows pairs of  to agree 
+| Criterium | Traditional | PQC | QKD | DSKE |
+|-|-|-|-|-|
+| Needs special quantum hardware | No | No | Yes | No |
+| Quantum safe | No | Yes | Yes | Yes |
+| Based on hardness of mathematical problem | Yes (broken) | Yes (not broken) | No | No |
+| Requires out-of-band distribution of information | No | No | No | Yes |
+
 
 ## Differences between the IETF draft and this implementation
 
