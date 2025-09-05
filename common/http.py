@@ -64,7 +64,7 @@ async def post(
     api_response_class: APIClass | None = None,
 ) -> APIObject:
     """
-    Send a HTTP POST request and use Pydantic to parse the response.
+    Send a HTTP POST request.
     """
     return await put_or_post("POST", url, api_request_obj, api_response_class)
 
@@ -75,7 +75,7 @@ async def put(
     api_response_class: APIClass | None = None,
 ) -> APIObject:
     """
-    Send a HTTP PUT request and use Pydantic to parse the response.
+    Send a HTTP PUT request.
     """
     return await put_or_post("PUT", url, api_request_obj, api_response_class)
 
@@ -87,7 +87,8 @@ async def put_or_post(
     api_response_class: APIClass | None = None,
 ) -> APIObject:
     """
-    Send a HTTP PUT or POST request and use Pydantic to parse the response.
+    Send a HTTP PUT or POST request. Use Pydantic to encode the request data and to decode the
+    response data.
     """
     async with httpx.AsyncClient() as httpx_client:
         json = api_request_obj.model_dump()
