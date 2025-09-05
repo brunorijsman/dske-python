@@ -22,6 +22,8 @@ TODO: Have client unregister itself from all hubs when it shuts down.
       Shutting down should not cause the client to unregister itself; make unregistration
       an explicit option.
 
+TODO: Allow a client to register itself again (after a restart).
+
 TODO: Retry client registrations when they fail.
       Perhaps use tenacity
       See https://medium.com/@benshearlaw/how-to-use-httpx-request-client-with-fastapi-16255a9984a4
