@@ -1,5 +1,20 @@
 TODO: Implement authentication on DSKE interface
       Using authentication keys harvested from pre-shared random data.
+      - Client side
+        - Add authentication header
+        - Allocate authentication key from pool (chosen by pool)
+        - Encode key allocation into authentication header
+      - Server side
+        - Extract authentication header
+        - Extract key allocation from authentication header (chosen by client)
+        - Extract key value from pool
+        - Verify signature
+        - Handle verification error
+      - Both Client and Server side:
+        - Parameter to indicate from which authentication key is allocated
+        - Parameter to indicate whether authentication is needed or not
+        - Compute signature over request
+        - Handle allocation failure
 
 TODO: Move code coverage data files to subdirectory
 
