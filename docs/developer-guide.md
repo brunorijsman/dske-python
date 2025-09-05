@@ -63,3 +63,46 @@ You can open a detailed code coverage report in your browser:
 <pre>
 $ <b>open htmlcov/index.html</b>
 </pre>
+
+## API endpoints
+
+For full and up-to-date documentation of the API endpoints, each network node provides OpenAPI
+documentation.
+To view the documentation go to URL `http://localhost:PORT/docs` where PORT is the port number
+for the network node as reported when the topology is started.
+
+Here we provide a summary of the API endpoints and their purpose.
+
+### Hub API endpoints
+
+The hubs provides the following API endpoints:
+
+| Method | URL | Purpose |
+|-|-|-|
+| PUT | `/hub/HUB_NAME/dske/oob/v1/client-registration` | Register a client with a hub. |
+| GET | `/hub/HUB_NAME/dske/oob/v1/psrd` | Allows a client to get a block of Pre-Shared Random Data (PSRD) from the hub. |
+| POST | `/hub/HUB_NAME/dske/api/v1/key-share` | Allows an initiator client to add a key share to the hub, so that it can later be retrieved by the responder client. |
+| GET | `/hub/HUB_NAME/dske/api/v1/key-share` | Allows a responder client to add a key share to the hub, that was previously added by the initiator client. |
+| GET | `/hub/HUB_NAME/mgmt/v1/status` | Get the status of the hub. |
+| POST | `/hub/HUB_NAME/mgmt/v1/stop` | Stop the hub. |
+
+HUB_NAME is the name of the hub.
+If each hub runs in a separate process (and hence has a separate port number) as is currently the
+case, this is not really needed.
+We include it anyway to allow for the possibility of running all hubs (and clients) in a single
+process with a single port.
+
+The API endpoints belong to one of the following groups:
+
+| Endpoint path | Purpose |
+|-|-|
+| `.../dske/...` | DSKE protocol. |
+ | `.../dske/oob/...` | The out-of-band (OOB) portion of the DSKE protocol. These endpoints only exist to simulate actions that would be some secure out-of-band physical distribution mechanism in real life for the purpose of automated testing. For that reason they are not authenticated. |
+| `.../dske/api/...` | The in-band portion of the DSKE protocol. These endpoints are authenticated as described in the [authentication section](#authentication) below. |
+| `../mgmt/...` | Used for management. Since this code is not intended for production deployment, these endpoints are also not authenticated. |
+
+All API endpoints are versioned (currently `v1`).
+
+## Authentication
+
+TODO
