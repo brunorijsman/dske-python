@@ -6,7 +6,6 @@ import asyncio
 from uuid import UUID
 from common import exceptions
 from common import http
-from common import utils
 from common.block import APIBlock, Block
 from common.pool import Pool
 from common.registration import APIRegistration
@@ -29,7 +28,6 @@ class PeerHub:
     _pool: Pool
     # The following attributes are set after registration
     _hub_name: None | str
-    _pre_shared_key: None | bytes
 
     def __init__(self, client, base_url):
         self._client = client
@@ -39,7 +37,6 @@ class PeerHub:
         self._registered = False
         self._pool = Pool()
         self._hub_name = None
-        self._pre_shared_key = None
 
     @property
     def pool(self):
@@ -54,7 +51,6 @@ class PeerHub:
         """
         return {
             "hub_name": self._hub_name,
-            "pre_shared_key": utils.bytes_to_str(self._pre_shared_key),
             "registered": self._registered,
             "pool": self._pool.to_mgmt(),
         }
@@ -98,7 +94,6 @@ class PeerHub:
             )
             return False
         self._hub_name = registration.hub_name
-        self._pre_shared_key = utils.str_to_bytes(registration.pre_shared_key)
         self._registered = True
         return True
 

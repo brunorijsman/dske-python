@@ -2,32 +2,22 @@
 A peer DSKE client.
 """
 
-from common import utils
 from common.block import Block
 from common.pool import Pool
 
 
 class PeerClient:
     """
-    A peer DSKE client.
+    A peer client of a hub.
     """
 
     _client_name: str
-    _pre_shared_key: bytes
     _pool: Pool
 
-    def __init__(self, client_name: str, pre_shared_key: bytes):
+    def __init__(self, client_name: str):
         self._client_name = client_name
-        self._pre_shared_key = pre_shared_key
         self._pool = Pool()
         self._shares = {}
-
-    @property
-    def pre_shared_key(self):
-        """
-        The pre-shared key.
-        """
-        return self._pre_shared_key
 
     @property
     def pool(self):
@@ -42,7 +32,6 @@ class PeerClient:
         """
         return {
             "client_name": self._client_name,
-            "pre_shared_key": utils.bytes_to_str(self._pre_shared_key),
             "pool": self._pool.to_mgmt(),
         }
 

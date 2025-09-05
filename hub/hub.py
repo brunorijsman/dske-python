@@ -1,8 +1,7 @@
 """
-A DSKE hub.
+A DSKE security hub, or DSKE hub, or just hub for short.
 """
 
-import os
 from copy import deepcopy
 from uuid import UUID
 from common import exceptions
@@ -13,24 +12,22 @@ from .peer_client import PeerClient
 
 class Hub:
     """
-    A DSKE hub.
+    A DSKE security hub, or DSKE hub, or just hub for short.
     """
 
     _name: str
-    _pre_shared_key_size: int
-    _peer_clients: dict[str, PeerClient]  # Indexed by DSKE client name
+    _peer_clients: dict[str, PeerClient]  # Indexed by client name
     _shares: dict[UUID, Share]  # Indexed by key UUID
 
-    def __init__(self, name: str, pre_shared_key_size: int):
+    def __init__(self, name: str):
         self._name = name
-        self._pre_shared_key_size = pre_shared_key_size
         self._peer_clients = {}
         self._shares = {}
 
     @property
     def name(self):
         """
-        Get the hub name.
+        Get the name.
         """
         return self._name
 
@@ -40,27 +37,24 @@ class Hub:
         """
         return {
             "name": self._name,
-            "pre_shared_key_size": self._pre_shared_key_size,
             "peer_clients": [
                 peer_client.to_mgmt() for peer_client in self._peer_clients.values()
             ],
             "shares": [share.to_mgmt() for share in self._shares.values()],
         }
 
-    def register_peer_client(self, client_name: str) -> PeerClient:
+    def register_client(self, client_name: str) -> PeerClient:
         """
         Register a peer client.
         """
         # We don't check whether the client is already registered (this could happen when the
         # client restarts without unregistering first). The registration of the newly started
         # client will overwrite the existing client.
-        # TODO: Choose pre-shared key in PeerClient constructor?
-        pre_shared_key = os.urandom(self._pre_shared_key_size)
-        peer_client = PeerClient(client_name, pre_shared_key)
+        peer_client = PeerClient(client_name)
         self._peer_clients[client_name] = peer_client
         return peer_client
 
-    def generate_block_for_peer_client(self, client_name: str, size: int) -> Block:
+    def generate_block_for_client(self, client_name: str, size: int) -> Block:
         """
         Generate a block of PSRD for a peer client.
         """

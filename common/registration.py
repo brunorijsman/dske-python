@@ -11,4 +11,3 @@ class APIRegistration(pydantic.BaseModel):
     """
 
     hub_name: str
-    pre_shared_key: str

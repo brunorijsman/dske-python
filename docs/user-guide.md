@@ -234,11 +234,9 @@ JSON REST response:
 $ <b>curl --silent http://127.0.0.1:8100/dske/hub/mgmt/v1/status | jq</b>
 {
   "hub_name": "hank",
-  "pre_shared_key_size": 32,
   "peer_clients": [
     {
       "client_name": "carol",
-      "pre_shared_key": "0O/FbKqpYW646cjs2eQmzMVqYj67VuBrY/6ItHXA9FI=",
       "pool": {
         "blocks": [
           {
@@ -253,7 +251,6 @@ $ <b>curl --silent http://127.0.0.1:8100/dske/hub/mgmt/v1/status | jq</b>
     },
     {
       "client_name": "celia",
-      "pre_shared_key": "jY2U8WCUg3y/rxbu6VcDr3em/AI+K+jXdk7EIEDi5BA=",
       "pool": {
         "blocks": [
           {
@@ -298,11 +295,9 @@ $ <b>./manager.py topology.yaml status</b>
 Status for hub hank on port 8100
 {
   "hub_name": "hank",
-  "pre_shared_key_size": 32,
   "peer_clients": [
     {
       "client_name": "carol",
-      "pre_shared_key": "0O/FbKqpYW646cjs2eQmzMVqYj67VuBrY/6ItHXA9FI=",
       "pool": {
         "blocks": [
           {
@@ -318,7 +313,6 @@ Status for hub hank on port 8100
     ... snip ...
     {
       "hub_name": "holly",
-      "pre_shared_key": "6++8XCkHuqv94pLNpmaf1Emm8Pd0yfug6rn/dGSU4GU=",
       "registered": true,
       "psrd_pool": {
         "blocks": [
@@ -334,7 +328,6 @@ Status for hub hank on port 8100
     },
     {
       "hub_name": "hugo",
-      "pre_shared_key": "wetCgZv8yS7PHu5ve09VROyhOidLANKvTvMbauPVM4U=",
       "registered": true,
       "psrd_pool": {
         "blocks": [
@@ -364,7 +357,6 @@ Status for client celia on port 8106
     ... snip ...
     {
       "hub_name": "hugo",
-      "pre_shared_key": "AZzkkvM4rsmq89gjsCMZCURcHpa0Y/5ZsGrtVqzICMI=",
       "registered": true,
       "psrd_pool": {
         "blocks": [

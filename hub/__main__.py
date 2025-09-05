@@ -33,8 +33,7 @@ def parse_command_line_arguments():
 
 
 _ARGS = parse_command_line_arguments()
-# TODO: Make pre-shared key size configurable.
-_HUB = Hub(_ARGS.name, pre_shared_key_size=32)
+_HUB = Hub(_ARGS.name)
 _APP = fastapi.FastAPI()
 
 
@@ -44,11 +43,8 @@ async def get_oob_register_client(client_name: str):
     """
     DSKE Out of band: Register a client.
     """
-    peer_client = _HUB.register_peer_client(client_name)
-    return {
-        "hub_name": _HUB.name,
-        "pre_shared_key": utils.bytes_to_str(peer_client.pre_shared_key),
-    }
+    _peer_client = _HUB.register_client(client_name)
+    return {"hub_name": _HUB.name}
 
 
 @_APP.get(f"/hub/{_HUB.name}/dske/oob/v1/psrd")
@@ -58,7 +54,7 @@ async def get_oob_psrd(client_name: str, size: pydantic.PositiveInt) -> APIBlock
     """
     # TODO: Error if the client was not peer.
     # TODO: Allow size to be None (use default size decided by hub).
-    block = _HUB.generate_block_for_peer_client(client_name, size)
+    block = _HUB.generate_block_for_client(client_name, size)
     return block.to_api()
 
 

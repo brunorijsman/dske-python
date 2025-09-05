@@ -1,5 +1,5 @@
 """
-A DSKE client.
+A DSKE client, or just client for short.
 """
 
 from uuid import UUID
@@ -14,7 +14,7 @@ _MIN_NR_SHARES = 3  # The minimum number of key shares required to reconstruct t
 
 class Client:
     """
-    A DSKE client.
+    A DSKE client, or just client for short.
     """
 
     _min_key_size_in_bits = 1
@@ -36,7 +36,7 @@ class Client:
     @property
     def name(self):
         """
-        Get the client name.
+        Get the name.
         """
         return self._name
 

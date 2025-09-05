@@ -4,9 +4,7 @@ TODO: Make registration more REST-like
       GET registration resource to query registration status
 
 TODO: Implement authentication on DSKE interface
-      Using either pre-shared authentication keys, or authentication keys harvested from pre-shared
-      random data. In the latter case, get rid of the explicit pre-shared key in the registration
-      response.
+      Using authentication keys harvested from pre-shared random data.
 
 TODO: Move code coverage data files to subdirectory
 
