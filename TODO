@@ -1,3 +1,9 @@
+TODO: Introduce the concept of block ownership
+      - Add the owned attribute
+      - Allow multiple blocks in a distribution
+      - Distribute a client-owned block and a hub-owned block initially
+      - Add documentation about ownership (why it exists)
+
 TODO: Implement authentication on DSKE interface
       Using authentication keys harvested from pre-shared random data.
       - Client encode request / server encode response:
@@ -139,3 +145,6 @@ TODO: OpenAPI (Swagger) documentation should show proper type for request and re
 
 TODO: Error if get-key-with-key-ids if the API is invoked on client which is not actually one of the
       slaves for that key.
+
+TODO: Use data (instead of value) in Fragment for consistency. Also in documentation (including
+      figures)

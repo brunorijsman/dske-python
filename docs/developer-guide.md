@@ -105,8 +105,6 @@ The API endpoints belong to one of the following groups:
 
 All API endpoints are versioned (currently `v1`).
 
-
-
 ## Authentication
 
 Only the in-band DSKE protocol API endpoints (`.../dske/api/...`) are authenticated.
@@ -124,3 +122,65 @@ we only implement a simplified subset of the
 key delivery interface.
 
 TODO
+
+## Pre-Shared Random Data (PSRD) management
+
+Pre-Shared Random Data (PSRD) is a central concept in DSKE.
+This section summarizes how PSRD is implemented in the code.
+
+### Class `Block`
+
+The class `Block` represents a block PSRD bytes that the hub sends to the client.
+The hub sends the block to the client using some secure out-of-band mechanism;
+in our code this mechanism is represented by the `.../dske/oob/v1/psrd` REST interface endpoint.
+
+The `Block` class has the following attributes:
+
+| Attribute | Type | Purpose |
+|-|-|-|
+| block_uuid | UUID | Uniquely identifies the block. |
+| size | int | Size of the block in bytes. |
+| owned | bool | True is the block is owned: it is possible to both allocate and consume fragments from this block. False if the block is not owned: it is not possible to locally allocate fragments; it is only possible to consume fragments that have been allocated by the peer node. The concept of ownership is described in more detail below. |
+| data | bytes | The bytes in the block. |
+| allocated | bitarray | A bit for each byte in the block to indicate whether the byte is allocated. |
+| consumed | bitarray | A bit for each byte in the block to indicate whether the byte is consumed. |
+
+The state of each byte in the block is described by the following Finite State Machine (FSM):
+
+![Block Finite State Machine (FSM)](/docs/figures/block-fsm.png)
+
+When the block is created, each byte is unallocated.
+
+The code can locally allocate bytes from the block.
+A contiguous sequence of bytes allocated from a block is called a fragment.
+
+Bytes that have been allocated can be consumed. The byte value used to encrypt or authenticate
+a key share. The byte in the block is zeroed out.
+
+It is also possible to consume bytes that have not been _locally_ allocated from a block.
+This happens when the bytes have been _remotely_ allocated by the peer node, and the allocated
+fragment is communicated through the DSKE protocol.
+
+Under circumstances the code can return an allocated byte to the block without consuming it.
+This is called deallocating the byte. Once a byte has been consumed, it can no longer be deallocated.
+
+### Class `Fragment`
+
+The class `Fragment` represents a contiguous sequence of bytes within a block that have been
+allocated from that block.
+
+The `Fragment` class has the following attributes:
+
+| Attribute | Type | Purpose |
+|-|-|-|
+| block | Block | A reference to the block from which the fragment was allocated. |
+| start_byte | int | The index of the byte within the block for the first byte in the fragment. |
+| size | int | The number of bytes in the fragment. |
+| value | bytes | A copy of the bytes in the block that have been allocated to the fragment. |
+| consumed | bool | True if the bytes in the fragment has been consumed. False if the bytes in the fragment have only been allocated and not yet consumed. |
+
+The relationship between a block and its fragments in shown in the following figure:
+
+![Relation between block and fragments](/docs/figures/block-and-fragments.png)
+
+

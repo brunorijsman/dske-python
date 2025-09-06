@@ -20,3 +20,5 @@ echo "Renaming files"
 mv figures-0.png topology.png
 mv figures-1.png ladder-diagram-startup.png
 mv figures-2.png ladder-diagram-get-key.png
+mv figures-3.png block-fsm.png
+mv figures-4.png block-and-fragments.png
