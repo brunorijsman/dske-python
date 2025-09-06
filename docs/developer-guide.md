@@ -183,4 +183,24 @@ The relationship between a block and its fragments in shown in the following fig
 
 ![Relation between block and fragments](/docs/figures/block-and-fragments.png)
 
+### The concept of block ownership
+
+When a hub and a client share a block of Pre-Shared Random Data (PSRD) there is a `Block` object
+on the hub side and a `Block` object with the same random data on the client side.
+The hub and the client use their blocks to allocate secrets that are shared with their peer.
+These shared secrets are used for encryption and authentication of DSKE protocol messages.
+
+In the code, allocating a shared secret means creating an `Allocation` object.
+This marks some bytes in some blocks as being allocated and consumed.
+Sharing a secret means sending the some information about the `Allocation` object to the peer:
+which bytes in which blocks have been allocated, but not the byte values themselves.
+The peer then uses this information to create a corresponding `Allocation` object with
+identical byte values.
+
+In an HTTP transaction, the request message (client to hub) and the response message (hub to client)
+both need to be authenticated and each require an `Allocation` for that authentication.
+
+TODO: Hmmm.... Maybe we don't need to concept of ownership. The response can just use the same
+allocation as the request. The client always makes the allocation.
+
 
