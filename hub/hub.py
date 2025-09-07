@@ -76,7 +76,7 @@ class Hub:
         share = Share.from_api(api_share, pool)
         # TODO: Check if the key UUID is already present, and if so, do something sensible
         share.decrypt()
-        self._shares[share.key_uuid] = share
+        self._shares[share.user_key_uuid] = share
 
     def get_share_requested_by_client(self, client_name: str, key_id: str) -> APIShare:
         """

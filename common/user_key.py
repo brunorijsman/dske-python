@@ -1,5 +1,10 @@
 """
-A key used for encryption or for signing.
+A key that produced by the DSKE protocol, intended to be delivered to the user over a key delivery
+interface such as ETSI QKD 014.
+
+This key (intended to be delivery to the user) must not be confused with the keys that are used
+internally within the DSKE protocol to encrypt key shares and to authenticate DSKE protocol
+messages (see class InternalKeys).
 """
 
 import os
@@ -11,7 +16,7 @@ from .shamir import (
 from .share import Share
 
 
-class Key:
+class UserKey:
     """
     A key for the user, delivered over the ETSI QKD 014 interface.
     """
@@ -38,11 +43,11 @@ class Key:
         return self._value
 
     @classmethod
-    def create_random_key(cls, size_in_bytes) -> "Key":
+    def create_random_key(cls, size_in_bytes) -> "UserKey":
         """
         Create a random key, with the given size in bytes.
         """
-        return Key(uuid4(), os.urandom(size_in_bytes))
+        return UserKey(uuid4(), os.urandom(size_in_bytes))
 
     def split_into_shares(
         self,

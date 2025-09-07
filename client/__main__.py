@@ -31,7 +31,6 @@ def parse_command_line_arguments():
         help=f"Base URLs for hubs (e.g., http://127.0.0.1:{configuration.DEFAULT_BASE_PORT})",
     )
     args = parser.parse_args()
-    print(f"{args=}")
     return args
 
 

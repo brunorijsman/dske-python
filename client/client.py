@@ -5,7 +5,7 @@ A DSKE client, or just client for short.
 from uuid import UUID
 from common import shamir
 from common import utils
-from common.key import Key
+from common.user_key import UserKey
 from .peer_hub import PeerHub
 
 # TODO: Make this configurable
@@ -70,6 +70,7 @@ class Client:
         """
         ETSI QKD 014 V1.1.1 Get key API.
         """
+        # TODO: Make sure that this client is actually the initiator
         # TODO: Use the Slave SAE ID?
         # TODO: Store the _slave_sae_id somewhere. It should be used to determine who is allowed
         #       to retrieve the key on the other side by calling Get Key with Key IDs.
@@ -77,7 +78,7 @@ class Client:
         # See remarks about ETSI QKD API in file TODO
         assert self._default_key_size_in_bits % 8 == 0
         size_in_bytes = self._default_key_size_in_bits // 8
-        key = Key.create_random_key(size_in_bytes)
+        key = UserKey.create_random_key(size_in_bytes)
         # TODO: Error handling; this the sharing amongst peer hubs could fail.
         await self.scatter_key_amongst_peer_hubs(key)
         return {
@@ -91,6 +92,8 @@ class Client:
         """
         ETSI QKD 014 V1.1.1 Get key with key IDs API.
         """
+        # TODO: Make sure that this client is actually a responder
+        #       This probably involves passing the master and responders in the share
         # TODO: Use the Master SAE ID?
         # TODO: key_id should be a list; allow to get more than one key in a single call.
         # TODO: Error handling; the gather could fail for any number of reasons.
@@ -120,7 +123,7 @@ class Client:
         for peer_hub in self._peer_hubs:
             await peer_hub.unregister()
 
-    async def scatter_key_amongst_peer_hubs(self, key: Key) -> None:
+    async def scatter_key_amongst_peer_hubs(self, key: UserKey) -> None:
         """
         Split the key into key shares, and send each key share to a peer hub.
         """
@@ -143,7 +146,7 @@ class Client:
         for peer_hub in self._peer_hubs:
             peer_hub.delete_fully_consumed_blocks()
 
-    async def gather_key_from_peer_hubs(self, key_uuid: UUID) -> Key:
+    async def gather_key_from_peer_hubs(self, key_uuid: UUID) -> UserKey:
         """
         Gather key shares from the peer hubs, and reconstruct the key out of (a subset of)
         the key shares.
@@ -165,5 +168,5 @@ class Client:
         key_value = shamir.reconstruct_binary_secret_from_shares(
             _MIN_NR_SHARES, shamir_input
         )
-        key = Key(key_uuid, key_value)
+        key = UserKey(key_uuid, key_value)
         return key

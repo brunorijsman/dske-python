@@ -7,6 +7,7 @@ from uuid import UUID
 from common import exceptions
 from common import http
 from common.block import APIBlock, Block
+from common.internal_keys import InternalKeys
 from common.pool import Pool
 from common.registration import APIRegistrationRequest, APIRegistrationResponse
 from common.share import APIShare, Share
@@ -127,11 +128,13 @@ class PeerHub:
         """
         url = f"{self._base_url}/dske/api/v1/key-share"
         api_share = share.to_api(self._client.name)
+        internal_keys = InternalKeys()
+        internal_keys.allocate(self._pool)
         await http.post(
             url=url,
             api_request_obj=api_share,
             api_response_class=None,
-            authentication_key_pool=self._pool,
+            internal_keys=internal_keys,
         )
 
     async def get_share(self, key_uuid: UUID) -> Share:
@@ -139,12 +142,16 @@ class PeerHub:
         Get a key share from the peer hub.
         """
         url = f"{self._base_url}/dske/api/v1/key-share"
+        # TODO: pass a parameter to indicate the allocation that the server should use to encrypt
+        #       the share and to authenticate the response.
         params = {"client_name": self._client.name, "key_id": str(key_uuid)}
+        internal_keys = InternalKeys()
+        internal_keys.allocate(self._pool)
         api_share = await http.get(
             url=url,
             params=params,
             api_response_class=APIShare,
-            authentication_key_pool=self._pool,
+            internal_keys=internal_keys,
         )
         share = Share.from_api(api_share, self._pool)
         return share

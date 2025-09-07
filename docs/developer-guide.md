@@ -197,6 +197,8 @@ which bytes in which blocks have been allocated, but not the byte values themsel
 The peer then uses this information to create a corresponding `Allocation` object with
 identical byte values.
 
+TODO: Allocations are also made for the shares themselves.
+
 In an HTTP transaction, the request message (client to hub) and the response message (hub to client)
 both need to be authenticated and each require an `Allocation` for that authentication.
 

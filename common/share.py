@@ -17,8 +17,7 @@ class APIShare(pydantic.BaseModel):
     # TODO: Provide a better example in the generated documentation page
     # TODO: Add a seq_nr field to the API for replay attack prevention
 
-    client_name: str  # TODO: Doesn't belong in here; carry separately
-    key_id: str
+    user_key_uuid: str
     share_index: int
     encrypted_value: str  # Base64 encoded
     encryption_key_allocation: APIAllocation
@@ -26,30 +25,30 @@ class APIShare(pydantic.BaseModel):
 
 class Share:
     """
-    A share of a key. A key is split up into multiple (`nr_shares`) key shares. The user
-    key can be reconstructed from a subset (`min_nr_shares`) of these key shares.
+    A share of a user key. A user key is split up into multiple (`nr_shares`) `shares. The user key
+    can be reconstructed from a subset (`min_nr_shares`) of these shares.
     """
 
     def __init__(
         self,
-        key_uuid: UUID,
+        user_key_uuid: UUID,
         share_index: int,
         value: bytes | None = None,
         encrypted_value: bytes | None = None,
         encryption_key_allocation: Allocation | None = None,
     ):
-        self._key_uuid = key_uuid
+        self._user_key_uuid = user_key_uuid
         self._share_index = share_index
         self._value = value
         self._encrypted_value = encrypted_value
         self._encryption_key_allocation = encryption_key_allocation
 
     @property
-    def key_uuid(self) -> UUID:
+    def user_key_uuid(self) -> UUID:
         """
-        Get the key UUID.
+        Get the user key UUID.
         """
-        return self._key_uuid
+        return self._user_key_uuid
 
     @property
     def share_index(self) -> int:
@@ -61,7 +60,7 @@ class Share:
     @property
     def value(self) -> bytes:
         """
-        Get the (unencrypted) value.
+        Get the (unencrypted) share value.
         """
         return self._value
 
@@ -83,7 +82,7 @@ class Share:
         Get the management status.
         """
         return {
-            "key_uuid": str(self._key_uuid),
+            "key_uuid": str(self._user_key_uuid),
             "share_index": self._share_index,
             "value": bytes_to_str(self._value, truncate=True),
             "encrypted_value": bytes_to_str(self._encrypted_value, truncate=True),
@@ -141,7 +140,7 @@ class Share:
         Create a Share from an APIShare.
         """
         share = Share(
-            key_uuid=UUID(api_share.key_id),
+            user_key_uuid=UUID(api_share.user_key_uuid),
             share_index=api_share.share_index,
             value=None,
             encrypted_value=str_to_bytes(api_share.encrypted_value),
@@ -149,16 +148,16 @@ class Share:
                 api_share.encryption_key_allocation, pool
             ),
         )
+        # TODO $$$ User internal keys instead
         pool.mark_allocation_allocated(share.encryption_key_allocation)
         return share
 
-    def to_api(self, client_name) -> APIShare:
+    def to_api(self) -> APIShare:
         """
         Create an APIShare from a Share.
         """
         api_share = APIShare(
-            client_name=client_name,
-            key_id=str(self._key_uuid),
+            user_key_uuid=str(self._user_key_uuid),
             share_index=self._share_index,
             encrypted_value=bytes_to_str(self._encrypted_value),
             encryption_key_allocation=self._encryption_key_allocation.to_api(),
