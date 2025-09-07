@@ -20,7 +20,7 @@ class Pool:
     A pool of blocks.
     """
 
-    _blocks: list[Block]
+    _blocks: list[Block]  # In order of addition to the pool: oldest first.
 
     def __init__(self):
         self._blocks = []
