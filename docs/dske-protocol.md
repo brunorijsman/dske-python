@@ -11,7 +11,7 @@ an by
 [arXiv paper 2205.00615: Distributed Symmetric Key Establishment: A scalable, quantum-proof key distribution system.](](https://arxiv.org/pdf/2205.00615))
 
 We say "is inspired by" rather than "is an implementation of" because although our code generally
-follows the high-level description in the draft, deviate from the draft in certain aspects
+follows the high-level description in the draft, it deviates from the draft in certain aspects
 (see
 [this list of deviations](#differences-between-the-ietf-draft-and-this-implementation)
 for details).
