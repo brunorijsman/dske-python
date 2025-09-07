@@ -103,6 +103,28 @@ class Fragment:
             size=api_fragment.size,
         )
 
+    @classmethod
+    def from_param_str(
+        cls,
+        param_str: str,
+        pool: "Pool",  # type: ignore
+    ) -> "Fragment":
+        """
+        Create a Fragment from a parameter string as used in URL parameters.
+        The format of the string is: <block_uuid>:<start_byte>:<size>
+        """
+        parts = param_str.split(":")
+        if len(parts) != 3:
+            raise ValueError(f"Invalid fragment parameter string: {param_str}")
+        block_uuid_str, start_byte_str, size_str = parts
+        block = pool.get_block(UUID(block_uuid_str))
+        if block is None:
+            raise ValueError(f"Block not found: {block_uuid_str}")
+        start_byte = int(start_byte_str)
+        size = int(size_str)
+        # TODO: Validate that the size of the fragment is "reasonable"
+        return Fragment(block=block, start_byte=start_byte, size=size)
+
     def to_api(self) -> APIFragment:
         """
         Create an APIFragment from a Fragment.
@@ -112,3 +134,9 @@ class Fragment:
             start_byte=self._start_byte,
             size=self._size,
         )
+
+    def to_param_str(self) -> str:
+        """
+        Get a string representation of the fragment that can be used in URL parameters.
+        """
+        return f"{self._block.uuid}:{self._start_byte}:{self._size}"

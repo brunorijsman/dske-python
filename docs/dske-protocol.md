@@ -5,10 +5,13 @@ this repository.
 
 ## IETF draft
 
-The DSKE protocol implementation in this repository is based on on IETF draft
-[draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/).
-Our code generally follows the high-level description in the draft, although we deviate from the
-draft in certain aspects
+The DSKE protocol implementation in this repository is inspired by IETF draft
+[draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/)
+an by
+[arXiv paper 2205.00615: Distributed Symmetric Key Establishment: A scalable, quantum-proof key distribution system.](](https://arxiv.org/pdf/2205.00615))
+
+We say "is inspired by" rather than "is an implementation of" because although our code generally
+follows the high-level description in the draft, deviate from the draft in certain aspects
 (see
 [this list of deviations](#differences-between-the-ietf-draft-and-this-implementation)
 for details).
@@ -247,7 +250,7 @@ The steps for onboarding a new client into the network are as follows:
 
 The client registration is an HTTP PUT message.
 As a result, the client registration is idem-potent and it is not an error for a client to register
-itself multilpe 
+itself multiple times.
 
 ### Key establishment
 
@@ -358,6 +361,13 @@ from the draft per-se, but in a private email exchange one of the authors of the
 that he does not consider HTTP a good choice for the the DSKE protocol encoding and would prefer a
 lighter-weight binary encoding.
 
+### Authentication scheme
+
+The description of the authentication scheme in the draft is very dense and difficult to understand.
+Similarly, the description in the arXiv paper is rather vague.
+We are not sure that the implementation in our code matches the draft exactly.
+We use a key allocated from the PSRD to compute a Message Authentication Code (MAC).
+
 ### Local distributor
 
 The IETF draft contains the concept of a local distributor, which sits between the hub and the
@@ -405,3 +415,14 @@ when two clients want to establish a key, they have to agree on a set of hubs th
 common that can act as relays.
 Or, alternatively, a mechanism could be introduced to do multi-hop relaying of key shares across
 a series of multiple hubs.
+
+### Message Authentication Code (MAC) denial of service attack prevention
+
+For authentication, we use a key allocated from the PSRD to compute a Message Authentication Code
+(MAC).
+As mentioned in the draft, this opens the door to Denial of Service (DoS) attacks.
+A large number of failed authentications caused by an attacker could rapidly drain the pool
+of PSRD.
+The draft suggests a mitigation technique: allow a limited number of failed authentication
+validations for bytes in the PSRD pool.
+We have not yet implemented this mitigation.

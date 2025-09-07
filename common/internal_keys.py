@@ -40,6 +40,9 @@ For GET key-share:
   - Uses the received authentication key allocation to validate the request and sign the response.
 """
 
+# TODO: Add a seq_nr field to the API for replay attack prevention
+
+
 from .pool import Pool
 
 
@@ -55,6 +58,20 @@ class InternalKeys:
     def __init__(self):
         self._encryption_key_allocation = None
         self._authentication_key_allocation = None
+
+    @property
+    def encryption_key_allocation(self):
+        """
+        Get the encryption key allocation.
+        """
+        return self._encryption_key_allocation
+
+    @property
+    def authentication_key_allocation(self):
+        """
+        Get the authentication key allocation.
+        """
+        return self._authentication_key_allocation
 
     def allocate(self, pool: Pool):
         """

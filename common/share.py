@@ -3,24 +3,9 @@ A share of a key.
 """
 
 from uuid import UUID
-import pydantic
-from .allocation import Allocation, APIAllocation
-from .utils import bytes_to_str, str_to_bytes, to_mgmt
+from .allocation import Allocation
+from .utils import bytes_to_str, to_mgmt
 from .pool import Pool
-
-
-class APIShare(pydantic.BaseModel):
-    """
-    Representation of a key share as used in API calls.
-    """
-
-    # TODO: Provide a better example in the generated documentation page
-    # TODO: Add a seq_nr field to the API for replay attack prevention
-
-    user_key_uuid: str
-    share_index: int
-    encrypted_value: str  # Base64 encoded
-    encryption_key_allocation: APIAllocation
 
 
 class Share:
@@ -133,33 +118,3 @@ class Share:
         self._value = bytes(decrypted_byte_list)
         self._encrypted_value = None
         self._encryption_key_allocation = None
-
-    @classmethod
-    def from_api(cls, api_share: APIShare, pool: Pool) -> "Share":
-        """
-        Create a Share from an APIShare.
-        """
-        share = Share(
-            user_key_uuid=UUID(api_share.user_key_uuid),
-            share_index=api_share.share_index,
-            value=None,
-            encrypted_value=str_to_bytes(api_share.encrypted_value),
-            encryption_key_allocation=Allocation.from_api(
-                api_share.encryption_key_allocation, pool
-            ),
-        )
-        # TODO $$$ User internal keys instead
-        pool.mark_allocation_allocated(share.encryption_key_allocation)
-        return share
-
-    def to_api(self) -> APIShare:
-        """
-        Create an APIShare from a Share.
-        """
-        api_share = APIShare(
-            user_key_uuid=str(self._user_key_uuid),
-            share_index=self._share_index,
-            encrypted_value=bytes_to_str(self._encrypted_value),
-            encryption_key_allocation=self._encryption_key_allocation.to_api(),
-        )
-        return api_share

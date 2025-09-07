@@ -9,7 +9,10 @@ from common import http
 from common.block import APIBlock, Block
 from common.internal_keys import InternalKeys
 from common.pool import Pool
-from common.registration import APIRegistrationRequest, APIRegistrationResponse
+from common.registration_api import (
+    APIPutRegistrationRequest,
+    APIPutRegistrationResponse,
+)
 from common.share import APIShare, Share
 
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
@@ -86,9 +89,9 @@ class PeerHub:
         Attempt to register this client with the peer hub. Returns true if successful.
         """
         url = f"{self._base_url}/dske/oob/v1/registration"
-        data = APIRegistrationRequest(client_name=self._client.name)
+        data = APIPutRegistrationRequestModel(client_name=self._client.name)
         try:
-            registration = await http.put(url, data, APIRegistrationResponse)
+            registration = await http.put(url, data, APIPutRegistrationResponse)
         except exceptions.HTTPError:
             print(
                 f"Failed to register client {self._client.name} with peer hub at {self._base_url}"
@@ -127,9 +130,9 @@ class PeerHub:
         Post a key share to the peer hub.
         """
         url = f"{self._base_url}/dske/api/v1/key-share"
-        api_share = share.to_api(self._client.name)
         internal_keys = InternalKeys()
         internal_keys.allocate(self._pool)
+        api_share = share.to_api(internal_keys)
         await http.post(
             url=url,
             api_request_obj=api_share,
@@ -142,18 +145,28 @@ class PeerHub:
         Get a key share from the peer hub.
         """
         url = f"{self._base_url}/dske/api/v1/key-share"
-        # TODO: pass a parameter to indicate the allocation that the server should use to encrypt
-        #       the share and to authenticate the response.
-        params = {"client_name": self._client.name, "key_id": str(key_uuid)}
+        # TODO: Maybe handle encryption and authentication key separately, as opposed to combining
+        #       them in InternalKeys
         internal_keys = InternalKeys()
         internal_keys.allocate(self._pool)
-        api_share = await http.get(
+        params = {
+            "client_name": self._client.name,
+            "key_id": str(key_uuid),
+            "encryption_key_allocation": internal_keys.encryption_key_allocation.to_param_str(),
+        }
+        api_get_share_response = await http.get(
             url=url,
             params=params,
             api_response_class=APIShare,
             internal_keys=internal_keys,
         )
-        share = Share.from_api(api_share, self._pool)
+        share = Share(
+            user_key_uuid=api_get_share_response,
+            share_index=api_get_share_response.share_index,
+            value=bytes(),  # The value is not known yet (it's encrypted)
+            encrypted_value=api_get_share_response.encrypted_value,
+            encryption_key_allocation=api_get_share_response.encryption_key_allocation,
+        )
         return share
 
     def delete_fully_consumed_blocks(self) -> None:

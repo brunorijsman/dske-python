@@ -94,6 +94,21 @@ class Allocation:
             ]
         )
 
+    @classmethod
+    def from_param_str(
+        cls,
+        param_str: str,
+        pool: "Pool",  # type: ignore
+    ) -> "Allocation":
+        """
+        Create an Allocation from a parameter string as used in HTTP requests.
+        """
+        fragments = [
+            Fragment.from_param_str(fragment_str, pool)
+            for fragment_str in param_str.split(",")
+        ]
+        return Allocation(fragments)
+
     def to_api(self) -> APIAllocation:
         """
         Create an APIAllocation from an Allocation.
@@ -101,3 +116,9 @@ class Allocation:
         return APIAllocation(
             fragments=[fragment.to_api() for fragment in self._fragments]
         )
+
+    def to_param_str(self) -> str:
+        """
+        Convert the allocation to a string that can be used as a parameter in an HTTP request.
+        """
+        return ",".join([fragment.to_param_str() for fragment in self._fragments])

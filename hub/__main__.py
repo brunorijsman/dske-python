@@ -12,7 +12,7 @@ from common import configuration
 from common import utils
 from common.block import APIBlock
 from common.share import APIShare
-from common.registration import APIRegistrationRequest
+from common.registration_api import APIPutRegistrationRequest
 from .hub import Hub
 
 
@@ -39,7 +39,9 @@ _APP = fastapi.FastAPI()
 
 
 @_APP.put(f"/hub/{_HUB.name}/dske/oob/v1/registration")
-async def put_oob_client_registration(registration_request: APIRegistrationRequest):
+async def put_oob_client_registration(
+    registration_request: APIPutRegistrationRequest,
+):
     """
     DSKE Out of band: Register a client.
     """
@@ -63,18 +65,19 @@ async def post_key_share(api_share: APIShare):
     """
     DSKE API: Post key share.
     """
-    print(f"Received POST /dske/hub/api/v1/key-share {api_share=}", flush=True)
     _HUB.store_share_received_from_client(api_share)
 
 
 @_APP.get(f"/hub/{_HUB.name}/dske/api/v1/key-share")
-async def get_key_share(client_name: str, key_id: str) -> APIShare:
+async def get_key_share(
+    client_name: str,
+    key_id: str,
+    encryption_key_allocation: str,
+) -> APIShare:
     """
     DSKE API: Get key share.
     """
-    print(
-        f"Received POST /dske/hub/api/v1/key-share {client_name=} {key_id=}", flush=True
-    )
+    # $$$ convert allotion str to allocation obj
     return _HUB.get_share_requested_by_client(client_name, key_id)
 
 
