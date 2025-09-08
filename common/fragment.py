@@ -74,6 +74,12 @@ class Fragment:
             "consumed": self._consumed,
         }
 
+    def mark_allocated(self):
+        """
+        Mark the fragment as allocated in the block.
+        """
+        self._block.mark_fragment_allocated(self)
+
     def consume(self) -> bytes:
         """
         Consume the PSRD fragment. This requires that the fragment was previously allocated.

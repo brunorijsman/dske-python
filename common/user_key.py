@@ -21,19 +21,19 @@ class UserKey:
     A key for the user, delivered over the ETSI QKD 014 interface.
     """
 
-    _key_uuid: UUID
+    _key_id: UUID
     _value: bytes
 
-    def __init__(self, key_uuid: UUID, value: bytes):
-        self._key_uuid = key_uuid
+    def __init__(self, key_id: UUID, value: bytes):
+        self._key_id = key_id
         self._value = value
 
     @property
-    def key_uuid(self) -> UUID:
+    def key_id(self) -> UUID:
         """
         The UUID of the key.
         """
-        return self._key_uuid
+        return self._key_id
 
     @property
     def value(self) -> bytes:
@@ -41,6 +41,13 @@ class UserKey:
         The value of the key.
         """
         return self._value
+
+    @property
+    def size(self) -> int:
+        """
+        The size of the key in bytes.
+        """
+        return len(self._value)
 
     @classmethod
     def create_random_key(cls, size_in_bytes) -> "UserKey":
@@ -67,7 +74,7 @@ class UserKey:
         shares = []
         for share_index, share_value in share_indexes_and_values:
             # TODO: Error handling?
-            share = Share(self._key_uuid, share_index, value=share_value)
+            share = Share(self._key_id, share_index, value=share_value)
             shares.append(share)
         return shares
 
@@ -75,7 +82,7 @@ class UserKey:
     # @classmethod
     # def reconstruct_from_shares(
     #     cls,
-    #     key_uuid: UUID,
+    #     key_id: UUID,
     #     shares: list[Share],
     # ) -> "Key":
     #     """
@@ -85,5 +92,5 @@ class UserKey:
     #         (share.share_index, share.value) for share in shares
     #     ]
     #     binary_secret = reconstruct_binary_secret_from_shares(share_indexes_and_values)
-    #     key = Key(key_uuid, binary_secret)
+    #     key = Key(key_id, binary_secret)
     #     return key

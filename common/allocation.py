@@ -26,6 +26,7 @@ class Allocation:
         self._fragments = fragments
         self._value = None
         self._consumed = False
+        self.mark_allocated()
 
     @property
     def fragments(self) -> list[Fragment]:
@@ -50,6 +51,13 @@ class Allocation:
             "value": utils.bytes_to_str(self._value, truncate=True),
             "consumed": self._consumed,
         }
+
+    def mark_allocated(self) -> None:
+        """
+        Mark the allocation as allocated.
+        """
+        for fragment in self._fragments:
+            fragment.mark_allocated()
 
     def consume(self) -> bytes:
         """

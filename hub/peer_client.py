@@ -3,7 +3,7 @@ A peer DSKE client.
 """
 
 from common.block import Block
-from common.pool import Pool
+from common.pool import Allocator, Pool
 
 
 class PeerClient:
@@ -16,7 +16,7 @@ class PeerClient:
 
     def __init__(self, client_name: str):
         self._client_name = client_name
-        self._pool = Pool()
+        self._pool = Pool(Allocator.PEER)
         self._shares = {}
 
     @property

@@ -3,17 +3,20 @@ A peer hub.
 """
 
 import asyncio
+import sys
 from uuid import UUID
 from common import exceptions
 from common import http
 from common.block import APIBlock, Block
-from common.internal_keys import InternalKeys
-from common.pool import Pool
+from common.encryption_key import EncryptionKey
+from common.pool import Allocator, Pool
 from common.registration_api import (
     APIPutRegistrationRequest,
     APIPutRegistrationResponse,
 )
-from common.share import APIShare, Share
+from common.share import Share
+from common.share_api import APIPostShareRequest, APIGetShareResponse
+from common.utils import bytes_to_str
 
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
 #       the hub decide?
@@ -39,7 +42,7 @@ class PeerHub:
         if self._base_url.endswith("/"):
             self._base_url = self._base_url[:-1]
         self._registered = False
-        self._pool = Pool()
+        self._pool = Pool(Allocator.LOCAL)
         self._hub_name = None
 
     @property
@@ -75,10 +78,21 @@ class PeerHub:
           retrying if it fails).
         """
         try:
-            while not await self.attempt_registration():
+            print("Starting peer hub...", file=sys.stderr)  # $$$
+            print("Registering...", file=sys.stderr)  # $$$
+            success = await self.attempt_registration()
+            print(f"{success=}", file=sys.stderr)  # $$$
+            while not success:
+                print("Register failed...", file=sys.stderr)  # $$$
                 await asyncio.sleep(1.0)  # TODO: Introduce constants for this
+                success = await self.attempt_registration()
+                print(f"{success=}", file=sys.stderr)  # $$$
+            print("Getting PSRD...", file=sys.stderr)  # $$$
+            print("Register success...", file=sys.stderr)  # $$$
             while not await self.attempt_request_psrd():
+                print("Get PSRD failed...", file=sys.stderr)  # $$$
                 await asyncio.sleep(1.0)
+            print("Get PSRD success...", file=sys.stderr)  # $$$
         except asyncio.CancelledError:
             # The task is cancelled when the client is shut down before startup is complete.
             # TODO: Do we need to do anything here? The un-registration is done elsewhere
@@ -88,13 +102,15 @@ class PeerHub:
         """
         Attempt to register this client with the peer hub. Returns true if successful.
         """
+        print("Attempting to register with peer hub...", file=sys.stderr)  # $$$
         url = f"{self._base_url}/dske/oob/v1/registration"
-        data = APIPutRegistrationRequestModel(client_name=self._client.name)
+        data = APIPutRegistrationRequest(client_name=self._client.name)
         try:
             registration = await http.put(url, data, APIPutRegistrationResponse)
         except exceptions.HTTPError:
             print(
-                f"Failed to register client {self._client.name} with peer hub at {self._base_url}"
+                f"Failed to register client {self._client.name} with peer hub at {self._base_url}",
+                file=sys.stderr,
             )
             return False
         self._hub_name = registration.hub_name
@@ -112,6 +128,7 @@ class PeerHub:
         Attempt to request a block of Pre-Shared Random Data (PSRD) from the peer hub. Returns true
         if successful.
         """
+        print("attempt_request_psrd", file=sys.stderr)  # $$$
         url = f"{self._base_url}/dske/oob/v1/psrd"
         params = {"client_name": self._client.name, "size": _PSRD_BLOCK_SIZE_IN_BYTES}
         try:
@@ -130,42 +147,43 @@ class PeerHub:
         Post a key share to the peer hub.
         """
         url = f"{self._base_url}/dske/api/v1/key-share"
-        internal_keys = InternalKeys()
-        internal_keys.allocate(self._pool)
-        api_share = share.to_api(internal_keys)
+        encryption_key = EncryptionKey.from_pool(self._pool, share.size)
+        request = APIPostShareRequest(
+            client_name=self._client.name,
+            user_key_id=str(share.user_key_id),
+            share_index=share.share_index,
+            encrypted_share_value=bytes_to_str(encryption_key.encrypt(share.value)),
+            encryption_key_allocation=encryption_key.allocation.to_api(),
+        )
         await http.post(
             url=url,
-            api_request_obj=api_share,
+            api_request_obj=request,
             api_response_class=None,
-            internal_keys=internal_keys,
+            authentication_key_pool=self._pool,
         )
 
-    async def get_share(self, key_uuid: UUID) -> Share:
+    async def get_share(self, key_id: UUID, key_size: int) -> Share:
         """
         Get a key share from the peer hub.
         """
         url = f"{self._base_url}/dske/api/v1/key-share"
-        # TODO: Maybe handle encryption and authentication key separately, as opposed to combining
-        #       them in InternalKeys
-        internal_keys = InternalKeys()
-        internal_keys.allocate(self._pool)
+        share_size = Share.share_size_for_key_size(key_size)
+        encryption_key = EncryptionKey.from_pool(self._pool, share_size)
         params = {
             "client_name": self._client.name,
-            "key_id": str(key_uuid),
-            "encryption_key_allocation": internal_keys.encryption_key_allocation.to_param_str(),
+            "key_id": str(key_id),
+            "encryption_key_allocation": encryption_key.allocation.to_param_str(),
         }
         api_get_share_response = await http.get(
             url=url,
             params=params,
-            api_response_class=APIShare,
-            internal_keys=internal_keys,
+            api_response_class=APIGetShareResponse,
+            authentication_key_pool=self._pool,
         )
         share = Share(
-            user_key_uuid=api_get_share_response,
+            user_key_id=api_get_share_response,
             share_index=api_get_share_response.share_index,
-            value=bytes(),  # The value is not known yet (it's encrypted)
-            encrypted_value=api_get_share_response.encrypted_value,
-            encryption_key_allocation=api_get_share_response.encryption_key_allocation,
+            value=api_get_share_response.share_value,
         )
         return share
 

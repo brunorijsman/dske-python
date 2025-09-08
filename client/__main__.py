@@ -6,6 +6,7 @@ import argparse
 import contextlib
 import os
 import signal
+import sys
 
 import fastapi
 import uvicorn
@@ -46,6 +47,7 @@ async def lifespan(_app: fastapi.FastAPI):
     """
     Do the things that need to be done just after startup and just before shutdown.
     """
+    print("client.lifespan...", file=sys.stderr)  # $$$
     _CLIENT.start_all_peer_hubs()
     yield
     # TODO: Unregister (attempt without retry or very limited)

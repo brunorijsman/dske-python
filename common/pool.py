@@ -2,10 +2,14 @@
 A pool of blocks.
 """
 
+import enum
 from uuid import UUID
 from pydantic import PositiveInt
 from .allocation import Allocation
 from .block import Block
+
+
+# TODO: Unit tests for local_allocation_allowed behavior
 
 
 class OutOfPreSharedRandomDataError(Exception):
@@ -15,15 +19,36 @@ class OutOfPreSharedRandomDataError(Exception):
     """
 
 
+class Allocator(enum.Enum):
+    """
+    Who allocates the allocations out of the pool? The local node (this is the case for clients).
+    Or the peer node (this is the case for hubs). In other words, allocations always happen on the
+    client side. Note that allocations are always consumed locally, no matter where they are
+    allocated.
+    """
+
+    LOCAL = 1
+    PEER = 2
+
+
 class Pool:
     """
     A pool of blocks.
     """
 
-    _blocks: list[Block]  # In order of addition to the pool: oldest first.
+    _blocks: list[Block]
+    _allocator: Allocator
 
-    def __init__(self):
+    def __init__(self, allocator: Allocator):
         self._blocks = []
+        self._allocator = allocator
+
+    @property
+    def allocator(self) -> Allocator:
+        """
+        Get the allocator of the pool.
+        """
+        return self._allocator
 
     def to_mgmt(self) -> dict:
         """
@@ -31,6 +56,7 @@ class Pool:
         """
         return {
             "blocks": [block.to_mgmt() for block in self._blocks],
+            "allocator": str(self._allocator),
         }
 
     def add_block(self, block: Block):
@@ -55,6 +81,7 @@ class Pool:
         This either returns an Allocation object for the full requested `size` or None if there is
         not enough unallocated data left in the pool.
         """
+        assert self._allocator == Allocator.LOCAL
         # Collect fragments until we have what we need or until we have exhausted all blocks.
         fragments = []
         remaining_size = size

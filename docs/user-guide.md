@@ -267,7 +267,7 @@ $ <b>curl --silent http://127.0.0.1:8100/dske/hub/mgmt/v1/status | jq</b>
   ],
   "shares": [
     {
-      "key_uuid": "6050fccc-b882-402e-8ca1-62f0147999de",
+      "key_id": "6050fccc-b882-402e-8ca1-62f0147999de",
       "share_index": 0,
       "value": "1AvP8kSDA1KExw==...",
       "encrypted_value": null,

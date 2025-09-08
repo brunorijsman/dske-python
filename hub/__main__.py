@@ -11,7 +11,7 @@ import uvicorn
 from common import configuration
 from common import utils
 from common.block import APIBlock
-from common.share import APIShare
+from common.share_api import APIGetShareResponse, APIPostShareRequest
 from common.registration_api import APIPutRegistrationRequest
 from .hub import Hub
 
@@ -61,24 +61,25 @@ async def get_oob_psrd(client_name: str, size: pydantic.PositiveInt) -> APIBlock
 
 
 @_APP.post(f"/hub/{_HUB.name}/dske/api/v1/key-share")
-async def post_key_share(api_share: APIShare):
+async def post_key_share(api_post_share_request: APIPostShareRequest):
     """
     DSKE API: Post key share.
     """
-    _HUB.store_share_received_from_client(api_share)
+    _HUB.store_share_received_from_client(api_post_share_request)
 
 
 @_APP.get(f"/hub/{_HUB.name}/dske/api/v1/key-share")
 async def get_key_share(
     client_name: str,
-    key_id: str,
-    encryption_key_allocation: str,
-) -> APIShare:
+    key_id_str: str,
+    encryption_key_allocation_str: str,
+) -> APIGetShareResponse:
     """
     DSKE API: Get key share.
     """
-    # $$$ convert allotion str to allocation obj
-    return _HUB.get_share_requested_by_client(client_name, key_id)
+    return _HUB.get_share_requested_by_client(
+        client_name, key_id_str, encryption_key_allocation_str
+    )
 
 
 @_APP.get(f"/hub/{_HUB.name}/mgmt/v1/status")

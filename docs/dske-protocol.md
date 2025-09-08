@@ -345,6 +345,16 @@ In this section we describe the differences between the DSKE protocol as specifi
 [draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/)
 and the DSKE protocol as implemented in this repository.
 
+### Share generation and authentication scheme
+
+The arXiv paper contains a very detailed detailed and mathematical description of exact algorithm
+for generating the shares and for generating the authentication signature.
+The draft contains a shorter description.
+In both cases, we found the description complex and difficult to follow.
+We are not sure that our implementation matches the paper and the draft exactly.
+Once the project is more mature, we will attempt to contact the authors of the paper and draft to
+validate our implementation's correctness.
+
 ### REST message encoding
 
 The IETF draft describes the DSKE protocol only at a high level of abstraction and does specify the
@@ -360,13 +370,6 @@ Since the draft doesn't specify any particular encoding, using REST and HTTP is 
 from the draft per-se, but in a private email exchange one of the authors of the draft told us
 that he does not consider HTTP a good choice for the the DSKE protocol encoding and would prefer a
 lighter-weight binary encoding.
-
-### Authentication scheme
-
-The description of the authentication scheme in the draft is very dense and difficult to understand.
-Similarly, the description in the arXiv paper is rather vague.
-We are not sure that the implementation in our code matches the draft exactly.
-We use a key allocated from the PSRD to compute a Message Authentication Code (MAC).
 
 ### Local distributor
 

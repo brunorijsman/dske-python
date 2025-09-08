@@ -83,7 +83,7 @@ class Client:
         await self.scatter_key_amongst_peer_hubs(key)
         return {
             "keys": {
-                "key_ID": key.key_uuid,
+                "key_ID": key.key_id,
                 "key": utils.bytes_to_str(key.value),
             }
         }
@@ -97,12 +97,12 @@ class Client:
         # TODO: Use the Master SAE ID?
         # TODO: key_id should be a list; allow to get more than one key in a single call.
         # TODO: Error handling; the gather could fail for any number of reasons.
-        key_uuid = UUID(key_id)
-        key = await self.gather_key_from_peer_hubs(key_uuid)
+        key_id = UUID(key_id)
+        key = await self.gather_key_from_peer_hubs(key_id)
         return {
             "keys": [
                 {
-                    "key_ID": key.key_uuid,
+                    "key_ID": key.key_id,
                     "key": utils.bytes_to_str(key.value),
                 }
             ]
@@ -130,23 +130,17 @@ class Client:
         # Split key into shares
         nr_shares = len(self._peer_hubs)
         shares = key.split_into_shares(nr_shares, _MIN_NR_SHARES)
-        # Allocate encryption and authentication keys for each share
-        for peer_hub, share in zip(self._peer_hubs, shares):
-            share.allocate_encryption_key_from_pool(peer_hub.pool)
         # TODO: Error handling. If there was an issue allocating any one of the encryption or
         #       authentication keys, deallocate all of the ones that were allocated, and return
         #       and error to the caller.
-        # Encrypt and sign each share
-        for share in shares:
-            share.encrypt()
         # POST the key shares to the peer hubs
         for peer_hub, share in zip(self._peer_hubs, shares):
             await peer_hub.post_share(share)
-        # Delete folly consumed blocks from all pools
+        # Delete fully consumed blocks from all pools
         for peer_hub in self._peer_hubs:
             peer_hub.delete_fully_consumed_blocks()
 
-    async def gather_key_from_peer_hubs(self, key_uuid: UUID) -> UserKey:
+    async def gather_key_from_peer_hubs(self, key_id: UUID) -> UserKey:
         """
         Gather key shares from the peer hubs, and reconstruct the key out of (a subset of)
         the key shares.
@@ -158,7 +152,7 @@ class Client:
             #      signature key; see fundamental problem in file TODO
             # TODO: Handle exception. If an exception occurs, we just skip the peer hub, and move
             #       on to the next one. We just need K out of N shares to reconstruct the key.
-            share = await peer_hub.get_share(key_uuid)
+            share = await peer_hub.get_share(key_id)
             share.decrypt()
             shares.append(share)
         # TODO: Check if we have enough shares
@@ -168,5 +162,5 @@ class Client:
         key_value = shamir.reconstruct_binary_secret_from_shares(
             _MIN_NR_SHARES, shamir_input
         )
-        key = UserKey(key_uuid, key_value)
+        key = UserKey(key_id, key_value)
         return key

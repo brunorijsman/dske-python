@@ -2,11 +2,14 @@
 A DSKE security hub, or DSKE hub, or just hub for short.
 """
 
-from copy import deepcopy
 from uuid import UUID
 from common import exceptions
+from common.allocation import Allocation
 from common.block import Block
-from common.share import APIShare, Share
+from common.encryption_key import EncryptionKey
+from common.share import Share
+from common.share_api import APIGetShareResponse, APIPostShareRequest
+from common.utils import str_to_bytes
 from .peer_client import PeerClient
 
 
@@ -61,51 +64,63 @@ class Hub:
         if client_name not in self._peer_clients:
             raise exceptions.ClientNotRegisteredError(client_name)
         peer_client = self._peer_clients[client_name]
-        psrd_block = peer_client.create_random_block(size)
-        return psrd_block
+        block = peer_client.create_random_block(size)
+        return block
 
-    def store_share_received_from_client(self, api_share: APIShare):
+    def store_share_received_from_client(
+        self, api_post_share_request: APIPostShareRequest
+    ):
         """
-        Store a key share received from a client.
+        Store a key share posted by a client.
         """
-        client_name = api_share.client_name
+        client_name = api_post_share_request.client_name
         if client_name not in self._peer_clients:
             raise exceptions.ClientNotRegisteredError(client_name)
         peer_client = self._peer_clients[client_name]
-        pool = peer_client.pool
-        share = Share.from_api(api_share, pool)
+        encryption_key_allocation = Allocation.from_api(
+            api_post_share_request.encryption_key_allocation, peer_client.pool
+        )
+        encryption_key = EncryptionKey.from_allocation(encryption_key_allocation)
+        encrypted_share_value = str_to_bytes(
+            api_post_share_request.encrypted_share_value
+        )
+        share_value = encryption_key.decrypt(encrypted_share_value)
+        share = Share(
+            user_key_id=UUID(api_post_share_request.user_key_id),
+            share_index=api_post_share_request.share_index,
+            value=share_value,
+        )
         # TODO: Check if the key UUID is already present, and if so, do something sensible
-        share.decrypt()
-        self._shares[share.user_key_uuid] = share
+        self._shares[share.user_key_id] = share
 
-    def get_share_requested_by_client(self, client_name: str, key_id: str) -> APIShare:
+    def get_share_requested_by_client(
+        self,
+        client_name: str,
+        key_id_str: str,
+        encryption_key_allocation_str: str,
+    ) -> APIGetShareResponse:
         """
         Get a key share.
         """
-        # TODO: The encryption key should be chosen by the client, not the hub, because of possible
-        #       race conditions.
         try:
-            key_uuid = UUID(key_id)
+            key_id = UUID(key_id_str)
         except ValueError as exc:
-            raise exceptions.InvalidKeyIDError(key_id) from exc
+            raise exceptions.InvalidKeyIDError(key_id_str) from exc
         # TODO: Error handling: share is not in the store
         try:
-            share = self._shares[key_uuid]
+            share = self._shares[key_id]
         except KeyError as exc:
             raise exceptions.UnknownKeyIDError(key_id) from exc
-        # Make a copy of the share, we don't want to change the unencrypted share in the store.
-        share = deepcopy(share)
-        # Allocate encryption and authentication keys for the share
         peer_client = self._peer_clients[client_name]
-        share.allocate_encryption_key_from_pool(peer_client.pool)
-        # TODO: Error handling. If there was an issue allocating any one of the encryption or
-        #       authentication keys, deallocate all of the ones that were allocated, and return
-        #       and error to the caller.
-        # Encrypt the share
-        share.encrypt()
+        encryption_key_allocation = Allocation.from_param_str(
+            encryption_key_allocation_str, peer_client.pool
+        )
+        encryption_key = EncryptionKey.from_allocation(encryption_key_allocation)
+        encrypted_share_value = encryption_key.encrypt(share.value)
+        response = APIGetShareResponse(encrypted_share_value=encrypted_share_value)
         # TODO: Remove it from the store once all responder clients have retrieved it
-        #       For now, we don't implement multicast, so we can remove it now
+        #       For now, we don't implement multicast, so we can remove it now (not implemented yet)
         #       Later, when we add multicast, we have to track which responders have and have not
         #       yet gotten the share.
         #       Also, need a time-out to handle the case that some responder never asks for it
-        return share.to_api(client_name)
+        return response
