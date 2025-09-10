@@ -1,26 +1,4 @@
-TODO: Introduce the concept of block ownership
-      - Add the owned attribute
-      - Allow multiple blocks in a distribution
-      - Distribute a client-owned block and a hub-owned block initially
-      - Add documentation about ownership (why it exists)
-
-TODO: Implement authentication on DSKE interface
-      Using authentication keys harvested from pre-shared random data.
-      - Client encode request / server encode response:
-        - Add authentication header
-        - Allocate authentication key from pool (chosen by pool)
-        - Encode key allocation into authentication header
-      - Server decode request / encode response:
-        - Extract authentication header
-        - Extract key allocation from authentication header (chosen by client)
-        - Extract key value from pool
-        - Verify signature
-        - Handle verification error
-      - Both Client and Server side:
-        - Parameter to indicate from which authentication key is allocated
-        - Parameter to indicate whether authentication is needed or not
-        - Compute signature over request
-        - Handle allocation failure
+TODO: Finish implementation of authentication header DSKE-Authentication
 
 TODO: Move code coverage data files to subdirectory
 
@@ -32,35 +10,16 @@ TODO: Make sure key has unique key UUID
 
 TODO: Key initiator: Select N peer hub (initially: all peer hubs)
 
-TODO: Key initiator: Allocate PSRD bytes for each peer hub
-
-TODO: In key-share message: encrypted key-share
-
-TODO: In key-share message: none + HMAC over encrypted key-share + nonce + shared secret (+ more?)
-
 TODO: Have client unregister itself from all hubs when it shuts down.
       The API call should use the DELETE method.
       Shutting down should not cause the client to unregister itself; make unregistration
       an explicit option.
 
-TODO: Allow a client to register itself again (after a restart).
-
-TODO: Retry client registrations when they fail.
-      Perhaps use tenacity
-      See https://medium.com/@benshearlaw/how-to-use-httpx-request-client-with-fastapi-16255a9984a4
+TODO: Allow a client to register itself again (after a restart). Done; just need to test.
 
 TODO: Add statistics management API and topology command to query it.
 
-TODO: Add support for local distributors.
-
 TODO: Add log messages
-
-TODO: Setup CI/CD environment
-
-TODO: Implement mTLS authentication of SAEs on the ETSI QKD interface.
-
-TODO: Graceful handling of a client registering more than once
-      Don't just fail - the client will re-register when it restarts
 
 TODO: Remark about ETSI QKD API
       For now, we assumed that there is exactly one SAE attached to every DSKE client, and that the
@@ -77,43 +36,17 @@ TODO: Remark about ETSI QKD API
 
 TODO: More unit test cases to get code coverage up
 
-TODO: Have the hub assign an ID to each peer client; we don't really need it but the draft talks
-      about it a lot.
-
-TODO: Perhaps move all of the common packages (psrd, key) to a single package, namely package
-      "common"?
-
 TODO: Add Sphinx documentation
       Use https://github.com/tox-dev/sphinx-autodoc-typehints 
 
-TODO: Do we even need pre-shared keys?
-      What if we always just rely on PSRDs for all keys?
+TODO: Cleanup share after all clients have retrieved it, or after timeout.
 
-TODO: For each Share keep track of:
-      - The originator client name (or UUID)
-      - The responder client names (or UUIDs) - can be more than one for multicast
-      - Cleanup the Share when all responders retrieved it
-      - Or cleanup after some timeout
-
-TODO: For now, we just request one block of PSRD from each peer hub. Once we have FSMs,
-      we need to request new blocks of PSRD as the random data is consumed and falls below
-      some defined threshold.
-
-TODO: Do we need a formal Finite State Machine (FSM) for each peer hub, running independently
-      from the FSMs of other peer hubs?
+TODO: Request new PSRD blocks when they run low (have a threshold)
 
 TODO: Use async features to send all shares to the peer hubs in parallel, instead of sequentially
       one after the other. Ditto for getting the shares on the responder client.
 
 TODO: Better way to avoid circular imports that then current # type: ignore
-
-TODO: Fundamental problem
-      There is a race condition:
-      If initiator client sends key-share to hub, the client allocates the decryption/signature key
-      If responder client gets key-share from hub, the hub currently allocates the decryption/
-        signature key. They could allocate the same bits from the pool.
-      Solution: always have the client allocate the decryption/signature key bits and include them
-        in the get key-share request. That probably means it will have to be a POST.
 
 TODO: Make the swagger docs also work off-line
 
@@ -129,15 +62,7 @@ TODO: Test creation and deletion of PID file
 
 TODO: Figure out how to debug the code (set breakpoint from VSC and document that)
 
-TODO: Store PSRDs in persistent storage. Resync after a hub or a client restarts
-
-TODO: In system tests, not only wait for the clients to be started but also started
-
 TODO: Put .out files in a sub-directory
-
-TODO: Reorganize documentation into separate files
-
-TODO: Add design chapter to documentation
 
 TODO: OpenAPI (Swagger) documentation should show proper type for request and response data
 
