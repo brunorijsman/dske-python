@@ -50,13 +50,17 @@ async def put_oob_client_registration(
 
 
 @_APP.get(f"/hub/{_HUB.name}/dske/oob/v1/psrd")
-async def get_oob_psrd(client_name: str, size: pydantic.PositiveInt) -> APIBlock:
+async def get_oob_psrd(
+    client_name: str,
+    pool_owner: str,
+    size: pydantic.PositiveInt,
+) -> APIBlock:
     """
     DSKE Out of band: Get a block of Pre-Shared Random Data (PSRD).
     """
     # TODO: Error if the client was not peer.
     # TODO: Allow size to be None (use default size decided by hub).
-    block = _HUB.generate_block_for_client(client_name, size)
+    block = _HUB.generate_block_for_client(client_name, pool_owner, size)
     return block.to_api()
 
 
@@ -69,17 +73,11 @@ async def post_key_share(api_post_share_request: APIPostShareRequest):
 
 
 @_APP.get(f"/hub/{_HUB.name}/dske/api/v1/key-share")
-async def get_key_share(
-    client_name: str,
-    key_id_str: str,
-    encryption_key_allocation_str: str,
-) -> APIGetShareResponse:
+async def get_key_share(client_name: str, key_id: str) -> APIGetShareResponse:
     """
     DSKE API: Get key share.
     """
-    return _HUB.get_share_requested_by_client(
-        client_name, key_id_str, encryption_key_allocation_str
-    )
+    return _HUB.get_share_requested_by_client(client_name, key_id)
 
 
 @_APP.get(f"/hub/{_HUB.name}/mgmt/v1/status")

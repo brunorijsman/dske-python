@@ -7,9 +7,10 @@ from common import exceptions
 from common.allocation import Allocation
 from common.block import Block
 from common.encryption_key import EncryptionKey
+from common.pool import Pool
 from common.share import Share
 from common.share_api import APIGetShareResponse, APIPostShareRequest
-from common.utils import str_to_bytes
+from common.utils import str_to_bytes, bytes_to_str
 from .peer_client import PeerClient
 
 
@@ -57,14 +58,23 @@ class Hub:
         self._peer_clients[client_name] = peer_client
         return peer_client
 
-    def generate_block_for_client(self, client_name: str, size: int) -> Block:
+    def generate_block_for_client(
+        self, client_name: str, pool_owner_str: str, size: int
+    ) -> Block:
         """
         Generate a block of PSRD for a peer client.
         """
         if client_name not in self._peer_clients:
             raise exceptions.ClientNotRegisteredError(client_name)
         peer_client = self._peer_clients[client_name]
-        block = peer_client.create_random_block(size)
+        match pool_owner_str.lower():
+            case "client":
+                pool_owner = Pool.Owner.CLIENT
+            case "hub":
+                pool_owner = Pool.Owner.HUB
+            case _:
+                raise exceptions.InvalidPoolOwnerError(pool_owner_str)
+        block = peer_client.create_random_block(pool_owner, size)
         return block
 
     def store_share_received_from_client(
@@ -78,7 +88,7 @@ class Hub:
             raise exceptions.ClientNotRegisteredError(client_name)
         peer_client = self._peer_clients[client_name]
         encryption_key_allocation = Allocation.from_api(
-            api_post_share_request.encryption_key_allocation, peer_client.pool
+            api_post_share_request.encryption_key_allocation, peer_client.client_pool
         )
         encryption_key = EncryptionKey.from_allocation(encryption_key_allocation)
         encrypted_share_value = str_to_bytes(
@@ -94,10 +104,7 @@ class Hub:
         self._shares[share.user_key_id] = share
 
     def get_share_requested_by_client(
-        self,
-        client_name: str,
-        key_id_str: str,
-        encryption_key_allocation_str: str,
+        self, client_name: str, key_id_str: str
     ) -> APIGetShareResponse:
         """
         Get a key share.
@@ -112,12 +119,13 @@ class Hub:
         except KeyError as exc:
             raise exceptions.UnknownKeyIDError(key_id) from exc
         peer_client = self._peer_clients[client_name]
-        encryption_key_allocation = Allocation.from_param_str(
-            encryption_key_allocation_str, peer_client.pool
-        )
-        encryption_key = EncryptionKey.from_allocation(encryption_key_allocation)
+        encryption_key = EncryptionKey.from_pool(peer_client.hub_pool, share.size)
         encrypted_share_value = encryption_key.encrypt(share.value)
-        response = APIGetShareResponse(encrypted_share_value=encrypted_share_value)
+        response = APIGetShareResponse(
+            share_index=share.share_index,
+            encryption_key_allocation=encryption_key.allocation.to_api(),
+            encrypted_share_value=bytes_to_str(encrypted_share_value),
+        )
         # TODO: Remove it from the store once all responder clients have retrieved it
         #       For now, we don't implement multicast, so we can remove it now (not implemented yet)
         #       Later, when we add multicast, we have to track which responders have and have not

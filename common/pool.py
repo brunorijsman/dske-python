@@ -9,7 +9,7 @@ from .allocation import Allocation
 from .block import Block
 
 
-# TODO: Unit tests for local_allocation_allowed behavior
+# TODO: Unit tests for newly added _owner attribute.
 
 
 class OutOfPreSharedRandomDataError(Exception):
@@ -19,36 +19,34 @@ class OutOfPreSharedRandomDataError(Exception):
     """
 
 
-class Allocator(enum.Enum):
-    """
-    Who allocates the allocations out of the pool? The local node (this is the case for clients).
-    Or the peer node (this is the case for hubs). In other words, allocations always happen on the
-    client side. Note that allocations are always consumed locally, no matter where they are
-    allocated.
-    """
-
-    LOCAL = 1
-    PEER = 2
-
-
 class Pool:
     """
     A pool of blocks.
     """
 
-    _blocks: list[Block]
-    _allocator: Allocator
+    class Owner(enum.Enum):
+        """
+        Who owns the pool? The client node or the hub node? Only the owner is allowed to make
+        allocations out of the pool. The non-owner is only allowed to consume allocations made
+        by the peer node, who is the owner of the pool.
+        """
 
-    def __init__(self, allocator: Allocator):
+        CLIENT = 1
+        HUB = 2
+
+    _blocks: list[Block]
+    _owner: Owner
+
+    def __init__(self, owner: Owner):
         self._blocks = []
-        self._allocator = allocator
+        self._owner = owner
 
     @property
-    def allocator(self) -> Allocator:
+    def owner(self) -> Owner:
         """
-        Get the allocator of the pool.
+        Get the owner of the pool.
         """
-        return self._allocator
+        return self._owner
 
     def to_mgmt(self) -> dict:
         """
@@ -56,7 +54,7 @@ class Pool:
         """
         return {
             "blocks": [block.to_mgmt() for block in self._blocks],
-            "allocator": str(self._allocator),
+            "owner": str(self._owner),
         }
 
     def add_block(self, block: Block):
@@ -81,7 +79,6 @@ class Pool:
         This either returns an Allocation object for the full requested `size` or None if there is
         not enough unallocated data left in the pool.
         """
-        assert self._allocator == Allocator.LOCAL
         # Collect fragments until we have what we need or until we have exhausted all blocks.
         fragments = []
         remaining_size = size

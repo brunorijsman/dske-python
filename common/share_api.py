@@ -3,7 +3,7 @@ Models for the share key API.
 """
 
 import pydantic
-from .allocation import APIAllocation
+from common.allocation import APIAllocation
 
 
 class APIPostShareRequest(pydantic.BaseModel):
@@ -14,23 +14,23 @@ class APIPostShareRequest(pydantic.BaseModel):
     client_name: str
     user_key_id: str
     share_index: int
-    encrypted_share_value: str  # Base64 encoded
     encryption_key_allocation: APIAllocation
+    encrypted_share_value: str  # Base64 encoded
 
     def __init__(
         self,
         client_name: str,
         user_key_id: str,
         share_index: int,
-        encrypted_share_value: str,
         encryption_key_allocation: APIAllocation,
+        encrypted_share_value: str,  # Base64 encoded
     ):
         super().__init__(
             client_name=client_name,
             user_key_id=user_key_id,
             share_index=share_index,
-            encrypted_share_value=encrypted_share_value,
             encryption_key_allocation=encryption_key_allocation,
+            encrypted_share_value=encrypted_share_value,
         )
 
 
@@ -39,7 +39,18 @@ class APIGetShareResponse(pydantic.BaseModel):
     Model for the GET share response in the API.
     """
 
+    share_index: int
+    encryption_key_allocation: APIAllocation
     encrypted_share_value: str  # Base64 encoded
 
-    def __init__(self, encrypted_share_value: str):
-        super().__init__(encrypted_share_value=encrypted_share_value)
+    def __init__(
+        self,
+        share_index: int,
+        encryption_key_allocation: APIAllocation,
+        encrypted_share_value: str,
+    ):
+        super().__init__(
+            share_index=share_index,
+            encryption_key_allocation=encryption_key_allocation,
+            encrypted_share_value=encrypted_share_value,
+        )

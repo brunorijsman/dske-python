@@ -358,8 +358,7 @@ class Manager:
             # TODO: Check response (error handling)
         except requests.exceptions.RequestException as exc:
             self.error(f"Failed to invoke ETSI QKD Get Key API: {exc}")
-        print(f"{response=}")
-        print(f"json={json.dumps(response.json(), indent=2)}")
+        print(json.dumps(response.json(), indent=2))
         return response.json()
 
     def etsi_qkd_get_key_pair(self, master_node: Node, slave_node: Node):

@@ -2,7 +2,6 @@
 HTTP client for making GET and POST requests and decoding the response using Pydantic.
 """
 
-import sys
 import httpx
 import pydantic
 from common import exceptions
@@ -28,7 +27,6 @@ def compute_authentication_headers(
     if authentication_key_pool is None:
         return headers
     authentication_key = AuthenticationKey(authentication_key_pool)
-    print("{authentication_key=}", file=sys.stderr)  # $$$
     message_params_str = "foobar"  # TODO
     message_body_str = "foobar"  # TODO
     signature = authentication_key.sign_message(message_params_str, message_body_str)
@@ -48,14 +46,11 @@ async def get(
     If `authentication_key_pool` is None, no authentication is done. If it is not None, use it to
     allocate a key the request authentication signature.
     """
-    print(f"HTTP GET {url=} {params=}", file=sys.stderr)  # $$$
     headers = compute_authentication_headers(authentication_key_pool)
-    print(f"{headers=}", file=sys.stderr)  # $$$
     async with httpx.AsyncClient() as httpx_client:
         try:
             response = await httpx_client.get(url, params=params, headers=headers)
         except httpx.HTTPError as exc:
-            print(f"EXCEPTION {exc=}", file=sys.stderr)  # $$$
             raise exceptions.HTTPError(
                 method="GET",
                 url=url,
@@ -63,7 +58,6 @@ async def get(
                 params=params,
                 exception=str(exc),
             ) from exc
-        print(f"{response=}", file=sys.stderr)  # $$$
         if response.status_code != 200:
             raise exceptions.HTTPError(
                 method="GET",
@@ -128,18 +122,14 @@ async def put_or_post(
     Send a HTTP PUT or POST request. Use Pydantic to encode the request data and to decode the
     response data.
     """
-    print(f"HTTP {method} {url} {api_request_obj}", file=sys.stderr)  # $$$
     headers = compute_authentication_headers(authentication_key_pool)
-    print(f"{headers=}", file=sys.stderr)  # $$$
     async with httpx.AsyncClient() as httpx_client:
         json = api_request_obj.model_dump()
-        print(f"{json=}", file=sys.stderr)  # $$$
         try:
             response = await httpx_client.request(
                 method, url, json=json, headers=headers
             )
         except httpx.HTTPError as exc:
-            print(f"EXCEPTION {exc=}", file=sys.stderr)  # $$$
             raise exceptions.HTTPError(
                 method=method,
                 url=url,
@@ -147,7 +137,6 @@ async def put_or_post(
                 data=api_request_obj,
                 exception=str(exc),
             ) from exc
-        print(f"{response=}", file=sys.stderr)
         if response.status_code != 200:
             raise exceptions.HTTPError(
                 method=method,
@@ -159,13 +148,10 @@ async def put_or_post(
             )
         if api_response_class is None:
             # TODO: Check that the response is empty, since none is expected
-            print(f"Return None", file=sys.stderr)  # $$$
             return None
         try:
             obj = api_response_class.model_validate(response.json())
-            print(f"response {obj=}", file=sys.stderr)  # $$$
         except pydantic.ValidationError as exc:
-            print(f"VALIDATION EXCEPTION {exc=}", file=sys.stderr)  # $$$
             raise exceptions.HTTPError(
                 method=method,
                 url=url,

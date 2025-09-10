@@ -41,7 +41,6 @@ For GET key-share
 
 from .allocation import Allocation
 from .pool import Pool
-import sys
 
 
 class EncryptionKey:
@@ -62,7 +61,6 @@ class EncryptionKey:
         Allocate a new EncryptionKey from the given pool.
         """
         allocation = pool.allocate(key_size)
-        print(f"Allocation for encryption key: {allocation.to_mgmt()}", file=sys.stderr)
         return EncryptionKey(allocation)
 
     @classmethod
@@ -84,8 +82,6 @@ class EncryptionKey:
         Encrypt data.
         """
         encryption_key = self._allocation.value
-        print(f"{len(encryption_key)=}", file=sys.stderr)  # TODO $$$
-        print(f"{len(data)=}", file=sys.stderr)  # TODO $$$
         assert len(encryption_key) == len(data)
         encrypted_byte_list = [
             data_byte ^ encryption_key_byte

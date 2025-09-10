@@ -91,13 +91,6 @@ class Block:
         # client).
         return Fragment(self, found_start, found_size)
 
-    def mark_fragment_allocated(self, fragment: Fragment):
-        """
-        Mark the bits in the block corresponding to the fragment as allocated.
-        """
-        end_byte = fragment.start_byte + fragment.size
-        self._allocated[fragment.start_byte : end_byte] = True
-
     def deallocate_fragment(self, fragment: Fragment):
         """
         Deallocate a fragment from the block.

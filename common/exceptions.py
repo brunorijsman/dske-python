@@ -24,6 +24,17 @@ class ClientNotRegisteredError(DSKEException):
         )
 
 
+class InvalidPoolOwnerError(DSKEException):
+    """
+    Exception raised when an invalid pool owner is specified.
+    """
+
+    def __init__(self, pool_owner_str: str):
+        super().__init__(
+            message=f"Pool owner {pool_owner_str} is invalid.",
+        )
+
+
 class HTTPError(DSKEException):
     """
     Exception raised when an HTTP request failed.

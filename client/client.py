@@ -148,15 +148,11 @@ class Client:
         # Attempt to get a key share from every peer hub.
         shares = []
         for peer_hub in self._peer_hubs:
-            # TODO The client should allocated the allocations for the encryption key and the
-            #      signature key; see fundamental problem in file TODO
             # TODO: Handle exception. If an exception occurs, we just skip the peer hub, and move
             #       on to the next one. We just need K out of N shares to reconstruct the key.
             share = await peer_hub.get_share(key_id)
-            share.decrypt()
             shares.append(share)
         # TODO: Check if we have enough shares
-        # TODO: Reconstruct the key using Shamir secret sharing algorithm
         # Reconstruct the key from the shares
         shamir_input = [(share.share_index, share.value) for share in shares]
         key_value = shamir.reconstruct_binary_secret_from_shares(
