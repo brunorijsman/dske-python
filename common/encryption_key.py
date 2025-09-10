@@ -68,6 +68,7 @@ class EncryptionKey:
         """
         Create an EncryptionKey from an existing allocation.
         """
+        allocation.mark_allocated()
         return EncryptionKey(allocation)
 
     @property

@@ -86,10 +86,9 @@ class Block:
         if found_size > desired_size:
             found_end = found_start + desired_size
             found_size = desired_size
-        # The fragment constructor calls mark_fragment_allocated. This is done because the fragment
-        # is not always allocated locally. On the hub it is allocated remotely on the peer (i.e. the
-        # client).
-        return Fragment(self, found_start, found_size)
+        self._allocated[found_start:found_end] = True
+        fragment = Fragment(self, found_start, found_size)
+        return fragment
 
     def deallocate_fragment(self, fragment: Fragment):
         """

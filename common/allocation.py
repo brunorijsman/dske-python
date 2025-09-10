@@ -26,7 +26,6 @@ class Allocation:
         self._fragments = fragments
         self._value = None
         self._consumed = False
-        self.mark_allocated()
 
     @property
     def fragments(self) -> list[Fragment]:
