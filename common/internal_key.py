@@ -43,6 +43,7 @@ For GET key-share
 
 import hashlib
 import hmac
+from common.utils import bytes_to_str
 from .allocation import Allocation
 from .pool import Pool
 
@@ -113,3 +114,28 @@ class InternalKey:
 
         h = hmac.new(signing_key, data, hashlib.sha256)
         return h.digest()
+
+    @staticmethod
+    def make_authentication_header(
+        pool: Pool, params: bytes | None, content: bytes | None
+    ) -> str:
+        """
+        Create the value for the DSKE-Authentication header for a request with the given query
+        parameters and content.
+        TODO: Add a nonce to prevent replay attacks.
+        TODO: Should we also sign the URL path?
+        """
+        assert params is not None or content is not None
+        signed_data = b""
+        if params is not None:
+            signed_data += params
+        if content is not None:
+            signed_data += content
+        authentication_key = InternalKey.from_pool(
+            pool, InternalKey.AUTHENTICATION_KEY_SIZE
+        )
+        allocation_str = authentication_key.allocation.to_param_str()
+        signature_bin = authentication_key.sign(signed_data)
+        signature_str = bytes_to_str(signature_bin)
+        header_value = f"{allocation_str};{signature_str}"
+        return header_value

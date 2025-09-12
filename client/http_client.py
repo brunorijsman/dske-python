@@ -7,7 +7,6 @@ import pydantic
 from common import exceptions
 from common.internal_key import InternalKey
 from common.pool import Pool
-from common.utils import bytes_to_str
 
 
 # TODO: Introduce common APIError to return and decode non-OK response
@@ -34,15 +33,13 @@ class HttpClient:
             self._authentication_key_pool = authentication_key_pool
 
         def auth_flow(self, request):
-            signed_data = request.url.query + request.content
-            authentication_key = InternalKey.from_pool(
-                self._authentication_key_pool, InternalKey.AUTHENTICATION_KEY_SIZE
+            request.headers["DSKE-Authentication"] = (
+                InternalKey.make_authentication_header(
+                    self._authentication_key_pool,
+                    request.url.query,
+                    request.content,
+                )
             )
-            allocation_str = authentication_key.allocation.to_param_str()
-            signature_bin = authentication_key.sign(signed_data)
-            signature_str = bytes_to_str(signature_bin)
-            authorization_str = f"{allocation_str};{signature_str}"
-            request.headers["DSKE-Authentication"] = authorization_str
             yield request
 
     def __init__(self, authentication_key_pool: Pool):
