@@ -6,7 +6,7 @@ from . import allocation
 from . import block
 from . import exceptions
 from . import fragment
-from . import encryption_key
+from . import internal_key
 from . import user_key
 from . import pool
 from . import shamir

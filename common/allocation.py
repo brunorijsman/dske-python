@@ -127,5 +127,6 @@ class Allocation:
     def to_param_str(self) -> str:
         """
         Convert the allocation to a string that can be used as a parameter in an HTTP request.
+        TODO: Better name; also used in headers.
         """
         return ",".join([fragment.to_param_str() for fragment in self._fragments])

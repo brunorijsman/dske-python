@@ -5,10 +5,12 @@ protocol messages.
 The share encryption keys must not be confused with the keys which are delivered to users
 (see class UserKey).
 
-We use separate keys for encryption (class EncryptionKey) and message authentication
+We use separate keys for encryption (class InternalKey) and message authentication
 (class AuthenticationKey).
 See also
 https://crypto.stackexchange.com/questions/12090/using-the-same-rsa-keypair-to-sign-and-encrypt.
+
+TODO: Move all this explanation to the developer documentation
 
 The MessageAuthentication keys are allocated from Pre-Shared Random Data (PSRD).
 
@@ -39,14 +41,19 @@ For GET key-share
   - Uses the share encryption key to encrypt the share before it is sent to the client.
 """
 
+import hashlib
+import hmac
 from .allocation import Allocation
 from .pool import Pool
 
 
-class EncryptionKey:
+class InternalKey:
     """
-    A key that is used internally within the DSKE protocol to encrypt the user-key shares.
+    A key that is used internally within the DSKE protocol to encrypt the user-key shares or to
+    sign messages.
     """
+
+    AUTHENTICATION_KEY_SIZE = 32  # bytes
 
     def __init__(self, allocation: Allocation):
         """
@@ -58,18 +65,18 @@ class EncryptionKey:
     @classmethod
     def from_pool(cls, pool: Pool, key_size: int):
         """
-        Allocate a new EncryptionKey from the given pool.
+        Allocate a new InternalKey from the given pool.
         """
         allocation = pool.allocate(key_size)
-        return EncryptionKey(allocation)
+        return InternalKey(allocation)
 
     @classmethod
     def from_allocation(cls, allocation):
         """
-        Create an EncryptionKey from an existing allocation.
+        Create an InternalKey from an existing allocation that was received from the peer.
         """
         allocation.mark_allocated()
-        return EncryptionKey(allocation)
+        return InternalKey(allocation)
 
     @property
     def allocation(self):
@@ -80,7 +87,7 @@ class EncryptionKey:
 
     def encrypt(self, data: bytes) -> bytes:
         """
-        Encrypt data.
+        Encrypt data and return the encrypted data.
         """
         encryption_key = self._allocation.value
         assert len(encryption_key) == len(data)
@@ -93,7 +100,16 @@ class EncryptionKey:
 
     def decrypt(self, encrypted_data: bytes) -> bytes:
         """
-        Decrypt encrypted data.
+        Decrypt encrypted data and return the decrypted data.
         """
         # Since we do XOR encryption, encryption and decryption are the same operation.
         return self.encrypt(encrypted_data)
+
+    def sign(self, data: bytes) -> bytes:
+        """
+        Sign data and return the signature.
+        """
+        signing_key = self._allocation.value
+
+        h = hmac.new(signing_key, data, hashlib.sha256)
+        return h.digest()

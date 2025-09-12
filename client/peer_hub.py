@@ -8,7 +8,7 @@ from uuid import UUID
 from common import exceptions
 from common.allocation import Allocation
 from common.block import APIBlock, Block
-from common.encryption_key import EncryptionKey
+from common.internal_key import InternalKey
 from common.pool import Pool
 from common.registration_api import (
     APIPutRegistrationRequest,
@@ -163,7 +163,7 @@ class PeerHub:
         Post a key share to the peer hub.
         """
         url = f"{self._base_url}/dske/api/v1/key-share"
-        encryption_key = EncryptionKey.from_pool(self._client_pool, share.size)
+        encryption_key = InternalKey.from_pool(self._client_pool, share.size)
         request = APIPostShareRequest(
             client_name=self._client.name,
             user_key_id=str(share.user_key_id),
@@ -196,7 +196,7 @@ class PeerHub:
         encryption_key_allocation = Allocation.from_api(
             response.encryption_key_allocation, self._hub_pool
         )
-        encryption_key = EncryptionKey.from_allocation(encryption_key_allocation)
+        encryption_key = InternalKey.from_allocation(encryption_key_allocation)
         encrypted_share_value = str_to_bytes(response.encrypted_share_value)
         share_value = encryption_key.decrypt(encrypted_share_value)
         share = Share(

@@ -6,8 +6,9 @@ import sys
 import httpx
 import pydantic
 from common import exceptions
-from common.authentication_key import AuthenticationKey
+from common.internal_key import InternalKey
 from common.pool import Pool
+from common.utils import bytes_to_str
 
 
 # TODO: Introduce common APIError to return and decode non-OK response
@@ -36,21 +37,17 @@ class HttpClient:
             self._authentication_key_pool = authentication_key_pool
 
         def auth_flow(self, request):
-            print("Auth flow called", file=sys.stderr)
-            print(f"query = {request.url.query}", file=sys.stderr)
-            print(f"content = {request.content}", file=sys.stderr)
-            # TODO $$$ finish this
-            # headers = {}
-            # if self._authentication_key_pool is None:
-            #     return headers
-            _authentication_key = AuthenticationKey(self._authentication_key_pool)
-            # message_params_str = "foobar"  # TODO
-            # message_body_str = "foobar"  # TODO
-            # signature = authentication_key.sign_message(
-            #     message_params_str, message_body_str
-            # )
-            # headers["DSKE-Authentication"] = signature
-            # TODO request.headers["Authorization"] = f"Bearer {self.api_key}"
+            signed_data = request.url.query + request.content
+            authentication_key = InternalKey.from_pool(
+                self._authentication_key_pool, InternalKey.AUTHENTICATION_KEY_SIZE
+            )
+            allocation_str = authentication_key.allocation.to_param_str()
+            signature_bin = authentication_key.sign(signed_data)
+            signature_str = bytes_to_str(signature_bin)
+            authorization_str = f"{allocation_str};{signature_str}"
+            # TODO: Encode information about allocation into header
+            print(f"{authorization_str=}", file=sys.stderr)  # TODO $$$
+            request.headers["DSKE-Authorization"] = authorization_str
             yield request
 
     def __init__(self, authentication_key_pool: Pool):
