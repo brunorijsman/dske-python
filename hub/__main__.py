@@ -5,6 +5,7 @@ Main module for a DSKE security hub.
 import argparse
 import os
 import signal
+import sys
 import fastapi
 import pydantic
 import uvicorn
@@ -64,18 +65,36 @@ async def get_oob_psrd(
     return block.to_api()
 
 
+def check_authentication(request: fastapi.Request):
+    """
+    Check the authentication header in the request.
+    """
+    # TODO implement this
+    print(f"Check authentication {request=}", file=sys.stderr)
+    return True
+
+
 @_APP.post(f"/hub/{_HUB.name}/dske/api/v1/key-share")
-async def post_key_share(api_post_share_request: APIPostShareRequest):
+async def post_key_share(
+    api_post_share_request: APIPostShareRequest,
+    response: fastapi.Response,
+    _request_authenticated: bool = fastapi.Depends(check_authentication),
+):
     """
     DSKE API: Post key share.
     """
     # TODO: Validate authentication header in request
     # TODO: Add authentication header to response
     _HUB.store_share_received_from_client(api_post_share_request)
+    response.headers["DSKE-Authentication"] = "TODO 1"
 
 
 @_APP.get(f"/hub/{_HUB.name}/dske/api/v1/key-share")
-async def get_key_share(client_name: str, key_id: str) -> APIGetShareResponse:
+async def get_key_share(
+    client_name: str,
+    key_id: str,
+    _request_authenticated: bool = fastapi.Depends(check_authentication),
+) -> APIGetShareResponse:
     """
     DSKE API: Get key share.
     """
