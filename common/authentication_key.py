@@ -35,6 +35,7 @@ For all in-band DSKE protocol messages (i.e. HTTP requests and responses):
 # TODO: Add a seq_nr field to the API for replay attack prevention
 
 
+import sys
 from .pool import Pool
 
 
@@ -57,10 +58,13 @@ class AuthenticationKey:
         """
         return self._allocation
 
-    def sign_message(self, _message_params_str: str, _message_body_str: str) -> str:
+    def sign_message(self, message_params_str: str, message_body_str: str) -> str:
         """
         Compute the signature for a message.
         """
+        print("Compute signature for message", file=sys.stderr)
+        print(f"{message_params_str=}", file=sys.stderr)
+        print(f"{message_body_str}", file=sys.stderr)
         # TODO: implement this for real
         return "foobar"
 

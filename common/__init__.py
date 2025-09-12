@@ -6,7 +6,6 @@ from . import allocation
 from . import block
 from . import exceptions
 from . import fragment
-from . import http
 from . import encryption_key
 from . import user_key
 from . import pool

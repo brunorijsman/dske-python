@@ -6,7 +6,6 @@ import asyncio
 import sys
 from uuid import UUID
 from common import exceptions
-from common import http
 from common.allocation import Allocation
 from common.block import APIBlock, Block
 from common.encryption_key import EncryptionKey
@@ -18,6 +17,7 @@ from common.registration_api import (
 from common.share import Share
 from common.share_api import APIPostShareRequest, APIGetShareResponse
 from common.utils import bytes_to_str, str_to_bytes
+from .http_client import HttpClient
 
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
 #       the hub decide?
@@ -30,6 +30,7 @@ class PeerHub:
     """
 
     _client: "Client"  # type: ignore
+    _http_client: HttpClient
     _base_url: str
     _startup_task: asyncio.Task | None = None
     _registered: bool
@@ -47,6 +48,7 @@ class PeerHub:
         self._client_pool = Pool(Pool.Owner.CLIENT)
         self._hub_pool = Pool(Pool.Owner.HUB)
         self._hub_name = None
+        self._http_client = HttpClient(self._client_pool)
 
     @property
     def local_pool(self) -> Pool:
@@ -103,10 +105,14 @@ class PeerHub:
         """
         Attempt to register this client with the peer hub. Returns true if successful.
         """
+        print("attempt_registration", file=sys.stderr)  # TODO $$$
         url = f"{self._base_url}/dske/oob/v1/registration"
         data = APIPutRegistrationRequest(client_name=self._client.name)
         try:
-            registration = await http.put(url, data, APIPutRegistrationResponse)
+            print("calling put", file=sys.stderr)  # TODO $$$
+            registration = await self._http_client.put(
+                url, data, APIPutRegistrationResponse
+            )
         except exceptions.HTTPError:
             print(
                 f"Failed to register client {self._client.name} with peer hub at {self._base_url}",
@@ -143,7 +149,7 @@ class PeerHub:
             "size": _PSRD_BLOCK_SIZE_IN_BYTES,
         }
         try:
-            api_block = await http.get(url, params, APIBlock)
+            api_block = await self._http_client.get(url, params, APIBlock)
         except exceptions.HTTPError:
             # TODO: Use logging instead of print
             print(f"Failed to request PSRD block from peer hub at {self._base_url}")
@@ -165,11 +171,11 @@ class PeerHub:
             encryption_key_allocation=encryption_key.allocation.to_api(),
             encrypted_share_value=bytes_to_str(encryption_key.encrypt(share.value)),
         )
-        await http.post(
+        await self._http_client.post(
             url=url,
             api_request_obj=request,
             api_response_class=None,
-            authentication_key_pool=self._client_pool,
+            authentication=True,
         )
 
     async def get_share(self, key_id: UUID) -> Share:
@@ -181,11 +187,11 @@ class PeerHub:
             "client_name": self._client.name,
             "key_id": str(key_id),
         }
-        response = await http.get(
+        response = await self._http_client.get(
             url=url,
             params=params,
             api_response_class=APIGetShareResponse,
-            authentication_key_pool=self._client_pool,
+            authentication=True,
         )
         encryption_key_allocation = Allocation.from_api(
             response.encryption_key_allocation, self._hub_pool
