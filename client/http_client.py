@@ -42,7 +42,7 @@ class HttpClient:
             signature_bin = authentication_key.sign(signed_data)
             signature_str = bytes_to_str(signature_bin)
             authorization_str = f"{allocation_str};{signature_str}"
-            request.headers["DSKE-Authorization"] = authorization_str
+            request.headers["DSKE-Authentication"] = authorization_str
             yield request
 
     def __init__(self, authentication_key_pool: Pool):
