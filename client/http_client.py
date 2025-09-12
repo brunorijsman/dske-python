@@ -2,7 +2,6 @@
 HTTP client for making GET and POST requests and decoding the response using Pydantic.
 """
 
-import sys
 import httpx
 import pydantic
 from common import exceptions
@@ -31,8 +30,6 @@ class HttpClient:
         An httpx Auth class that uses an authentication key from a pool to sign requests.
         """
 
-        # TODO $$$ finish this
-
         def __init__(self, authentication_key_pool: Pool | None = None):
             self._authentication_key_pool = authentication_key_pool
 
@@ -45,8 +42,6 @@ class HttpClient:
             signature_bin = authentication_key.sign(signed_data)
             signature_str = bytes_to_str(signature_bin)
             authorization_str = f"{allocation_str};{signature_str}"
-            # TODO: Encode information about allocation into header
-            print(f"{authorization_str=}", file=sys.stderr)  # TODO $$$
             request.headers["DSKE-Authorization"] = authorization_str
             yield request
 
@@ -68,8 +63,6 @@ class HttpClient:
         If `authentication_key_pool` is None, no authentication is done. If it is not None, use it
         to allocate a key the request authentication signature.
         """
-        # TODO $$$ headers = compute_authentication_headers(authentication_key_pool)
-        print(f"GET {url} {params=} {self._auth}", file=sys.stderr)  # TODO $$$
         if authentication:
             auth = self._auth
         else:
@@ -148,18 +141,15 @@ class HttpClient:
         Send a HTTP PUT or POST request. Use Pydantic to encode the request data and to decode the
         response data.
         """
-        # TODO $$$ headers = compute_authentication_headers(authentication_key_pool)
         async with httpx.AsyncClient() as httpx_client:
             json = api_request_obj.model_dump()
             if authentication:
                 auth = self._auth
             else:
                 auth = None
-            print(f"{method} {url} {json=}", file=sys.stderr)  # TODO $$$
             try:
                 response = await httpx_client.request(method, url, json=json, auth=auth)
             except httpx.HTTPError as exc:
-                print(f"put error {exc=}", file=sys.stderr)  # TODO $$$
                 raise exceptions.HTTPError(
                     method=method,
                     url=url,

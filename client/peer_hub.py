@@ -105,11 +105,9 @@ class PeerHub:
         """
         Attempt to register this client with the peer hub. Returns true if successful.
         """
-        print("attempt_registration", file=sys.stderr)  # TODO $$$
         url = f"{self._base_url}/dske/oob/v1/registration"
         data = APIPutRegistrationRequest(client_name=self._client.name)
         try:
-            print("calling put", file=sys.stderr)  # TODO $$$
             registration = await self._http_client.put(
                 url, data, APIPutRegistrationResponse
             )
