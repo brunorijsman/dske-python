@@ -69,6 +69,8 @@ async def post_key_share(api_post_share_request: APIPostShareRequest):
     """
     DSKE API: Post key share.
     """
+    # TODO: Validate authentication header in request
+    # TODO: Add authentication header to response
     _HUB.store_share_received_from_client(api_post_share_request)
 
 
@@ -77,6 +79,8 @@ async def get_key_share(client_name: str, key_id: str) -> APIGetShareResponse:
     """
     DSKE API: Get key share.
     """
+    # TODO: Validate authentication header in request
+    # TODO: Add authentication header to response
     return _HUB.get_share_requested_by_client(client_name, key_id)
 
 
