@@ -43,7 +43,8 @@ For GET key-share
 
 import hashlib
 import hmac
-from common.utils import bytes_to_str
+import sys
+from common.utils import bytes_to_str, str_to_bytes
 from .allocation import Allocation
 from .pool import Pool
 
@@ -139,3 +140,35 @@ class InternalKey:
         signature_str = bytes_to_str(signature_bin)
         header_value = f"{allocation_str};{signature_str}"
         return header_value
+
+    @staticmethod
+    def check_authentication_header(
+        pool: Pool,
+        params: bytes | None,
+        content: bytes | None,
+        authentication_header: str,
+    ) -> bool:
+        """
+        Check the authentication header for a request with the given query parameters and content.
+        """
+        splitted = authentication_header.split(";")
+        if len(splitted) != 2:
+            print("Authentication mismatch", file=sys.stderr)  # TODO $$$
+            return False
+        allocation_str = splitted[0]
+        signature_str = splitted[1]
+        allocation = Allocation.from_param_str(allocation_str, pool)
+        authentication_key = InternalKey.from_allocation(allocation)
+        signature_bin = str_to_bytes(signature_str)
+        assert params is not None or content is not None
+        signed_data = b""
+        if params is not None:
+            signed_data += params
+        if content is not None:
+            signed_data += content
+        if authentication_key.sign(signed_data) == signature_bin:
+            print("Authentication succeeded", file=sys.stderr)  # TODO $$$
+            return True
+        allocation.deallocate()
+        print("Authentication mismatch", file=sys.stderr)  # TODO $$$
+        return False

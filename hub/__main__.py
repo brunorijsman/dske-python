@@ -39,6 +39,33 @@ _HUB = Hub(_ARGS.name)
 _APP = fastapi.FastAPI()
 
 
+@_APP.middleware("http")
+async def dske_authentication(request: fastapi.Request, call_next):
+    """
+    Check the DSKE authentication header in the request. Add the DSKE authentication header to the
+    response.
+    """
+    authenticate = "/dske/api" in request.url.path
+    if authenticate:
+        body = await request.body()
+        params = request.scope.get("query_string", b"")
+        print(f"Middleware: TODO validate signature {body=} {params=}", file=sys.stderr)
+    response = await call_next(request)
+    if authenticate:
+        chunks = []
+        async for chunk in response.body_iterator:
+            chunks.append(chunk)
+        content = b"".join(chunks)
+        print(f"Middleware: TODO add signature {content=}", file=sys.stderr)
+        response = fastapi.Response(
+            content=content,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            media_type=response.media_type,
+        )
+    return response
+
+
 @_APP.put(f"/hub/{_HUB.name}/dske/oob/v1/registration")
 async def put_oob_client_registration(
     registration_request: APIPutRegistrationRequest,
@@ -65,20 +92,9 @@ async def get_oob_psrd(
     return block.to_api()
 
 
-def check_authentication(request: fastapi.Request):
-    """
-    Check the authentication header in the request.
-    """
-    # TODO implement this
-    print(f"Check authentication {request=}", file=sys.stderr)
-    return True
-
-
 @_APP.post(f"/hub/{_HUB.name}/dske/api/v1/key-share")
 async def post_key_share(
-    api_post_share_request: APIPostShareRequest,
-    response: fastapi.Response,
-    _request_authenticated: bool = fastapi.Depends(check_authentication),
+    api_post_share_request: APIPostShareRequest, response: fastapi.Response
 ):
     """
     DSKE API: Post key share.
@@ -90,11 +106,7 @@ async def post_key_share(
 
 
 @_APP.get(f"/hub/{_HUB.name}/dske/api/v1/key-share")
-async def get_key_share(
-    client_name: str,
-    key_id: str,
-    _request_authenticated: bool = fastapi.Depends(check_authentication),
-) -> APIGetShareResponse:
+async def get_key_share(client_name: str, key_id: str) -> APIGetShareResponse:
     """
     DSKE API: Get key share.
     """
