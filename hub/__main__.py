@@ -45,7 +45,7 @@ async def dske_authentication(request: fastapi.Request, call_next):
     Check the DSKE authentication header in the request. Add the DSKE authentication header to the
     response.
     """
-    authenticate = "/dske/api" in request.url.path
+    authenticate = "/dske/api/" in request.url.path
     if authenticate:
         body = await request.body()
         params = request.scope.get("query_string", b"")
