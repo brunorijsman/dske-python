@@ -47,22 +47,44 @@ async def dske_authentication(request: fastapi.Request, call_next):
     """
     authenticate = "/dske/api/" in request.url.path
     if authenticate:
-        body = await request.body()
-        params = request.scope.get("query_string", b"")
-        print(f"Middleware: TODO validate signature {body=} {params=}", file=sys.stderr)
+        error_message = await verify_signature_in_request(request)
+        if error_message is not None:
+            return fastapi.Response(
+                content=error_message, status_code=fastapi.status.HTTP_403_FORBIDDEN
+            )
     response = await call_next(request)
     if authenticate:
-        chunks = []
-        async for chunk in response.body_iterator:
-            chunks.append(chunk)
-        content = b"".join(chunks)
-        print(f"Middleware: TODO add signature {content=}", file=sys.stderr)
-        response = fastapi.Response(
-            content=content,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            media_type=response.media_type,
-        )
+        response = await add_signature_to_response(response)
+    return response
+
+
+async def verify_signature_in_request(request: fastapi.Request) -> str | None:
+    """
+    Verify the signature in the request. Returns None if the signature is valid. Returns and error
+    message if the signature is invalid.
+    """
+    body = await request.body()
+    params = request.scope.get("query_string", b"")
+    print(f"Middleware: TODO validate signature {body=} {params=}", file=sys.stderr)
+    # TODO implement this
+    return None
+
+
+async def add_signature_to_response(response: fastapi.Response):
+    """
+    Add a signature to the response.
+    """
+    chunks = []
+    async for chunk in response.body_iterator:
+        chunks.append(chunk)
+    content = b"".join(chunks)
+    print(f"Middleware: TODO add signature {content=}", file=sys.stderr)
+    response = fastapi.Response(
+        content=content,
+        status_code=response.status_code,
+        headers=dict(response.headers),
+        media_type=response.media_type,
+    )
     return response
 
 
