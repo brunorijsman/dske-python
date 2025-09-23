@@ -59,7 +59,7 @@ async def dske_authentication(request: fastapi.Request, call_next):
             )
     response = await call_next(request)
     if authenticate:
-        response = await middleware_sign_response(response)
+        response = await middleware_add_response_signature(response)
     return response
 
 
@@ -70,12 +70,26 @@ async def middleware_check_request_signature(request: fastapi.Request) -> str | 
     """
     body = await request.body()
     params = request.scope.get("query_string", b"")
-    print(f"Middleware: TODO validate signature {body=} {params=}", file=sys.stderr)
-    # TODO implement this
+    headers = dict(request.headers)
+    print(
+        f"Middleware: TODO validate signature {body=} {params=} {headers=}",
+        file=sys.stderr,
+    )
+    signature_header_name = InternalKey.SIGNING_KEY_HEADER_NAME
+    signature_header_value = headers.pop(signature_header_name.lower(), None)
+    if signature_header_value is None:
+        assert False, f"{signature_header_name} header missing in request"
+    # TODO check that signature is correct value
+    print(
+        f"middleware_check_request_signature: {signature_header_value=}",
+        file=sys.stderr,
+    )
     return None
 
 
-async def middleware_sign_response(response: fastapi.Response) -> fastapi.Response:
+async def middleware_add_response_signature(
+    response: fastapi.Response,
+) -> fastapi.Response:
     """
     Add a signature to the response.
     """
@@ -100,11 +114,11 @@ async def middleware_sign_response(response: fastapi.Response) -> fastapi.Respon
     allocation_str = signing_key_lst[0]
     signing_key_str = signing_key_lst[1]
     signing_key_bin = str_to_bytes(signing_key_str)
-    headers["DSKE-Authentication"] = (
-        InternalKey.make_authentication_header_from_allocation_str(
-            allocation_str, signing_key_bin, content
-        )
+    header_name = InternalKey.SIGNATURE_HEADER_NAME
+    header_value = InternalKey.make_authentication_header_from_allocation_str(
+        allocation_str, signing_key_bin, content
     )
+    headers[header_name] = header_value
     signed_response = fastapi.Response(
         content=content,
         status_code=response.status_code,

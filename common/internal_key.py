@@ -62,6 +62,9 @@ class InternalKey:
 
     SIGNING_KEY_HEADER_NAME = "DSKE-Signing-Key"
 
+    # TODO: Introduce a Signature class
+    SIGNATURE_HEADER_NAME = "DSKE-Signature"
+
     def __init__(self, allocation: Allocation):
         """
         Don't call the constructor directly, use from... methods instead.
@@ -127,7 +130,7 @@ class InternalKey:
         content: bytes | None,
     ) -> str:
         """
-        Create the value for the DSKE-Authentication header for a request with the given query
+        Create the value for the DSKE-Signature header for a request with the given query
         parameters and content.
         TODO: Add a nonce to prevent replay attacks.
         TODO: Should we also sign the URL path?
@@ -151,7 +154,7 @@ class InternalKey:
         allocation_str: str, signing_key_bin: bytes, signed_data: bytes
     ) -> str:
         """
-        Create the value for the DSKE-Authentication header from the given allocation string and
+        Create the value for the DSKE-Signature header from the given allocation string and
         signing key.
         """
         h = hmac.new(signing_key_bin, signed_data, hashlib.sha256)

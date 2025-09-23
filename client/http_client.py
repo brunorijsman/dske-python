@@ -36,10 +36,12 @@ class HttpClient:
             key = InternalKey.from_pool(
                 self._authentication_key_pool, InternalKey.SIGNING_KEY_SIZE
             )
-            request.headers["DSKE-Authentication"] = key.make_authentication_header(
+            header_name = InternalKey.SIGNING_KEY_HEADER_NAME
+            header_value = key.make_authentication_header(
                 request.url.query,
                 request.content,
             )
+            request.headers[header_name] = header_value
             yield request
 
     def __init__(self, authentication_key_pool: Pool):
