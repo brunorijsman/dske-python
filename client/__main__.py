@@ -6,10 +6,8 @@ import argparse
 import contextlib
 import os
 import signal
-
 import fastapi
 import uvicorn
-
 from common import configuration
 from common import utils
 from .client import Client
