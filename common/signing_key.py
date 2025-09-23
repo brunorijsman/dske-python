@@ -28,7 +28,7 @@ class SigningKey:
 
     def __init__(self, allocation: Allocation) -> "SigningKey":
         """
-        Should only be called from class methods from_xxx.
+        Create a SigningKey from an Allocation that was previously allocated from a Pool.
         """
         self._allocation = allocation
         self._allocation.consume()
@@ -64,7 +64,7 @@ class SigningKey:
                 signed_data += signed_date_item
         h = hmac.new(signing_key_data, signed_data, hashlib.sha256)
         signature_data = h.digest()
-        return Signature(self._allocation, signature_data)
+        return Signature(self._allocation.to_enc_str(), signature_data)
 
     def add_to_headers(self, headers: dict[str, str]):
         """

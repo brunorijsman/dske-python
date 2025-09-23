@@ -21,6 +21,13 @@ class Signature:
         self._signing_key_allocation_enc_str = signing_key_allocation_enc_str
         self._signature_data = signature_data
 
+    @property
+    def signing_key_allocation_enc_str(self) -> str:
+        """
+        Get the signing key allocation encoded string.
+        """
+        return self._signing_key_allocation_enc_str
+
     def same_as(self, other: "Signature") -> bool:
         """
         Check if this signature is the same as another signature.

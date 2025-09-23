@@ -12,7 +12,6 @@ from common import configuration
 from common import utils
 from common.block import APIBlock
 from common.share_api import APIGetShareResponse, APIPostShareRequest
-from common.signature import Signature
 from common.signing_key import MiddlewareSigningKey
 from common.registration_api import (
     APIPutRegistrationRequest,
@@ -53,38 +52,14 @@ async def dske_authentication(request: fastapi.Request, call_next):
     # an ugly way of achieving this. Mounting sub-applications would have been cleaner, but then
     # we would get a separate OpenAPI docs page for each sub-application.
     authenticate = "/dske/api/" in request.url.path
-    if authenticate:
-        await middleware_check_request_signature(request)
+    # We don't verify the signature in the request here but later in the handler function, because
     response = await call_next(request)
     if authenticate:
+        # We do add the signature to the response here because we need access to the encoded
+        # response content. The key that is used for signing was allocated in the application logic
+        # and passed to the middleware in a temporary header.
         response = await middleware_add_response_signature(response)
     return response
-
-
-async def middleware_check_request_signature(request: fastapi.Request):
-    """
-    Verify the signature in the request. Returns None if the signature is valid. Returns and error
-    message if the signature is invalid.
-    """
-    _signature = Signature.from_headers(request.headers)
-    # TODO: $$$ continue from here, finish this: we need to allocate the signing key from the pool
-    #       which we cannot do here; we need to know the peer pool first.
-    #
-    # Maybe pass a "raw_request: fastapi.Request" object to the @app.xxx handler
-    # and extract the header and the raw body there?
-    #
-    # body = await request.body()
-    # params = request.scope.get("query_string", None)
-    #
-    # signature_header_name = InternalKey.SIGNING_KEY_HEADER_NAME
-    # signature_header_value = headers.pop(signature_header_name.lower(), None)
-    # # TODO check that signature is correct value
-    # print(
-    #     f"middleware_check_request_signature: {signature_header_value=}",
-    #     file=sys.stderr,
-    # )
-    # TODO: If the check fails (e.g. header is missing), throw an exception which leads to a
-    #       403 FORBIDDEN response.
 
 
 async def middleware_add_response_signature(
@@ -139,12 +114,15 @@ async def get_oob_psrd(
 @_APP.post(f"/hub/{_HUB.name}/dske/api/v1/key-share")
 async def post_key_share(
     api_post_share_request: APIPostShareRequest,
+    raw_request: fastapi.Request,
     headers_temp_response: fastapi.Response,
 ):
     """
     DSKE API: Post key share.
     """
-    _HUB.store_share_received_from_client(api_post_share_request, headers_temp_response)
+    await_HUB.store_share_received_from_client(
+        api_post_share_request, raw_request, headers_temp_response
+    )
 
 
 @_APP.get(f"/hub/{_HUB.name}/dske/api/v1/key-share")

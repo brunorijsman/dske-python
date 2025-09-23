@@ -78,9 +78,10 @@ class Hub:
         block = peer_client.create_random_block(pool_owner, size)
         return block
 
-    def store_share_received_from_client(
+    async def store_share_received_from_client(
         self,
         api_post_share_request: APIPostShareRequest,
+        raw_request: fastapi.Request,
         headers_temp_response: fastapi.Response,
     ):
         """
@@ -90,6 +91,7 @@ class Hub:
         if client_name not in self._peer_clients:
             raise exceptions.ClientNotRegisteredError(client_name)
         peer_client = self._peer_clients[client_name]
+        await peer_client.check_request_signature(raw_request)
         encryption_key_allocation = Allocation.from_api(
             api_post_share_request.encryption_key_allocation, peer_client.client_pool
         )
