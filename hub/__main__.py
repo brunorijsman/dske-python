@@ -120,7 +120,7 @@ async def post_key_share(
     """
     DSKE API: Post key share.
     """
-    await_HUB.store_share_received_from_client(
+    await _HUB.store_share_received_from_client(
         api_post_share_request, raw_request, headers_temp_response
     )
 
