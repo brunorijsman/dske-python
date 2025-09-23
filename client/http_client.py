@@ -33,12 +33,12 @@ class HttpClient:
             self._authentication_key_pool = authentication_key_pool
 
         def auth_flow(self, request):
-            request.headers["DSKE-Authentication"] = (
-                InternalKey.make_authentication_header(
-                    self._authentication_key_pool,
-                    request.url.query,
-                    request.content,
-                )
+            key = InternalKey.from_pool(
+                self._authentication_key_pool, InternalKey.SIGNING_KEY_SIZE
+            )
+            request.headers["DSKE-Authentication"] = key.make_authentication_header(
+                request.url.query,
+                request.content,
             )
             yield request
 

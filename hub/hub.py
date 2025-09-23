@@ -3,6 +3,7 @@ A DSKE security hub, or DSKE hub, or just hub for short.
 """
 
 from uuid import UUID
+import fastapi
 from common import exceptions
 from common.allocation import Allocation
 from common.block import Block
@@ -78,7 +79,9 @@ class Hub:
         return block
 
     def store_share_received_from_client(
-        self, api_post_share_request: APIPostShareRequest
+        self,
+        api_post_share_request: APIPostShareRequest,
+        headers_temp_response: fastapi.Response,
     ):
         """
         Store a key share posted by a client.
@@ -102,9 +105,13 @@ class Hub:
         )
         # TODO: Check if the key UUID is already present, and if so, do something sensible
         self._shares[share.user_key_id] = share
+        peer_client.add_dske_signing_key_header_to_response(headers_temp_response)
 
     def get_share_requested_by_client(
-        self, client_name: str, key_id_str: str
+        self,
+        client_name: str,
+        key_id_str: str,
+        headers_temp_response: fastapi.Response,
     ) -> APIGetShareResponse:
         """
         Get a key share.
@@ -126,9 +133,5 @@ class Hub:
             encryption_key_allocation=encryption_key.allocation.to_api(),
             encrypted_share_value=bytes_to_str(encrypted_share_value),
         )
-        # TODO: Remove it from the store once all responder clients have retrieved it
-        #       For now, we don't implement multicast, so we can remove it now (not implemented yet)
-        #       Later, when we add multicast, we have to track which responders have and have not
-        #       yet gotten the share.
-        #       Also, need a time-out to handle the case that some responder never asks for it
+        peer_client.add_dske_signing_key_header_to_response(headers_temp_response)
         return response

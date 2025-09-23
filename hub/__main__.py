@@ -12,8 +12,13 @@ import uvicorn
 from common import configuration
 from common import utils
 from common.block import APIBlock
+from common.internal_key import InternalKey
 from common.share_api import APIGetShareResponse, APIPostShareRequest
-from common.registration_api import APIPutRegistrationRequest
+from common.registration_api import (
+    APIPutRegistrationRequest,
+    APIPutRegistrationResponse,
+)
+from common.utils import str_to_bytes
 from .hub import Hub
 
 
@@ -47,18 +52,18 @@ async def dske_authentication(request: fastapi.Request, call_next):
     """
     authenticate = "/dske/api/" in request.url.path
     if authenticate:
-        error_message = await verify_signature_in_request(request)
+        error_message = await middleware_check_request_signature(request)
         if error_message is not None:
             return fastapi.Response(
                 content=error_message, status_code=fastapi.status.HTTP_403_FORBIDDEN
             )
     response = await call_next(request)
     if authenticate:
-        response = await add_signature_to_response(response)
+        response = await middleware_sign_response(response)
     return response
 
 
-async def verify_signature_in_request(request: fastapi.Request) -> str | None:
+async def middleware_check_request_signature(request: fastapi.Request) -> str | None:
     """
     Verify the signature in the request. Returns None if the signature is valid. Returns and error
     message if the signature is invalid.
@@ -70,7 +75,7 @@ async def verify_signature_in_request(request: fastapi.Request) -> str | None:
     return None
 
 
-async def add_signature_to_response(response: fastapi.Response):
+async def middleware_sign_response(response: fastapi.Response) -> fastapi.Response:
     """
     Add a signature to the response.
     """
@@ -78,25 +83,47 @@ async def add_signature_to_response(response: fastapi.Response):
     async for chunk in response.body_iterator:
         chunks.append(chunk)
     content = b"".join(chunks)
-    print(f"Middleware: TODO add signature {content=}", file=sys.stderr)
-    response = fastapi.Response(
+    headers = dict(response.headers)
+    # The signing key is allocated in peer_client.py because we need access to the pool of PSRD to
+    # do the allocation. The actual signing happens here because we need access to the fully encoded
+    # response content. The key is passed from peer_client.py to here using a temporary header.
+    # TODO $$$ Add this header deep down in the code
+    print(f"middleware_sign_response: {headers=}", file=sys.stderr)  # TODO $$$
+    # We have to lookup the header name using lower case because header names are case insensitive
+    signing_key_header_name = InternalKey.SIGNING_KEY_HEADER_NAME
+    signing_key_header_value = headers.pop(signing_key_header_name.lower(), None)
+    if signing_key_header_value is None:
+        assert False, f"{signing_key_header_name} header missing in response"
+    signing_key_lst = signing_key_header_value.split(";")
+    if len(signing_key_lst) != 2:
+        assert False, f"{signing_key_header_name} header invalid in response"
+    allocation_str = signing_key_lst[0]
+    signing_key_str = signing_key_lst[1]
+    signing_key_bin = str_to_bytes(signing_key_str)
+    headers["DSKE-Authentication"] = (
+        InternalKey.make_authentication_header_from_allocation_str(
+            allocation_str, signing_key_bin, content
+        )
+    )
+    signed_response = fastapi.Response(
         content=content,
         status_code=response.status_code,
-        headers=dict(response.headers),
+        headers=headers,
         media_type=response.media_type,
     )
-    return response
+    return signed_response
 
 
 @_APP.put(f"/hub/{_HUB.name}/dske/oob/v1/registration")
 async def put_oob_client_registration(
     registration_request: APIPutRegistrationRequest,
-):
+) -> APIPutRegistrationResponse:
     """
     DSKE Out of band: Register a client.
     """
     _peer_client = _HUB.register_client(client_name=registration_request.client_name)
-    return {"hub_name": _HUB.name}
+    response = APIPutRegistrationResponse(hub_name=_HUB.name)
+    return response
 
 
 @_APP.get(f"/hub/{_HUB.name}/dske/oob/v1/psrd")
@@ -116,27 +143,31 @@ async def get_oob_psrd(
 
 @_APP.post(f"/hub/{_HUB.name}/dske/api/v1/key-share")
 async def post_key_share(
-    api_post_share_request: APIPostShareRequest, response: fastapi.Response
+    api_post_share_request: APIPostShareRequest,
+    headers_temp_response: fastapi.Response,
 ):
     """
     DSKE API: Post key share.
     """
-    # TODO: Validate authentication header in request
-    # TODO: Add authentication header to response
-    _HUB.store_share_received_from_client(api_post_share_request)
-    response.headers["DSKE-Authentication"] = "TODO 1"
+    _HUB.store_share_received_from_client(api_post_share_request, headers_temp_response)
 
 
 @_APP.get(f"/hub/{_HUB.name}/dske/api/v1/key-share")
-async def get_key_share(client_name: str, key_id: str) -> APIGetShareResponse:
+async def get_key_share(
+    client_name: str,
+    key_id: str,
+    headers_temp_response: fastapi.Response,
+) -> APIGetShareResponse:
     """
     DSKE API: Get key share.
     """
-    # TODO: Validate authentication header in request
-    # TODO: Add authentication header to response
-    return _HUB.get_share_requested_by_client(client_name, key_id)
+    headers_temp_response = _HUB.get_share_requested_by_client(
+        client_name, key_id, headers_temp_response
+    )
+    return headers_temp_response
 
 
+# TODO: Add -> return type, here and everywhere
 @_APP.get(f"/hub/{_HUB.name}/mgmt/v1/status")
 async def get_mgmt_status():
     """

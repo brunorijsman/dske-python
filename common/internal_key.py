@@ -49,13 +49,18 @@ from .allocation import Allocation
 from .pool import Pool
 
 
+# TODO: Split this up into SigningKey and EncryptionKey after all.
+
+
 class InternalKey:
     """
     A key that is used internally within the DSKE protocol to encrypt the user-key shares or to
     sign messages.
     """
 
-    AUTHENTICATION_KEY_SIZE = 32  # bytes
+    SIGNING_KEY_SIZE = 32  # bytes
+
+    SIGNING_KEY_HEADER_NAME = "DSKE-Signing-Key"
 
     def __init__(self, allocation: Allocation):
         """
@@ -112,13 +117,14 @@ class InternalKey:
         Sign data and return the signature.
         """
         signing_key = self._allocation.value
-
         h = hmac.new(signing_key, data, hashlib.sha256)
-        return h.digest()
+        signature_bin = h.digest()
+        return signature_bin
 
-    @staticmethod
     def make_authentication_header(
-        pool: Pool, params: bytes | None, content: bytes | None
+        self,
+        params: bytes | None,
+        content: bytes | None,
     ) -> str:
         """
         Create the value for the DSKE-Authentication header for a request with the given query
@@ -132,11 +138,24 @@ class InternalKey:
             signed_data += params
         if content is not None:
             signed_data += content
-        authentication_key = InternalKey.from_pool(
-            pool, InternalKey.AUTHENTICATION_KEY_SIZE
+        allocation_str = self._allocation.to_param_str()
+        signing_key_bin = self._allocation.value
+        header_value = self.make_authentication_header_from_allocation_str(
+            allocation_str, signing_key_bin, signed_data
         )
-        allocation_str = authentication_key.allocation.to_param_str()
-        signature_bin = authentication_key.sign(signed_data)
+        return header_value
+
+    # TODO: Not a static method but stand-alone method. Ditto for next.
+    @staticmethod
+    def make_authentication_header_from_allocation_str(
+        allocation_str: str, signing_key_bin: bytes, signed_data: bytes
+    ) -> str:
+        """
+        Create the value for the DSKE-Authentication header from the given allocation string and
+        signing key.
+        """
+        h = hmac.new(signing_key_bin, signed_data, hashlib.sha256)
+        signature_bin = h.digest()
         signature_str = bytes_to_str(signature_bin)
         header_value = f"{allocation_str};{signature_str}"
         return header_value

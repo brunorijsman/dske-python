@@ -2,9 +2,13 @@
 A peer DSKE client.
 """
 
+import sys
 import typing
+import fastapi
+from common.internal_key import InternalKey
 from common.block import Block
 from common.pool import Pool
+from common.utils import bytes_to_str
 
 
 class PeerClient:
@@ -18,7 +22,7 @@ class PeerClient:
 
     def __init__(self, client_name: str):
         self._client_name = client_name
-        self._client_pool = Pool(Pool.Owner.HUB)
+        self._client_pool = Pool(Pool.Owner.CLIENT)
         self._hub_pool = Pool(Pool.Owner.HUB)
         self._shares = {}
 
@@ -60,3 +64,17 @@ class PeerClient:
                 typing.assert_never("Invalid pool owner")
         pool.add_block(block)
         return block
+
+    def add_dske_signing_key_header_to_response(self, response: fastapi.Response):
+        """
+        Add a DSKE-Signing-Key header to a FastAPI response. This header contains the allocation
+        and the key value for the authentication key. The signing cannot be done here because we
+        need to know the encoded content of the response.
+        TODO: Be consistent about calling it signing key or authentication key
+        """
+        print("add_dske_signing_key_header_to_response", file=sys.stderr)  # TODO $$$
+        key = InternalKey.from_pool(self._client_pool, InternalKey.SIGNING_KEY_SIZE)
+        allocation_str = key.allocation.to_param_str()
+        key_str = bytes_to_str(key.allocation.value)
+        header_value = f"{allocation_str};{key_str}"
+        response.headers["DSKE-Signing-Key"] = header_value
