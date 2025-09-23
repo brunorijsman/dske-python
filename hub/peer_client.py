@@ -2,7 +2,6 @@
 A peer DSKE client.
 """
 
-import sys
 import typing
 import fastapi
 from common.allocation import Allocation
