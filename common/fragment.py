@@ -110,13 +110,13 @@ class Fragment:
         )
 
     @classmethod
-    def from_param_str(
+    def from_enc_str(
         cls,
         param_str: str,
         pool: "Pool",  # type: ignore
     ) -> "Fragment":
         """
-        Create a Fragment from a parameter string as used in URL parameters.
+        Create a Fragment from an encoded string as used in an HTTP header or URL parameter.
         The format of the string is: <block_uuid>:<start_byte>:<size>
         """
         parts = param_str.split(":")
@@ -141,8 +141,10 @@ class Fragment:
             size=self._size,
         )
 
-    def to_param_str(self) -> str:
+    def to_enc_str(self) -> str:
         """
-        Get a string representation of the fragment that can be used in URL parameters.
+        Get a string representation of the fragment that can be used in HTTP headers or URL
+        parameters.
+        The format of the string is: <block_uuid>:<start_byte>:<size>
         """
         return f"{self._block.uuid}:{self._start_byte}:{self._size}"

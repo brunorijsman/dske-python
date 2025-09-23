@@ -102,17 +102,18 @@ class Allocation:
         )
 
     @classmethod
-    def from_param_str(
+    def from_enc_str(
         cls,
-        param_str: str,
+        enc_str: str,
         pool: "Pool",  # type: ignore
     ) -> "Allocation":
         """
-        Create an Allocation from a parameter string as used in HTTP requests.
+        Create an Allocation from an encoded string as used in an HTTP header or URL parameter.
+        The format of the string is a comma-separated list of fragment encoded strings.
         """
         fragments = [
-            Fragment.from_param_str(fragment_str, pool)
-            for fragment_str in param_str.split(",")
+            Fragment.from_enc_str(fragment_str, pool)
+            for fragment_str in enc_str.split(",")
         ]
         return Allocation(fragments)
 
@@ -124,9 +125,9 @@ class Allocation:
             fragments=[fragment.to_api() for fragment in self._fragments]
         )
 
-    def to_param_str(self) -> str:
+    def to_enc_str(self) -> str:
         """
-        Convert the allocation to a string that can be used as a parameter in an HTTP request.
-        TODO: Better name; also used in headers.
+        Encode the Allocation as a string that can be used in HTTP headers or URL parameters.
+        The format of the string is a comma-separated list of fragment encoded strings.
         """
-        return ",".join([fragment.to_param_str() for fragment in self._fragments])
+        return ",".join([fragment.to_enc_str() for fragment in self._fragments])

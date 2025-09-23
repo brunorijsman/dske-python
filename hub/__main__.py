@@ -5,20 +5,19 @@ Main module for a DSKE security hub.
 import argparse
 import os
 import signal
-import sys
 import fastapi
 import pydantic
 import uvicorn
 from common import configuration
 from common import utils
 from common.block import APIBlock
-from common.internal_key import InternalKey
 from common.share_api import APIGetShareResponse, APIPostShareRequest
+from common.signature import Signature
+from common.signing_key import MiddlewareSigningKey
 from common.registration_api import (
     APIPutRegistrationRequest,
     APIPutRegistrationResponse,
 )
-from common.utils import str_to_bytes
 from .hub import Hub
 
 
@@ -50,41 +49,42 @@ async def dske_authentication(request: fastapi.Request, call_next):
     Check the DSKE authentication header in the request. Add the DSKE authentication header to the
     response.
     """
+    # Authentication is only done for DSKE in-band protocol messages. Checking the URL path is
+    # an ugly way of achieving this. Mounting sub-applications would have been cleaner, but then
+    # we would get a separate OpenAPI docs page for each sub-application.
     authenticate = "/dske/api/" in request.url.path
     if authenticate:
-        error_message = await middleware_check_request_signature(request)
-        if error_message is not None:
-            return fastapi.Response(
-                content=error_message, status_code=fastapi.status.HTTP_403_FORBIDDEN
-            )
+        await middleware_check_request_signature(request)
     response = await call_next(request)
     if authenticate:
         response = await middleware_add_response_signature(response)
     return response
 
 
-async def middleware_check_request_signature(request: fastapi.Request) -> str | None:
+async def middleware_check_request_signature(request: fastapi.Request):
     """
     Verify the signature in the request. Returns None if the signature is valid. Returns and error
     message if the signature is invalid.
     """
-    body = await request.body()
-    params = request.scope.get("query_string", b"")
-    headers = dict(request.headers)
-    print(
-        f"Middleware: TODO validate signature {body=} {params=} {headers=}",
-        file=sys.stderr,
-    )
-    signature_header_name = InternalKey.SIGNING_KEY_HEADER_NAME
-    signature_header_value = headers.pop(signature_header_name.lower(), None)
-    if signature_header_value is None:
-        assert False, f"{signature_header_name} header missing in request"
-    # TODO check that signature is correct value
-    print(
-        f"middleware_check_request_signature: {signature_header_value=}",
-        file=sys.stderr,
-    )
-    return None
+    _signature = Signature.from_headers(request.headers)
+    # TODO: $$$ continue from here, finish this: we need to allocate the signing key from the pool
+    #       which we cannot do here; we need to know the peer pool first.
+    #
+    # Maybe pass a "raw_request: fastapi.Request" object to the @app.xxx handler
+    # and extract the header and the raw body there?
+    #
+    # body = await request.body()
+    # params = request.scope.get("query_string", None)
+    # # TODO: $$$ Continue from here
+    # signature_header_name = InternalKey.SIGNING_KEY_HEADER_NAME
+    # signature_header_value = headers.pop(signature_header_name.lower(), None)
+    # # TODO check that signature is correct value
+    # print(
+    #     f"middleware_check_request_signature: {signature_header_value=}",
+    #     file=sys.stderr,
+    # )
+    # TODO: If the check fails (e.g. header is missing), throw an exception which leads to a
+    #       403 FORBIDDEN response.
 
 
 async def middleware_add_response_signature(
@@ -93,36 +93,17 @@ async def middleware_add_response_signature(
     """
     Add a signature to the response.
     """
+    signing_key = MiddlewareSigningKey.extract_from_headers(response.headers)
     chunks = []
     async for chunk in response.body_iterator:
         chunks.append(chunk)
     content = b"".join(chunks)
-    headers = dict(response.headers)
-    # The signing key is allocated in peer_client.py because we need access to the pool of PSRD to
-    # do the allocation. The actual signing happens here because we need access to the fully encoded
-    # response content. The key is passed from peer_client.py to here using a temporary header.
-    # TODO $$$ Add this header deep down in the code
-    print(f"middleware_sign_response: {headers=}", file=sys.stderr)  # TODO $$$
-    # We have to lookup the header name using lower case because header names are case insensitive
-    signing_key_header_name = InternalKey.SIGNING_KEY_HEADER_NAME
-    signing_key_header_value = headers.pop(signing_key_header_name.lower(), None)
-    if signing_key_header_value is None:
-        assert False, f"{signing_key_header_name} header missing in response"
-    signing_key_lst = signing_key_header_value.split(";")
-    if len(signing_key_lst) != 2:
-        assert False, f"{signing_key_header_name} header invalid in response"
-    allocation_str = signing_key_lst[0]
-    signing_key_str = signing_key_lst[1]
-    signing_key_bin = str_to_bytes(signing_key_str)
-    header_name = InternalKey.SIGNATURE_HEADER_NAME
-    header_value = InternalKey.make_authentication_header_from_allocation_str(
-        allocation_str, signing_key_bin, content
-    )
-    headers[header_name] = header_value
+    signature = signing_key.sign(content)
+    signature.add_to_headers(response.headers)
     signed_response = fastapi.Response(
         content=content,
         status_code=response.status_code,
-        headers=headers,
+        headers=response.headers,
         media_type=response.media_type,
     )
     return signed_response

@@ -7,7 +7,7 @@ import fastapi
 from common import exceptions
 from common.allocation import Allocation
 from common.block import Block
-from common.internal_key import InternalKey
+from common.encryption_key import EncryptionKey
 from common.pool import Pool
 from common.share import Share
 from common.share_api import APIGetShareResponse, APIPostShareRequest
@@ -93,7 +93,7 @@ class Hub:
         encryption_key_allocation = Allocation.from_api(
             api_post_share_request.encryption_key_allocation, peer_client.client_pool
         )
-        encryption_key = InternalKey.from_allocation(encryption_key_allocation)
+        encryption_key = EncryptionKey.from_allocation(encryption_key_allocation)
         encrypted_share_value = str_to_bytes(
             api_post_share_request.encrypted_share_value
         )
@@ -126,7 +126,7 @@ class Hub:
         except KeyError as exc:
             raise exceptions.UnknownKeyIDError(key_id) from exc
         peer_client = self._peer_clients[client_name]
-        encryption_key = InternalKey.from_pool(peer_client.hub_pool, share.size)
+        encryption_key = EncryptionKey.from_pool(peer_client.hub_pool, share.size)
         encrypted_share_value = encryption_key.encrypt(share.value)
         response = APIGetShareResponse(
             share_index=share.share_index,

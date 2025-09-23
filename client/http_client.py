@@ -5,7 +5,7 @@ HTTP client for making GET and POST requests and decoding the response using Pyd
 import httpx
 import pydantic
 from common import exceptions
-from common.internal_key import InternalKey
+from common.signing_key import SigningKey
 from common.pool import Pool
 
 
@@ -29,25 +29,19 @@ class HttpClient:
         An httpx Auth class that uses an authentication key from a pool to sign requests.
         """
 
-        def __init__(self, authentication_key_pool: Pool | None = None):
-            self._authentication_key_pool = authentication_key_pool
+        def __init__(self, signing_key_pool: Pool | None = None):
+            self._signing_key_pool = signing_key_pool
 
         def auth_flow(self, request):
-            key = InternalKey.from_pool(
-                self._authentication_key_pool, InternalKey.SIGNING_KEY_SIZE
-            )
-            header_name = InternalKey.SIGNING_KEY_HEADER_NAME
-            header_value = key.make_authentication_header(
-                request.url.query,
-                request.content,
-            )
-            request.headers[header_name] = header_value
+            signing_key = SigningKey.from_pool(self._signing_key_pool)
+            signature = signing_key.sign([request.url.query, request.content])
+            signature.add_to_headers(request.headers)
             yield request
 
-    def __init__(self, authentication_key_pool: Pool):
+    def __init__(self, signing_key_pool: Pool):
         super().__init__()
         self._httpx_client = httpx.AsyncClient()
-        self._auth = self.Auth(authentication_key_pool)
+        self._auth = self.Auth(signing_key_pool)
 
     async def get(
         self,
@@ -59,7 +53,7 @@ class HttpClient:
         """
         Send a HTTP GET request return the parsed response (if any).
 
-        If `authentication_key_pool` is None, no authentication is done. If it is not None, use it
+        If `signing_key_pool` is None, no authentication is done. If it is not None, use it
         to allocate a key the request authentication signature.
         """
         if authentication:
