@@ -75,7 +75,7 @@ async def middleware_check_request_signature(request: fastapi.Request):
     #
     # body = await request.body()
     # params = request.scope.get("query_string", None)
-    # # TODO: $$$ Continue from here
+    #
     # signature_header_name = InternalKey.SIGNING_KEY_HEADER_NAME
     # signature_header_value = headers.pop(signature_header_name.lower(), None)
     # # TODO check that signature is correct value
