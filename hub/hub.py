@@ -109,10 +109,11 @@ class Hub:
         self._shares[share.user_key_id] = share
         peer_client.add_dske_signing_key_header_to_response(headers_temp_response)
 
-    def get_share_requested_by_client(
+    async def get_share_requested_by_client(
         self,
         client_name: str,
         key_id_str: str,
+        raw_request: fastapi.Request,
         headers_temp_response: fastapi.Response,
     ) -> APIGetShareResponse:
         """
@@ -128,6 +129,7 @@ class Hub:
         except KeyError as exc:
             raise exceptions.UnknownKeyIDError(key_id) from exc
         peer_client = self._peer_clients[client_name]
+        await peer_client.check_request_signature(raw_request)
         encryption_key = EncryptionKey.from_pool(peer_client.hub_pool, share.size)
         encrypted_share_value = encryption_key.encrypt(share.value)
         response = APIGetShareResponse(

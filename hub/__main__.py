@@ -129,13 +129,14 @@ async def post_key_share(
 async def get_key_share(
     client_name: str,
     key_id: str,
+    raw_request: fastapi.Request,
     headers_temp_response: fastapi.Response,
 ) -> APIGetShareResponse:
     """
     DSKE API: Get key share.
     """
-    headers_temp_response = _HUB.get_share_requested_by_client(
-        client_name, key_id, headers_temp_response
+    headers_temp_response = await _HUB.get_share_requested_by_client(
+        client_name, key_id, raw_request, headers_temp_response
     )
     return headers_temp_response
 
