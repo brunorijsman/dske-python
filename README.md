@@ -16,7 +16,7 @@ and
 [Quantum Key Distribution (QKD)](https://en.wikipedia.org/wiki/Quantum_key_distribution)
 which are the two prevalent quantum-safe key exchange methods.
 
-Most people are less familiar with Distribute Symmetric Key Establishment (DSKE) which is a
+Most people are less familiar with Distributed Symmetric Key Establishment (DSKE) which is a
 completely different approach for quantum-safe key exchange.
 
 The DSKE approach is described in IETF Internet Draft
