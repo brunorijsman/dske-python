@@ -2,7 +2,6 @@
 HTTP client for making GET and POST requests and decoding the response using Pydantic.
 """
 
-import sys
 import httpx
 import pydantic
 from common import exceptions
@@ -37,7 +36,6 @@ class HttpClient:
             self._peer_pool = peer_pool
 
         async def async_auth_flow(self, request):
-            print(f"auth_flow: {request=}", file=sys.stderr)
             signing_key = SigningKey.from_pool(self._local_pool)
             signature = signing_key.sign([request.url.query, request.content])
             signature.add_to_headers(request.headers)
