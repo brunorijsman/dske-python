@@ -21,7 +21,9 @@ completely different approach for quantum-safe key exchange.
 
 The DSKE approach is described in IETF Internet Draft
 [draft-mwag-dske](https://datatracker.ietf.org/doc/draft-mwag-dske/)
-and has been commercialized by
+and in arXiv paper
+[arXiv:2205.00615 Distributed Symmetric Key Establishment: A scalable, quantum-proof key distribution system](https://arxiv.org/abs/2205.00615).
+It has been commercialized by
 [Quantum Bridge](https://qubridge.io/)
 (who are not involved with this open source project).
 
