@@ -42,30 +42,19 @@ class HttpClient:
             signature = signing_key.sign([request.url.query, request.content])
             signature.add_to_headers(request.headers)
             response = yield request
-            print(f"auth_flow: {response=}", file=sys.stderr)
             received_signature = Signature.from_headers(response.headers)
-            print(f"auth_flow: {received_signature=}", file=sys.stderr)
             allocation = Allocation.from_enc_str(
                 received_signature.signing_key_allocation_enc_str, self._peer_pool
             )
             allocation.mark_allocated()
-            print(f"auth_flow: {allocation=}", file=sys.stderr)
             signing_key = SigningKey(allocation)
-            print(f"auth_flow: {signing_key=}", file=sys.stderr)
             await response.aread()
             content = response.content
-            print(f"auth_flow: {content=}", file=sys.stderr)
             computed_signature = signing_key.sign([content])
-            print(f"auth_flow: {computed_signature=}", file=sys.stderr)
             signature_ok = received_signature.same_as(computed_signature)
-            print(f"auth_flow: {signature_ok=}", file=sys.stderr)
             if not signature_ok:
                 # TODO: Better exception, that causes a 403 forbidden response
                 raise ValueError("Invalid signature")
-
-            # TODO: $$$
-            # TODO: where do we check the response signature?
-            # TODO: do we need to store the peer pool for checking it?
             # TODO: I noticed that the response to a POST key-share is the string null; that's not
             #       right
 
