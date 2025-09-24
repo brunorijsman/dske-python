@@ -3,6 +3,8 @@
 This chapter describes the Distributed Symmetric Key Establishment (DSKE) protocol as it is
 implemented in this repository.
 
+## Inspiration
+
 My DSKE implementation is inspired by
 [draft-mwag-dske](https://datatracker.ietf.org/doc/draft-mwag-dske/)
 and by arXiv paper
@@ -19,3 +21,7 @@ I say "inspired by" because:
    Sometimes, I found it difficult to follow the details in the description.
    Other times, the description was clear enough, but I made a conscious decision to deviate.
    See section TODO for a list of deviations.
+
+## Encryptors, clients, and hubs
+
+

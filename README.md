@@ -33,6 +33,8 @@ protocol and because my implementation differs from the draft on some aspects.
 
 Documentation:
 
+* [Getting started guide](/docs/getting-started-guide.md)
+
 * [User guide](/docs/user-guide.md)
 
 * [Protocol guide](/docs/protocol-guide.md)
