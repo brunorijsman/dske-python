@@ -22,7 +22,8 @@ completely different approach for quantum-safe key exchange.
 The DSKE approach is described in IETF Internet Draft
 [draft-mwag-dske](https://datatracker.ietf.org/doc/draft-mwag-dske/)
 and has been commercialized by
-[Quantum Bridge](https://qubridge.io/).
+[Quantum Bridge](https://qubridge.io/)
+(who are not involved with this open source project).
 
 This repository contains an open source implementation of DSKE inspired by the IETF draft.
 I say "inspired by" because the draft only describes the general approach and not a detailed
