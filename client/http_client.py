@@ -2,9 +2,12 @@
 HTTP client for making GET and POST requests and decoding the response using Pydantic.
 """
 
+import sys
 import httpx
 import pydantic
 from common import exceptions
+from common.allocation import Allocation
+from common.signature import Signature
 from common.signing_key import SigningKey
 from common.pool import Pool
 
@@ -29,22 +32,47 @@ class HttpClient:
         An httpx Auth class that uses an authentication key from a pool to sign requests.
         """
 
-        def __init__(self, local_pool):
+        def __init__(self, local_pool, peer_pool):
             self._local_pool = local_pool
+            self._peer_pool = peer_pool
 
-        def auth_flow(self, request):
+        async def async_auth_flow(self, request):
+            print(f"auth_flow: {request=}", file=sys.stderr)
             signing_key = SigningKey.from_pool(self._local_pool)
             signature = signing_key.sign([request.url.query, request.content])
             signature.add_to_headers(request.headers)
-            yield request
+            response = yield request
+            print(f"auth_flow: {response=}", file=sys.stderr)
+            received_signature = Signature.from_headers(response.headers)
+            print(f"auth_flow: {received_signature=}", file=sys.stderr)
+            allocation = Allocation.from_enc_str(
+                received_signature.signing_key_allocation_enc_str, self._peer_pool
+            )
+            allocation.mark_allocated()
+            print(f"auth_flow: {allocation=}", file=sys.stderr)
+            signing_key = SigningKey(allocation)
+            print(f"auth_flow: {signing_key=}", file=sys.stderr)
+            await response.aread()
+            content = response.content
+            print(f"auth_flow: {content=}", file=sys.stderr)
+            computed_signature = signing_key.sign([content])
+            print(f"auth_flow: {computed_signature=}", file=sys.stderr)
+            signature_ok = received_signature.same_as(computed_signature)
+            print(f"auth_flow: {signature_ok=}", file=sys.stderr)
+            if not signature_ok:
+                # TODO: Better exception, that causes a 403 forbidden response
+                raise ValueError("Invalid signature")
+
             # TODO: $$$
             # TODO: where do we check the response signature?
             # TODO: do we need to store the peer pool for checking it?
+            # TODO: I noticed that the response to a POST key-share is the string null; that's not
+            #       right
 
-    def __init__(self, local_pool: Pool):
+    def __init__(self, local_pool: Pool, peer_pool: Pool):
         super().__init__()
         self._httpx_client = httpx.AsyncClient()
-        self._auth = self.Auth(local_pool)
+        self._auth = self.Auth(local_pool, peer_pool)
 
     async def get(
         self,

@@ -48,7 +48,7 @@ class PeerHub:
         self._local_pool = Pool(Pool.Owner.LOCAL)
         self._peer_pool = Pool(Pool.Owner.PEER)
         self._hub_name = None
-        self._http_client = HttpClient(self._local_pool)
+        self._http_client = HttpClient(self._local_pool, self._peer_pool)
 
     @property
     def local_pool(self) -> Pool:
