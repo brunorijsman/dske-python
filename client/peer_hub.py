@@ -34,8 +34,8 @@ class PeerHub:
     _base_url: str
     _startup_task: asyncio.Task | None = None
     _registered: bool
-    _client_pool: Pool
-    _hub_pool: Pool
+    _local_pool: Pool
+    _peer_pool: Pool
     # The following attributes are set after registration
     _hub_name: None | str
 
@@ -45,24 +45,24 @@ class PeerHub:
         if self._base_url.endswith("/"):
             self._base_url = self._base_url[:-1]
         self._registered = False
-        self._client_pool = Pool(Pool.Owner.CLIENT)
-        self._hub_pool = Pool(Pool.Owner.HUB)
+        self._local_pool = Pool(Pool.Owner.LOCAL)
+        self._peer_pool = Pool(Pool.Owner.PEER)
         self._hub_name = None
-        self._http_client = HttpClient(self._client_pool)
+        self._http_client = HttpClient(self._local_pool)
 
     @property
     def local_pool(self) -> Pool:
         """
-        Get the local pool for the peer hub.
+        Get the pool managed by the local client.
         """
-        return self._client_pool
+        return self._local_pool
 
     @property
     def peer_pool(self) -> Pool:
         """
-        Get the peer pool for the peer hub.
+        Get the pool managed by the peer hub.
         """
-        return self._hub_pool
+        return self._peer_pool
 
     def to_mgmt(self) -> dict:
         """
@@ -71,8 +71,8 @@ class PeerHub:
         return {
             "hub_name": self._hub_name,
             "registered": self._registered,
-            "local_pool": self._client_pool.to_mgmt(),
-            "peer_pool": self._hub_pool.to_mgmt(),
+            "local_pool": self._local_pool.to_mgmt(),
+            "peer_pool": self._peer_pool.to_mgmt(),
         }
 
     def start(self) -> None:
@@ -93,7 +93,7 @@ class PeerHub:
         try:
             while not await self.attempt_registration():
                 await asyncio.sleep(1.0)  # TODO: Introduce constants for the delay
-            for owner in (Pool.Owner.CLIENT, Pool.Owner.HUB):
+            for owner in (Pool.Owner.LOCAL, Pool.Owner.PEER):
                 while not await self.attempt_request_psrd(owner):
                     await asyncio.sleep(1.0)
         except asyncio.CancelledError:
@@ -135,11 +135,11 @@ class PeerHub:
         assert self._registered
         url = f"{self._base_url}/dske/oob/v1/psrd"
         match owner:
-            case Pool.Owner.CLIENT:
-                pool = self._client_pool
+            case Pool.Owner.LOCAL:
+                pool = self._local_pool
                 pool_owner_str = "client"
-            case Pool.Owner.HUB:
-                pool = self._hub_pool
+            case Pool.Owner.PEER:
+                pool = self._peer_pool
                 pool_owner_str = "hub"
         params = {
             "client_name": self._client.name,
@@ -161,7 +161,7 @@ class PeerHub:
         Post a key share to the peer hub.
         """
         url = f"{self._base_url}/dske/api/v1/key-share"
-        encryption_key = EncryptionKey.from_pool(self._client_pool, share.size)
+        encryption_key = EncryptionKey.from_pool(self._local_pool, share.size)
         request = APIPostShareRequest(
             client_name=self._client.name,
             user_key_id=str(share.user_key_id),
@@ -192,7 +192,7 @@ class PeerHub:
             authentication=True,
         )
         encryption_key_allocation = Allocation.from_api(
-            response.encryption_key_allocation, self._hub_pool
+            response.encryption_key_allocation, self._peer_pool
         )
         encryption_key = EncryptionKey.from_allocation(encryption_key_allocation)
         encrypted_share_value = str_to_bytes(response.encrypted_share_value)
@@ -209,5 +209,5 @@ class PeerHub:
         # TODO: Call this more often, not just after scattering a key. Other things can exhaust
         #       blocks too, e.g. decryption keys and signature keys.
         #       Also call it on the hub side for the peer_clients.
-        for pool in (self._client_pool, self._hub_pool):
+        for pool in (self._local_pool, self._peer_pool):
             pool.delete_fully_consumed_blocks()

@@ -31,8 +31,8 @@ class Pool:
         by the peer node, who is the owner of the pool.
         """
 
-        CLIENT = 1
-        HUB = 2
+        LOCAL = 1
+        PEER = 2
 
     _blocks: list[Block]
     _owner: Owner

@@ -17,28 +17,28 @@ class PeerClient:
     """
 
     _client_name: str
-    _client_pool: Pool
-    _hub_pool: Pool
+    _local_pool: Pool
+    _peer_pool: Pool
 
     def __init__(self, client_name: str):
         self._client_name = client_name
-        self._client_pool = Pool(Pool.Owner.CLIENT)
-        self._hub_pool = Pool(Pool.Owner.HUB)
+        self._local_pool = Pool(Pool.Owner.LOCAL)
+        self._peer_pool = Pool(Pool.Owner.PEER)
         self._shares = {}
 
     @property
-    def client_pool(self) -> Pool:
+    def local_pool(self) -> Pool:
         """
-        Get the client pool.
+        Get pool managed by the local hub.
         """
-        return self._client_pool
+        return self._local_pool
 
     @property
-    def hub_pool(self) -> Pool:
+    def peer_pool(self) -> Pool:
         """
-        Get the hub pool.
+        Get the pool managed by the peer client.
         """
-        return self._hub_pool
+        return self._peer_pool
 
     def to_mgmt(self):
         """
@@ -46,8 +46,8 @@ class PeerClient:
         """
         return {
             "client_name": self._client_name,
-            "client_pool": self._client_pool.to_mgmt(),
-            "hub_pool": self._hub_pool.to_mgmt(),
+            "local_pool": self._local_pool.to_mgmt(),
+            "peer_pool": self._peer_pool.to_mgmt(),
         }
 
     def create_random_block(self, pool_owner: Pool.Owner, size: int) -> Block:
@@ -56,10 +56,10 @@ class PeerClient:
         """
         block = Block.create_random_block(size)
         match pool_owner:
-            case Pool.Owner.CLIENT:
-                pool = self._client_pool
-            case Pool.Owner.HUB:
-                pool = self._hub_pool
+            case Pool.Owner.LOCAL:
+                pool = self._local_pool
+            case Pool.Owner.PEER:
+                pool = self._peer_pool
             case _:
                 typing.assert_never("Invalid pool owner")
         pool.add_block(block)
@@ -72,7 +72,7 @@ class PeerClient:
         and the key value for the authentication key. The signing cannot be done here because we
         need to know the encoded content of the response.
         """
-        signing_key = SigningKey.from_pool(self._client_pool)
+        signing_key = SigningKey.from_pool(self._local_pool)
         signing_key.add_to_headers(response.headers)
 
     async def check_request_signature(self, raw_request: fastapi.Request):
@@ -81,7 +81,7 @@ class PeerClient:
         """
         received_signature = Signature.from_headers(raw_request.headers)
         allocation = Allocation.from_enc_str(
-            received_signature.signing_key_allocation_enc_str, self._client_pool
+            received_signature.signing_key_allocation_enc_str, self._peer_pool
         )
         allocation.mark_allocated()
         signing_key = SigningKey(allocation)

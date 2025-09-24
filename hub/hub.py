@@ -70,9 +70,9 @@ class Hub:
         peer_client = self._peer_clients[client_name]
         match pool_owner_str.lower():
             case "client":
-                pool_owner = Pool.Owner.CLIENT
+                pool_owner = Pool.Owner.PEER
             case "hub":
-                pool_owner = Pool.Owner.HUB
+                pool_owner = Pool.Owner.LOCAL
             case _:
                 raise exceptions.InvalidPoolOwnerError(pool_owner_str)
         block = peer_client.create_random_block(pool_owner, size)
@@ -93,7 +93,7 @@ class Hub:
         peer_client = self._peer_clients[client_name]
         await peer_client.check_request_signature(raw_request)
         encryption_key_allocation = Allocation.from_api(
-            api_post_share_request.encryption_key_allocation, peer_client.client_pool
+            api_post_share_request.encryption_key_allocation, peer_client.peer_pool
         )
         encryption_key = EncryptionKey.from_allocation(encryption_key_allocation)
         encrypted_share_value = str_to_bytes(
@@ -130,7 +130,7 @@ class Hub:
             raise exceptions.UnknownKeyIDError(key_id) from exc
         peer_client = self._peer_clients[client_name]
         await peer_client.check_request_signature(raw_request)
-        encryption_key = EncryptionKey.from_pool(peer_client.hub_pool, share.size)
+        encryption_key = EncryptionKey.from_pool(peer_client.local_pool, share.size)
         encrypted_share_value = encryption_key.encrypt(share.value)
         response = APIGetShareResponse(
             share_index=share.share_index,
