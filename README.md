@@ -1,39 +1,38 @@
 # Distributed Symmetric Key Establishment (DSKE)
 
-This repository contains an open source implementation of Distributed Symmetric Key Establishment
-(DSKE).
+I assume that you are aware of the fact that existing
+[key exchange](https://en.wikipedia.org/wiki/Key_exchange)
+protocols such as
+[Diffie-Hellman (DH)](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange),
+[Elliptic Curve Diffie-Hellman (ECDH)](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman),
+and
+[Rivest-Shamir-Adleman (RSA)](https://en.wikipedia.org/wiki/RSA_cryptosystem)
+are vulnerable to attack by future quantum computers due to the discovery of
+[Shor's algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm).
 
-DSKE is a key distribution protocol that allows network nodes, known as client nodes (or clients
-for short), to agree on a shared secret.
+I also assume that you are familiar with
+[Post-Quantum Cryptography (PQC)](https://en.wikipedia.org/wiki/Post-quantum_cryptography)
+and
+[Quantum Key Distribution (QKD)](https://en.wikipedia.org/wiki/Quantum_key_distribution)
+which are the two prevalent quantum-safe key exchange methods.
 
+Most people are less familiar with Distribute Symmetric Key Establishment (DSKE) which is a
+completely different approach for quantum-safe key exchange.
 
+The DSKE approach is described in IETF Internet Draft
+[draft-mwag-dske](https://datatracker.ietf.org/doc/draft-mwag-dske/)
+and has been commercialized by
+[Quantum Bridge](https://qubridge.io/).
 
-This shared secret is typically used as a symmetric encryption key to to encrypt traffic between the
-two nodes using some symmetric encryption protocol such as the
-[Advanced Encryption Standard (AES)](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)
-or
-[one-time-pad](https://en.wikipedia.org/wiki/One-time_pad).
+This repository contains an open source implementation of DSKE inspired by the IETF draft.
+I say "inspired by" because the draft only describes the general approach and not a detailed
+protocol and because my implementation differs from the draft on some aspects.
 
 Documentation:
 
-* [Distributed Distributed Symmetric Key Establishment (DSKE) protocol](docs/dske-protocol.md)
-
 * [User guide](/docs/user-guide.md)
 
+* [Protocol guide](/docs/protocol-guide.md)
+
 * [Developer guide](/docs/developer-guide.md)
-
-TODO: Put a summary of the protocol here:
-
-Such a key is produced as follows:
-- The initiator client:
-  - Uses a random number generator to create the key.
-  - Assigns a globally unique UUID to the key.
-  - Splits the key up into shares.
-  - Sends each share to a different hub using a POST key-share message.
-  - The share is encrypted using key bytes allocated from the Pre-Shared Random Data (PSRD) shared
-    with that hub.
-  - The message is authenticated by signing it using key bytes allocated from the PSRD with that
-    hub.
-  - Delivers the key and the key ID to the initiator encryptor.
-- ... finish this ...
 
