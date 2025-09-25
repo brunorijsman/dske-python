@@ -280,22 +280,50 @@ URL: `/hub/{hub_name}/dske/oob/v1/registration`
 Request body:
 ```
 {
-  "client_name": "string"
+  "client_name": "string"   # The name of the client.
 }
 ```
 
 Successful response body:
 ```
 {
-  "hub_name": "string"
+  "hub_name": "string"   # The name of the hub.
 }
 ```
 
 #### Request Pre-Shared Random Data (PSRD)
 
+Once a client has successfully registered itself with a particular hub, it requests its initial
+blocks of Pre-Shared Random Data (PSRD) from that hub.
+It requests one initial client-owned PSRD block and it requests one initial hub-owned PSRD block
+(see discussion of PSRD block ownership above).
 
+Each node consumes data from the PSRD blocks for key-share encryption and for message
+authentication.
+When a PSRD block nears the point of being fully consumed, the client will request a new PSRD block
+to replenish the pool of PSRD data.
 
+Method: `GET`
 
+URL: `/hub/{hub_name}/dske/oob/v1/psrd`
+
+Query parameters:
+
+| Name | Type | Description |
+|---|---|---|
+| ```client_name``` | string | The client name. |
+| ```owner``` | string | The owner of the PSRD block: `client` or `hub`. See discussion of PSRD block ownership above. |
+| ```size``` | integer | The size in bytes of the requested PSRD block. |
+
+Request body: None
+
+Successful response body:
+```
+{
+  "block_uuid": "string",   # A UUID chosen by the hub to uniquely identify the PSRD block.
+  "data": "string"          # The random bytes in the PSRD block, as a base64 encoded string.
+}
+```
 ### Key establishment
 
 The following ladder diagram shows the establishment of a new key:
@@ -334,10 +362,6 @@ The main responsibilities of the clients in the DSKE protocol are:
         [Shamir's Secret Sharing (SSS)](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)
         algorithm allows the client-to-client key to be reconstructed, even if some of the shares
         are missing.
-
-## 
-
-
 
 ### Placeholders
 
