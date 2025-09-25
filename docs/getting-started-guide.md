@@ -121,6 +121,17 @@ Starting client curtis on port 8109
 Waiting for all nodes to be started
 ```
 
+## Explore the Swagger documentation
+
+You can explore the Swagger documentation for the interface for each node using a browser.
+Each node (i.e. each client and each hub) runs in a separate process and is listening
+on a separate HTTP port as reported in the output when the topology was started.
+For example, hub hank is listening on HTTP port 8100.
+To view the Swagger API documentation for hub hank open a browser and go to URL
+`http://localhost:8100/docs`
+
+![Swagger documentation for hub hank](/docs/figures/swagger-docs.png)
+
 ## Create key pair between clients Carol and Connie
 
 Use the `manager.py` script to create a key pair between clients Carol and Connie using the
