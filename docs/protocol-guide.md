@@ -254,9 +254,47 @@ The steps for onboarding a new client into the network are as follows:
 
 2. The client requests its initial block of Pre-Shared Random Data (PSRD) from each hub.
 
+#### Client registration
+
+The first thing a client does after it starts up is to register itself with _each_ hub.
+In the above example, both client Carol and client Conny register themselves with each of the five
+hubs  Hank, Helen, Hilary, Holly, and Hugo.
+The client knows which hubs to register itself with because the list of hub URLs is provided to the
+client process as a command-line argument when it starts up.
+
+If the hub is not yet running, the registration will fail.
+In that case, the client periodically keeps retrying the registration.
+
 The client registration is an HTTP PUT message.
 As a result, the client registration is idem-potent and it is not an error for a client to register
-itself multiple times.
+itself multiple times. This can happen, for example, when a client crashes and restarts.
+
+In the request, the client provides its own `client_name`.
+
+In the response, the hub provides its `hub_name`.
+
+Method: `PUT`
+
+URL: `/hub/{hub_name}/dske/oob/v1/registration`
+
+Request body:
+```
+{
+  "client_name": "string"
+}
+```
+
+Successful response body:
+```
+{
+  "hub_name": "string"
+}
+```
+
+#### Request Pre-Shared Random Data (PSRD)
+
+
+
 
 ### Key establishment
 
@@ -296,6 +334,8 @@ The main responsibilities of the clients in the DSKE protocol are:
         [Shamir's Secret Sharing (SSS)](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)
         algorithm allows the client-to-client key to be reconstructed, even if some of the shares
         are missing.
+
+## 
 
 
 
