@@ -166,7 +166,11 @@ rather to implement the DSKE protocol.)
 This repository contains a management script (`manager.py`) that is used to control the network
 nodes.
 It can start nodes, stop nodes, report the status of nodes, and request keys.
-See [the user guide](/docs/user-guide.md) for full documentation.
+See the
+[getting started guide](/docs/getting-started-guide.md)
+or the
+[user guide](/docs/user-guide.md)
+for more information.
 The clients and the hubs expose a management interface, which is a REST API, to interact with the
 management script.
 
@@ -183,7 +187,7 @@ The original secret can be reconstructed if you have at least _k_ out of the ori
 If you have fewer than _k_ shares, no information about the secret can be extracted.
 
 In the DSKE protocol, the key that is established for the encryptors is the secret.
-The key is split up into_n_ key shares, where _n_ is the number of hubs.
+The key is split up into _n_ key shares, where _n_ is the number of hubs.
 Each key share is relayed from the initiator client to the responder client through a different hub.
 
 As a result of this arrangement:
@@ -209,18 +213,26 @@ The out-of-band steps include:
 2. Hubs delivering Pre-Shared Random Data (PSRD) to clients.
 
 The IETF draft gives some examples of how the out-of-band steps could be implemented in real life,
-including physical delivery using an HSM or encrypted USB, military key fillers, SIM cards, NFC,
-etc.
+including physical delivery using Hardware Security Modules (HSMs), encrypted USBs, 
+military
+[key transfer devices](https://www.cryptomuseum.com/crypto/fill.htm)
+, SIM cards, NFC, QKD, etc.
 
-Our code we implement the out-of-band DSKE interface as an HTTP REST interface, which would not
-be used in real life.
-This allows us to simulate the out-of-band steps in automated test scripts;
+Our code we implement the out-of-band DSKE interface as an HTTP
+[Representational State Transfer (REST)](https://en.wikipedia.org/wiki/REST)
+interface.
+In real life, as we just mentioned, HTTP would not be used for this purpose; instead some secure
+physical delivery mechanism would be used.
+We use HTTP as a simulation of this physical mechanism which enabled automated testing of use
+case scenarios.
 
-Our code also implements the in-band DSKE interface as an HTTP (not HTTPS) REST interface
-which is authenticated but not encrypted.
-Encryption is not needed because the DSKE protocol is secure, even if the in-band messages
-are allowed to be public.
-However, authentication is needed and implemented using a mechanism described below
+Our code also implements the in-band DSKE interface as an HTTP REST interface.
+This REST interface runs over normal HTTP and not over HTTPS.
+The DSKE protocol uses its own authentication mechanism.
+Most of the DSKE protocol is in the clear; only the key shares are encrypted.
+Both the DSKE authentication and the DSKE encryption of key-shares use Pre-Shared Random Data
+(PSRD).
+DSKE protocol authentication and encryption are described in more detail below.
 
 ### Client onboarding
 
