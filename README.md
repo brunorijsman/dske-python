@@ -35,9 +35,9 @@ Documentation:
 
 * [Getting started guide](/docs/getting-started-guide.md)
 
-* [User guide](/docs/user-guide.md)
-
 * [Protocol guide](/docs/protocol-guide.md)
+
+* [User guide](/docs/user-guide.md)
 
 * [Developer guide](/docs/developer-guide.md)
 
