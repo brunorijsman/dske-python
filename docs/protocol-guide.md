@@ -63,12 +63,11 @@ The clients are responsible for:
 4. Splitting keys into key shares and relaying those keys shares from client to client through a set
    of hubs.
 
+Below, we describe the concepts of PSRD and key shares and each of these steps in more detail.
+
 In our example scenario, clients Carol and Conny are responsible for producing an encryption key
 and for delivering this key to encryptors Patrick and Porter respectively.
 The other clients are faded out because they play no role in our example.
-
-The key is produced using the DSKE protocol, which runs between clients and hubs.
-This DSKE protocol is described in detail in section TODO below.
 
 ### Hubs
 
@@ -86,7 +85,9 @@ The hubs are responsible for:
 
 2. Distributing Pre-Shared Random Data (PSRD) to clients upon request.
 
-3. Relaying key shares from client to client (we explain what key shares are later).
+3. Relaying key shares from client to client.
+
+Once again, we describe these steps in more detail below.
 
 In our example, all five hubs are involved in relaying the key shares between clients Carol and
 Conny.
@@ -118,6 +119,48 @@ The encryptors are responsible for:
 
 2. Use that encryption key to encrypt the user data that is sent over the encrypted connection.
 
+### Connectivity
+
+The topology diagram above contains lines that represent the connectivity between the various
+network nodes (clients, hubs, encryptors).
+These lines are not intended to represent single-hop point-to-point connections.
+Instead they represent potentially multi-hop IP connectivity between the network nodes; each link
+may contain multiple switch or router hops.
+
+## Interfaces
+
+The topology contains the following software interfaces:
+* DSKE interface.
+* Key delivery interface.
+* Management interface.
+
+### DSKE interface
+
+The DSKE interface is the interface between the clients and the hubs.
+The clients and hubs run the DSKE protocol over this interface, which is described in detail
+[below](#dske-protocol).
+Using the DSKE protocol, the clients and the hubs collaborate with each other to establish the keys.
+
+### Key delivery interface
+
+The key delivery interface the the interface between the clients and the encryptors.
+The encryptors use the key delivery interface to retrieve keys from the clients.
+
+There are two standard key delivery protocols:
+
+1. [ETSI QKD 014](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf)
+   is standardized by
+   [ETSI](https://www.etsi.org/).
+   This protocol is supported by multiple encryptor devices from different vendors.
+
+2. The Secure Key Integration Protocol (SKIP) is defined in IETF draft
+   [IETF draft draft-cisco-skip](https://datatracker.ietf.org/doc/draft-cisco-skip).
+   This protocol is supported by some Cisco encryptors.
+
+The code in this repository uses a simplified implementation of ETSI QKD 014.
+(The point of this repository is not to have a full-blown implementation of ETSI QKD 014 but
+rather to implement the DSKE protocol.)
+
 When a key is established for a particular encrypted connection (e.g. an IPsec tunnel),
 one side (encryptor and client) acts in the initiator role (also known as master) and the
 other side acts in the role of responder (also known as slave):
@@ -143,50 +186,6 @@ other side acts in the role of responder (also known as slave):
    protocol, such as 
    [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard).
 
-### Connectivity
-
-The topology diagram above contains lines that represent the connectivity between the various
-network nodes (clients, hubs, encryptors).
-These lines are not intended to represent single-hop point-to-point connections.
-Instead they represent potentially multi-hop IP connectivity between the network nodes; each link
-may contain multiple switch or router hops.
-
-## Interfaces
-
-The topology contains the following software interfaces:
-* DSKE interface.
-* Key delivery interface.
-* Management interface.
-
-### DSKE interface
-
-The DSKE interface is the interface between the clients and the hubs.
-The clients and hubs run the DSKE protocol over this interface, which is described in detail
-[below](#dske-protocol).
-Using the DSKE protocol, the clients and the hubs collaborate with each other to establish the keys.
-As mentioned before, the code in this repository implements the DSKE protocol that is defined in 
-IETF draft
-[draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/).
-
-### Key delivery interface
-
-The key delivery interface the the interface between the clients and the encryptors.
-The encryptors use the key delivery interface to retrieve keys from the clients.
-
-There are two standard key delivery protocols:
-
-1. [ETSI QKD 014](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf)
-   is standardized by
-   [ETSI](https://www.etsi.org/).
-   This protocol is supported by multiple encryptor devices from different vendors.
-
-2. The Secure Key Integration Protocol (SKIP) is defined in IETF draft
-   [IETF draft draft-cisco-skip](https://datatracker.ietf.org/doc/draft-cisco-skip).
-   This protocol is supported by some Cisco encryptors.
-
-The code in this repository uses a simplified implementation of ETSI QKD 014.
-(The point of this repository is not to have a full-blown implementation of ETSI QKD 014 but
-rather to implement the DSKE protocol.)
 
 ### Management interface
 
