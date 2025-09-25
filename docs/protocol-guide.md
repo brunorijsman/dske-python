@@ -161,32 +161,6 @@ The code in this repository uses a simplified implementation of ETSI QKD 014.
 (The point of this repository is not to have a full-blown implementation of ETSI QKD 014 but
 rather to implement the DSKE protocol.)
 
-When a key is established for a particular encrypted connection (e.g. an IPsec tunnel),
-one side (encryptor and client) acts in the initiator role (also known as master) and the
-other side acts in the role of responder (also known as slave):
-
-1. The initiator side initiates the key establishment.
-   The initiator encryptor invokes a "Get Key" API call on the initiator client to request a new
-   key. It gets back a (secret) key and a (non-secret) key identifier (key ID) which uniquely
-   identifies the key.
-
-2. The initiator encryptor somehow relays the key ID to the responder encryptor.
-   How this happens exactly depends on which encryption protocol is used.
-   For example, IPsec uses a mechanism that is described in
-   [RFC8784](https://datatracker.ietf.org/doc/html/rfc8784)
-   (see
-   [this blog](https://hikingandcoding.com/2024/07/16/how-to-configure-an-ipsec-tunnel-using-qkd-keys/)
-   for details.)
-
-3. When the responder encryptor receives the key ID, it invokes a "Get Key with Key ID" API call
-   on the responder client to request the secret key value for that key.
-
-4. At this point, both the initiator encryptor and the responder encryptor have the same symmetric
-   secret key value and start encrypting the user data using some negotiated symmetric encryption
-   protocol, such as 
-   [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard).
-
-
 ### Management interface
 
 This repository contains a management script (`manager.py`) that is used to control the network
