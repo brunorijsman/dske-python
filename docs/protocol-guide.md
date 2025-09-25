@@ -119,6 +119,12 @@ The encryptors are responsible for:
 
 2. Use that encryption key to encrypt the user data that is sent over the encrypted connection.
 
+### Local distributors
+
+The IETF draft has more more type of node: local distributors.
+We have not implemented local distributors; hubs deliver PSRD directly to clients without
+local distributors in between.
+
 ### Connectivity
 
 The topology diagram above contains lines that represent the connectivity between the various
