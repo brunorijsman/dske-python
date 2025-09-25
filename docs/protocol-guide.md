@@ -201,9 +201,7 @@ As a result of this arrangement:
 2. The protocol is resilient against failures or denial-of-service attacks as long as at least
    _k_ hubs survive.
 
-## DSKE protocol
-
-### Out-of-band versus in-band
+## Out-of-band versus in-band
 
 Certain steps of the DSKE protocol, as described in the IETF draft, are not part of the DSKE
 protocol per-se.
@@ -240,7 +238,7 @@ Both the DSKE authentication and the DSKE encryption of key-shares use Pre-Share
 (PSRD).
 DSKE protocol authentication and encryption are described in more detail below.
 
-### Client onboarding
+## Client onboarding
 
 The following ladder diagram shows the onboarding of a new client in the network.
 Note that all the steps in the ladder diagram are red, which means that they are all out-of-band
@@ -254,7 +252,7 @@ The steps for onboarding a new client into the network are as follows:
 
 2. The client requests its initial block of Pre-Shared Random Data (PSRD) from each hub.
 
-#### Client registration
+### Client registration
 
 The first thing a client does after it starts up is to register itself with _each_ hub.
 In the above example, both client Carol and client Conny register themselves with each of the five
@@ -291,7 +289,7 @@ Successful response body:
 }
 ```
 
-#### Request Pre-Shared Random Data (PSRD)
+### Request Pre-Shared Random Data (PSRD)
 
 Once a client has successfully registered itself with a particular hub, it requests its initial
 blocks of Pre-Shared Random Data (PSRD) from that hub.
@@ -324,7 +322,7 @@ Successful response body:
   "data": "string"          # The random bytes in the PSRD block, as a base64 encoded string.
 }
 ```
-### Key establishment
+## Key establishment
 
 The following ladder diagram shows the establishment of a new key:
 
@@ -363,7 +361,7 @@ The main responsibilities of the clients in the DSKE protocol are:
         algorithm allows the client-to-client key to be reconstructed, even if some of the shares
         are missing.
 
-### Placeholders
+## Placeholders
 
 1. Prior to the production of any keys, the hubs distribute blocks of Pre-Shared Random Data (PSRD)
    to the clients using a secure out-of-band mechanism.
