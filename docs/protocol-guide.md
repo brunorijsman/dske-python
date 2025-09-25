@@ -257,8 +257,11 @@ The steps for onboarding a new client into the network are as follows:
 The first thing a client does after it starts up is to register itself with _each_ hub.
 In the above example, both client Carol and client Conny register themselves with each of the five
 hubs  Hank, Helen, Hilary, Holly, and Hugo.
+
 The client knows which hubs to register itself with because the list of hub URLs is provided to the
 client process as a command-line argument when it starts up.
+In the current implementation, the hub is not provided with a lists of clients; it simply allows
+can client to register itself.
 
 If the hub is not yet running, the registration will fail.
 In that case, the client periodically keeps retrying the registration.
