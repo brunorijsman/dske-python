@@ -229,7 +229,7 @@ Stopping hub hank on port 8100
 Waiting for all nodes to be stopped
 ```
 
-## View the `.out` for a node:
+## View the `.out` file for a node:
 
 View the `.out` file for a node, in this example client Carol.
 It contains logs and debugging information.
