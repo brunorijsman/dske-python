@@ -269,7 +269,7 @@ The PSRD is essentially used for One Time Pad (OTP) encryption, which contribute
 Information Theoretic Security (ITS) of the protocol.
 
 When the clients or the hubs run low on PSRD, there is an out-of-band mechanism to request and
-delivery more PSRD.
+deliver more PSRD.
 
 In the code, each block of PSRD is represented by a `Block` object.
 Each block is uniquely identified by a Universally Unique Identifier (UUID).
