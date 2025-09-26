@@ -264,7 +264,7 @@ of authenticating DSKE protocol messages and for encrypting specific fields (nam
 in DSKE protocol messages.
 The authentication and encryption is described in more detail below.
 
-The main point is that each byte of PSRD is used once and once only.
+Each byte of PSRD is used once and once only.
 The PSRD is essentially used for One Time Pad (OTP) encryption, which contributes to the
 Information Theoretic Security (ITS) of the protocol.
 
