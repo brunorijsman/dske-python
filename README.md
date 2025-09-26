@@ -1,6 +1,7 @@
 # Distributed Symmetric Key Establishment (DSKE)
 
-[Key exchange](https://en.wikipedia.org/wiki/Key_exchange)
+Currently deployed
+[key exchange](https://en.wikipedia.org/wiki/Key_exchange)
 protocols such as
 [Diffie-Hellman (DH)](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange),
 [Elliptic Curve Diffie-Hellman (ECDH)](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman),
