@@ -35,6 +35,7 @@
         "pylint",
         "pylintrc",
         "pytest",
+        "QRNG",
         "REUSEADDR",
         "REUSEPORT",
         "Rijsman",
