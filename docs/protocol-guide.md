@@ -139,7 +139,7 @@ local distributors in between.
 
 The topology diagram above contains lines that represent the connectivity between the various
 network nodes (clients, hubs, encryptors).
-These lines are not intended to represent single-hop point-to-point connections.
+These lines are not intended to represent single-hop point-to-point physical connections.
 Instead they represent potentially multi-hop IP connectivity between the network nodes; each link
 may contain multiple switch or router hops.
 
