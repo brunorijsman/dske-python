@@ -13,8 +13,7 @@ New protocols are under development to make key exchange quantum-safe.
 The best-known two methods are
 [Post-Quantum Cryptography (PQC)](https://en.wikipedia.org/wiki/Post-quantum_cryptography)
 and
-[Quantum Key Distribution (QKD)](https://en.wikipedia.org/wiki/Quantum_key_distribution)
-which are the .
+[Quantum Key Distribution (QKD)](https://en.wikipedia.org/wiki/Quantum_key_distribution).
 
 Most people are less familiar with Distributed Symmetric Key Establishment (DSKE) which is a
 completely different approach for quantum-safe key exchange.
