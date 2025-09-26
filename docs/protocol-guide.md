@@ -391,6 +391,9 @@ Successful response body:
 ```
 ## Key establishment
 
+TODO: We are still in the process of writing this documentation.
+From here on down, it is still a very rough draft.
+
 The following ladder diagram shows the establishment of a new key:
 
 ![Key establishment](/docs/figures/ladder-diagram-get-key.png)
