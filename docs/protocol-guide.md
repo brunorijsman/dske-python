@@ -174,8 +174,9 @@ There are two standard key delivery protocols:
    This protocol is supported by some Cisco encryptors.
 
 The code in this repository uses a simplified implementation of ETSI QKD 014.
-(The point of this repository is not to have a full-blown implementation of ETSI QKD 014 but
-rather to implement the DSKE protocol.)
+The point of this repository is not to have a full-blown implementation of ETSI QKD 014 but
+rather to implement the DSKE protocol.
+See [QuKayDee](https://qukaydee.com/) if you want to get experience with the ETSI QKD 014 protocol.
 
 ### Management interface
 
