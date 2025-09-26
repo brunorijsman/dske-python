@@ -297,6 +297,11 @@ and the attacker is assumed to not have access to the PSRD.
 
 For more details about the implementation see the [developer guide](/docs/developer-guide.md).
 
+Note that the other key concept in the DSKE protocol is
+[Shamir's Secret Sharing](#shamirs-secret-sharing-sss),
+which is used to ensure that no single hub (or even limited collection of collaborating hubs)
+has any knowledge of the established end-to-end user key.
+
 ## Client onboarding
 
 The following ladder diagram shows the onboarding of a new client in the network.
