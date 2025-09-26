@@ -67,6 +67,10 @@ clients:
   - name: curtis
 ```
 
+This is a diagram of the topology:
+
+![Topology diagram](/docs/figures/topology.png)
+
 ## The `manager.py` script
 
 The `manager.py` is used to manage topologies.
