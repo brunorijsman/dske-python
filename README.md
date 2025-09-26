@@ -1,7 +1,6 @@
 # Distributed Symmetric Key Establishment (DSKE)
 
-I assume that you are aware of the fact that existing
-[key exchange](https://en.wikipedia.org/wiki/Key_exchange)
+[Key exchange](https://en.wikipedia.org/wiki/Key_exchange)
 protocols such as
 [Diffie-Hellman (DH)](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange),
 [Elliptic Curve Diffie-Hellman (ECDH)](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman),
@@ -10,11 +9,12 @@ and
 are vulnerable to attack by future quantum computers due to the discovery of
 [Shor's algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm).
 
-I also assume that you are familiar with
+New protocols are under development to make key exchange quantum-safe.
+The best-known two methods are
 [Post-Quantum Cryptography (PQC)](https://en.wikipedia.org/wiki/Post-quantum_cryptography)
 and
 [Quantum Key Distribution (QKD)](https://en.wikipedia.org/wiki/Quantum_key_distribution)
-which are the two prevalent quantum-safe key exchange methods.
+which are the .
 
 Most people are less familiar with Distributed Symmetric Key Establishment (DSKE) which is a
 completely different approach for quantum-safe key exchange.
