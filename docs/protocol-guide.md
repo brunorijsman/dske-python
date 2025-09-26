@@ -29,7 +29,8 @@ I say "inspired by" because:
  * My implementation deviates from the draft and the paper in some aspects.
    Sometimes, I found it difficult to follow the details in the description.
    Other times, the description was clear enough, but I made a conscious decision to deviate.
-   See section TODO for a list of deviations.
+   A list of differences between the IETF draft and this implementation is given
+   [below](#differences-between-the-ietf-draft-and-this-implementation).
 
 ## Network topology
 
@@ -65,9 +66,12 @@ The clients are responsible for:
 
 Below, we describe the concepts of PSRD and key shares and each of these steps in more detail.
 
-In our example scenario, clients Carol and Conny are responsible for producing an encryption key
+In the example scenario, clients Carol and Conny are responsible for producing an encryption key
 and for delivering this key to encryptors Patrick and Porter respectively.
 The other clients are faded out because they play no role in our example.
+
+In our implementation, each client node runs in a separate process, listening on a separate
+HTTP port.
 
 ### Hubs
 
@@ -89,8 +93,11 @@ The hubs are responsible for:
 
 Once again, we describe these steps in more detail below.
 
-In our example, all five hubs are involved in relaying the key shares between clients Carol and
-Conny.
+In the example scenario, all five hubs are involved in relaying the key shares between clients Carol
+and Conny.
+
+In our implementation, each hub node also runs in a separate process, listening on a separate
+HTTP port.
 
 ### Encryptors
 
@@ -118,6 +125,9 @@ The encryptors are responsible for:
    key roll-overs).
 
 2. Use that encryption key to encrypt the user data that is sent over the encrypted connection.
+
+In our implementation, the `manager.py` script takes on the role of the encryptors, invoking the
+ETSI QKD 014 interface to request keys from the clients.
 
 ### Local distributors
 
