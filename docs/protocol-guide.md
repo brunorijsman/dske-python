@@ -96,8 +96,7 @@ Once again, we describe these steps in more detail below.
 In the example scenario, all five hubs are involved in relaying the key shares between clients Carol
 and Conny.
 
-In our implementation, each hub node also runs in a separate process, listening on a separate
-HTTP port.
+In our implementation, each hub also runs in a separate process, listening on a separate HTTP port.
 
 ### Encryptors
 
