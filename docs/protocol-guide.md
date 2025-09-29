@@ -284,9 +284,10 @@ itself) for an allocation.
 
 As a simplified example, the client and the hub might agree to use an allocation that consists
 of bytes 100 to 200 of PSRD block 11111111-2222-3333-4444-555555555555.
-Both the client and the hub can retrieve the shared secret data from their pool.
+Given the range of bytes and the block UUID, both the client and the hub are able to retrieve the
+shared secret data from their pool.
 But any attacker cannot retrieve the shared secret data because the data itself is never on the wire
-(only the meta-data) and the attacker is assumed to not have access to the PSRD.
+(only the meta-data) and the attacker does not have access to the PSRD.
 
 For more details about the implementation see the [developer guide](/docs/developer-guide.md).
 
