@@ -376,7 +376,53 @@ of hub failures (i.e. _n_ - _k_ hubs can fail).
 
 ## Message authentication
 
-TODO
+
+To protect against
+[Man-in-the-middle attacks](https://en.wikipedia.org/wiki/Man-in-the-middle_attack)
+all in-band DSKE protocol message must be
+[authenticated](https://en.wikipedia.org/wiki/Authentication).
+
+![Message Signing](/docs/figures/message-signing.png)
+
+The above figure shows how messages sent from clients to hubs are authenticated
+(messages sent from hubs to clients are authenticated in a similar way).
+
+Client Carol signs sent messages as follows:
+
+ * Client Carol wants to authenticate an in-band DSKE protocol message for hub Hank.
+   This in-band DSKE message is an HTTP REST message that may contain query parameters and/or
+   a message body.
+
+ * Client Carol allocates a signing key from the PSRD pool associated with hub Hank.
+
+ * Client Carol computes the signature for the message in the form of a
+   [Hashed Message Authentication Code (HMAC)](https://en.wikipedia.org/wiki/HMAC)
+   using the message to be signed and the allocated signing key as inputs.
+   The HMAC signature is computed over the query parameters and the body of the signed message.
+
+ * Client Carol attaches the computed singing key to the message using the HTTP
+   header `DSKE-Signature`.
+   This produces a signed message.
+
+ * The `DSKE-Signature` header does not only contain the signature (i.e. the HMAC code)
+   but also meta-data about the signature key.
+
+Hub Hank validates the signature on received messages as follows:
+
+ * Hub Hank extracts the following two piece of information from the `DSKE-Signature` header
+   on the received message: (a) the meta-data for the signing key and (b) the HMAC signature.
+
+ * Hub Hank retrieves the signing key from the PSRD pool associated with client Carol using
+   the signing key meta-data extracted from the `DSKE-Signature` header.
+
+ * Hub Hank performs its own local computation of the signature by computing the HMAC over
+   the message received from Client Carol and the singing key retrieved from its local PSRD pool.
+
+ * If the locally computed signature matches the received signature, the authentication succeeds.
+
+Note that we don't authenticate out-of-band DSKE messages because the out-of-band REST messages are
+only intended to simulated what would be a secure physical mechanism in real for automated testing
+purposes.
 
 ## Pool ownership
 

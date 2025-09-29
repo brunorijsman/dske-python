@@ -24,7 +24,8 @@ mv figures-3.png topology.png
 mv figures-4.png client-to-hub-relaying.png
 mv figures-5.png hub-to-client-relaying.png
 mv figures-6.png trusted-relay-node.png
-mv figures-7.png ladder-diagram-startup.png
-mv figures-8.png ladder-diagram-get-key.png
-mv figures-9.png block-fsm.png
-mv figures-10.png block-and-fragments.png
+mv figures-7.png message-signing.png
+mv figures-8.png ladder-diagram-startup.png
+mv figures-9.png ladder-diagram-get-key.png
+mv figures-10.png block-fsm.png
+mv figures-11.png block-and-fragments.png
