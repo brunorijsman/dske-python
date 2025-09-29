@@ -232,9 +232,7 @@ military
 [key transfer devices](https://www.cryptomuseum.com/crypto/fill.htm)
 , SIM cards, NFC, QKD, etc.
 
-Our code we implement the out-of-band DSKE interface as an HTTP
-[Representational State Transfer (REST)](https://en.wikipedia.org/wiki/REST)
-interface.
+In our code we implement the out-of-band DSKE interface as a REST interface.
 In real life, as we just mentioned, HTTP would not be used for this purpose; instead some secure
 physical delivery mechanism would be used.
 We use HTTP as a simulation of this physical mechanism which enabled automated testing of use
