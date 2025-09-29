@@ -325,7 +325,6 @@ As a result, the client registration is idem-potent and it is not an error for a
 itself multiple times. This can happen, for example, when a client crashes and restarts.
 
 In the request, the client provides its own `client_name`.
-
 In the response, the hub provides its `hub_name`.
 
 Method: `PUT`
