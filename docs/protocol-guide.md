@@ -240,11 +240,8 @@ scenarios.
 
 Our code also implements the in-band DSKE interface as an HTTP REST interface.
 This REST interface runs over normal HTTP and not over HTTPS.
-The DSKE protocol uses its own authentication mechanism.
-Most of the DSKE protocol is in the clear; only the key shares are encrypted.
-Both the DSKE authentication and the DSKE encryption of key-shares use Pre-Shared Random Data
-(PSRD).
-DSKE protocol authentication and encryption are described in more detail below.
+The DSKE protocol uses its own authentication and encryption mechanisms which are described
+below.
 
 ## Pre-Shared Random Data (PSRD)
 
