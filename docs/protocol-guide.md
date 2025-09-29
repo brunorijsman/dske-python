@@ -261,8 +261,8 @@ Each byte of PSRD is used once and once only.
 The PSRD is essentially used for One Time Pad (OTP) encryption, which contributes to the
 Information Theoretic Security (ITS) of the protocol.
 
-When the clients or the hubs run low on PSRD, there is an out-of-band mechanism to request and
-deliver more PSRD.
+When the clients or the hubs run low on PSRD, there is an out-of-band mechanism for the clients
+to request additional blocks of PSRD from the hubs.
 
 In the code, each block of PSRD is represented by a `Block` object.
 Each block is uniquely identified by a Universally Unique Identifier (UUID).
