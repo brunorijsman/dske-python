@@ -256,7 +256,6 @@ These blocks of PSRD can be very large, e.g. many gigabytes.
 The random data in the PSRD blocks is consumed by the clients and by the hubs for the purpose
 of authenticating DSKE protocol messages and for encrypting specific fields (namely the key shares)
 in DSKE protocol messages.
-The authentication and encryption is described in more detail below.
 
 Each byte of PSRD is used once and once only.
 The PSRD is essentially used for One Time Pad (OTP) encryption, which contributes to the
