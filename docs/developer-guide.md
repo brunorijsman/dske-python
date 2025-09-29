@@ -147,7 +147,7 @@ The `Block` class has the following attributes:
 
 The state of each byte in the block is described by the following Finite State Machine (FSM):
 
-![Block Finite State Machine (FSM)](/docs/figures/block-fsm.png)
+![Block Finite State Machine (FSM)](figures/block-fsm.png)
 
 When the block is created, each byte is unallocated.
 
@@ -181,7 +181,7 @@ The `Fragment` class has the following attributes:
 
 The relationship between a block and its fragments in shown in the following figure:
 
-![Relation between block and fragments](/docs/figures/block-and-fragments.png)
+![Relation between block and fragments](figures/block-and-fragments.png)
 
 ### The concept of block ownership
 

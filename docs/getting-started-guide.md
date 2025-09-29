@@ -69,7 +69,7 @@ clients:
 
 This is a diagram of the topology:
 
-![Topology diagram](/docs/figures/topology.png)
+![Topology diagram](figures/topology.png)
 
 ## The `manager.py` script
 
@@ -103,7 +103,7 @@ Optionally, if
 is installed on your computer, start it now so that you can view the protocol in action.
 Start a capture on loopback interface `lo0` and filter on HTTP messages.
 
-![Wireshark started)](/docs/figures/wireshark-started.png)
+![Wireshark started)](figures/wireshark-started.png)
 
 ## Start the example topology
 
@@ -134,7 +134,7 @@ For example, hub hank is listening on HTTP port 8100.
 To view the Swagger API documentation for hub hank open a browser and go to URL
 `http://localhost:8100/docs`
 
-![Swagger documentation for hub hank](/docs/figures/swagger-docs.png)
+![Swagger documentation for hub hank](figures/swagger-docs.png)
 
 ## Create key pair between clients Carol and Connie
 
@@ -169,7 +169,7 @@ Key values match
 You can explore the protocol messages in WireShark:
 The protocol is explained in the [protocol guide](/docs/protocol-guide.md).
 
-![Wireshark trace)](/docs/figures/wireshark-trace.png)
+![Wireshark trace)](figures/wireshark-trace.png)
 
 ## Display the internal state of a node
 

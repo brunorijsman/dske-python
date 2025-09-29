@@ -36,7 +36,7 @@ I say "inspired by" because:
 
 The following figure shows a typical example network topology:
 
-![Example network topology](/docs/figures/topology.png)
+![Example network topology](figures/topology.png)
 
 The topology consists of the following types of nodes:
 * Clients.
@@ -183,9 +183,9 @@ This repository contains a management script (`manager.py`) that is used to cont
 nodes.
 It can start nodes, stop nodes, report the status of nodes, and request keys.
 See the
-[getting started guide](/docs/getting-started-guide.md)
+[getting started guide](getting-started-guide.md)
 or the
-[user guide](/docs/user-guide.md)
+[user guide](user-guide.md)
 for more information.
 The clients and the hubs expose a management interface, which is a REST API, to interact with the
 management script.
@@ -289,7 +289,7 @@ shared secret data from their pool.
 But any attacker cannot retrieve the shared secret data because the data itself is never on the wire
 (only the meta-data) and the attacker does not have access to the PSRD.
 
-For more details about the implementation see the [developer guide](/docs/developer-guide.md).
+For more details about the implementation see the [developer guide](developer-guide.md).
 
 ## Key relaying
 
@@ -299,7 +299,7 @@ and Conny.
 Before they establish a key, client Carol and Conny have already obtained blocks of PSRD from
 each hub using the DSKE out-of-band protocol (these are the red lines in the figures).
 
-![Client to hub relaying](/docs/figures/client-to-hub-relaying.png)
+![Client to hub relaying](figures/client-to-hub-relaying.png)
 
 The figure above shows the first half of the relaying process, namely relaying key shares
 from a client Carol to all hubs.
@@ -329,7 +329,7 @@ These are split into key shares for relaying across the hubs.
 The red keys are key share encryption keys.
 These are allocated from the PSRD pools.
 
-![Hub to client relaying](/docs/figures/hub-to-client-relaying.png)
+![Hub to client relaying](figures/hub-to-client-relaying.png)
 
 The figure above shows the second half of the relaying process, namely relaying key shares
 from all hubs to client Conny.
@@ -356,7 +356,7 @@ The following figure shows how a trusted relay node works: the trusted relay nod
 key to encrypt the green A-B node and relay it to node C.
 After the relay is completed, the green A-B key becomes the end-to-end A-C key.
 
-![Trusted Relay Node](/docs/figures/trusted-relay-node.png)
+![Trusted Relay Node](figures/trusted-relay-node.png)
 
 The problem with this approach is that the final A-C key (the green key) is not only known
 by the end-points A and C but also by the relay node B.
@@ -382,7 +382,7 @@ To protect against
 all in-band DSKE protocol message must be
 [authenticated](https://en.wikipedia.org/wiki/Authentication).
 
-![Message Signing](/docs/figures/message-signing.png)
+![Message Signing](figures/message-signing.png)
 
 The above figure shows how messages sent from clients to hubs are authenticated
 (messages sent from hubs to clients are authenticated in a similar way).
@@ -456,7 +456,7 @@ Note that all the steps in the ladder diagram are red, which means that they are
 [out-of-band](#out-of-band-versus-in-band)
 steps.
 
-![Client onboarding](/docs/figures/ladder-diagram-startup.png)
+![Client onboarding](figures/ladder-diagram-startup.png)
 
 The steps for onboarding a new client into the network are as follows:
 
@@ -540,7 +540,7 @@ Successful response body:
 
 The following ladder diagram shows the establishment of a new key:
 
-![Key establishment](/docs/figures/ladder-diagram-get-key.png)
+![Key establishment](figures/ladder-diagram-get-key.png)
 
 TODO: Complete this section
 
