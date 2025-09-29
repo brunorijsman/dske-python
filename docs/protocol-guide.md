@@ -301,7 +301,8 @@ each hub using the DSKE out-of-band protocol (these are the red lines in the fig
 
 ![Client to hub relaying](/docs/figures/client-to-hub-relaying.png)
 
-In the first figure:
+The figure above shows the first half of the relaying process, namely relaying key shares
+from a client Carol to all hubs.
 
  * Client Carol uses a Random Number Generator (RNG) to generate the key that she wishes to share
    with client Conny.
@@ -328,6 +329,13 @@ These are split into key shares for relaying across the hubs.
 The red keys are key share encryption keys.
 These are allocated from the PSRD pools.
 
+![Hub to client relaying](/docs/figures/hub-to-client-relaying.png)
+
+The figure above shows the second half of the relaying process, namely relaying key shares
+from all hubs to client Conny.
+
+TODO: Finish this.
+
 ## Trusted Relay Nodes (TRNs)
 
 In Quantum Key Distribution (QKD) there is the concept of Trusted Relay Nodes (TRNs).
@@ -338,7 +346,7 @@ The following figure shows how a trusted relay node works: the trusted relay nod
 key to encrypt the green A-B node and relay it to node C.
 After the relay is completed, the green A-B key becomes the end-to-end A-C key.
 
-TODO: Figure
+![Trusted Relay Node](/docs/figures/trusted-relay-node.png)
 
 The problem with this approach is that the final A-C key (the green key) is not only known
 by the end-points A and C but also by the relay node B.
