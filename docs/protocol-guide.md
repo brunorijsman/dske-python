@@ -322,6 +322,41 @@ In the first figure:
    This allows the hub to retrieve the exact same decryption key from its local copy of the PSRD
    pool.
 
+Note that the blue keys are different keys than the red keys in the figures.
+The blue keys are the user keys that will be delivered to the encryptors.
+These are split into key shares for relaying across the hubs.
+The red keys are key share encryption keys.
+These are allocated from the PSRD pools.
+
+## Trusted Relay Nodes (TRNs)
+
+In Quantum Key Distribution (QKD) there is the concept of Trusted Relay Nodes (TRNs).
+Each QKD link has a maximum distance, and when you need to generate a QKD key across a greater
+distance a trusted relay node can be used to relay the key.
+
+The following figure shows how a trusted relay node works: the trusted relay node uses the red B-C
+key to encrypt the green A-B node and relay it to node C.
+After the relay is completed, the green A-B key becomes the end-to-end A-C key.
+
+TODO: Figure
+
+The problem with this approach is that the final A-C key (the green key) is not only known
+by the end-points A and C but also by the relay node B.
+You have to _trust_ that relay node B will not abuse or leak knowledge of the end-to-end key.
+This is why B is called a _trusted_ relay node.
+
+In Distribute Symmetric Key Encryption (DSKE) the problem of having to trust relay nodes is
+addressed using Shamir Secret Sharing (SSS).
+The secret key is split into _n_ key shares.
+Each hub (which is a relay node) only knows one share of the key.
+At least _k_ hubs would have to conspire with each other to be able to gain any knowledge of
+the complete key.
+
+This same mechanism also provides resilience to the DSKE protocol:
+as long as there are _k_ surviving hub nodes, the DSKE protocol continues to work in the face
+of hub failures (i.e. _n_ - _k_ hubs can fail).
+
+
 ## Message authentication
 
 TODO
