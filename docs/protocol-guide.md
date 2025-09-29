@@ -145,7 +145,7 @@ may contain multiple switch or router hops.
 ## Interfaces
 
 The topology contains the following software interfaces:
-* DSKE interface.
+* DSKE interface (in-band and out-of-band).
 * Key delivery interface.
 * Management interface.
 
