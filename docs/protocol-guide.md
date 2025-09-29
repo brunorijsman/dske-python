@@ -334,7 +334,17 @@ These are allocated from the PSRD pools.
 The figure above shows the second half of the relaying process, namely relaying key shares
 from all hubs to client Conny.
 
-TODO: Finish this.
+ * Client Conny receives and encrypted key share from each hob (to be more precise: from at least
+   _k_ out of the _n_ hubs).
+
+ * Along with the encrypted key share, the DSKE protocol message also contains meta-data about
+   the encryption key that the hub used to encrypt the key share.
+
+ * Client Conny uses this meta-data to allocate the description key from the PSRD pool associated
+   with that particular hub and decrypt the encrypted message share.
+
+ * Client Conny uses Shamir's Secret Sharing algorithm to reconstruct Carol's key from the
+   decrypted key shares.
 
 ## Trusted Relay Nodes (TRNs)
 
