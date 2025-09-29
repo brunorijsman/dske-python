@@ -293,7 +293,34 @@ For more details about the implementation see the [developer guide](/docs/develo
 
 ## Key relaying
 
-TODO
+The following two figures show how the DSKE protocol establishes a key between two clients Carol
+and Conny.
+
+Before they establish a key, client Carol and Conny have already obtained blocks of PSRD from
+each hub using the DSKE out-of-band protocol (these are the red lines in the figures).
+
+![Client to hub relaying](/docs/figures/client-to-hub-relaying.png)
+
+In the first figure:
+
+ * Client Carol uses a Random Number Generator (RNG) to generate the key that she wishes to share
+   with client Conny.
+
+ * Client Carol uses Shamir's Secret Sharing (SSS) algorithm to split the key into _n_ key shares
+   (or just shares for short), where _n_ is the number of hubs that is going to be used to relay
+   the key.
+
+ * Client Carol is going to send each share to a different hub, so that the hub can relay the share
+   to the remote client Conny (second figure).
+
+ * However, before client Carols sends a share to a particular hub, she first encrypts the share
+   using an encryption key that is allocated from the PSRD pool associated with that particular
+   hub.
+
+ * When client Carol sends the encrypted key share to a hub, she include the meta-data about the
+   encryption key to the hub.
+   This allows the hub to retrieve the exact same decryption key from its local copy of the PSRD
+   pool.
 
 ## Message authentication
 

@@ -21,7 +21,8 @@ mv figures-0.png wireshark-started.png
 mv figures-1.png wireshark-trace.png
 mv figures-2.png swagger-docs.png
 mv figures-3.png topology.png
-mv figures-4.png ladder-diagram-startup.png
-mv figures-5.png ladder-diagram-get-key.png
-mv figures-6.png block-fsm.png
-mv figures-7.png block-and-fragments.png
+mv figures-4.png client-to-hub-relaying.png
+mv figures-5.png ladder-diagram-startup.png
+mv figures-6.png ladder-diagram-get-key.png
+mv figures-7.png block-fsm.png
+mv figures-8.png block-and-fragments.png
