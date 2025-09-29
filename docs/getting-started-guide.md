@@ -127,7 +127,7 @@ Waiting for all nodes to be started
 
 ## Explore the Swagger documentation
 
-You can explore the Swagger documentation for the interface for each node using a browser.
+Explore the Swagger documentation for the node's REST interface.
 Each node (i.e. each client and each hub) runs in a separate process and is listening
 on a separate HTTP port as reported in the output when the topology was started.
 For example, hub hank is listening on HTTP port 8100.
