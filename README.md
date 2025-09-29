@@ -29,7 +29,7 @@ It has been commercialized by
 
 This repository contains an open source implementation of DSKE inspired by the IETF draft.
 I say "inspired by" because the draft only describes the general approach and not a detailed
-protocol and because my implementation differs from the draft on some aspects.
+protocol and because my implementation differs from the draft in some aspects.
 
 Documentation:
 
