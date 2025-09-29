@@ -374,7 +374,6 @@ This same mechanism also provides resilience to the DSKE protocol:
 as long as there are _k_ surviving hub nodes, the DSKE protocol continues to work in the face
 of hub failures (i.e. _n_ - _k_ hubs can fail).
 
-
 ## Message authentication
 
 TODO
