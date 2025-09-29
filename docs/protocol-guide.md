@@ -235,8 +235,8 @@ military
 In our code we implement the out-of-band DSKE interface as an HTTP REST interface.
 In real life, as we just mentioned, HTTP would not be used for this purpose; instead some secure
 physical delivery mechanism would be used.
-We use HTTP as a simulation of this physical mechanism which enabled automated testing of use
-case scenarios.
+We use HTTP as a simulation of this physical mechanism to enable automated testing of use case
+scenarios.
 
 Our code also implements the in-band DSKE interface as an HTTP REST interface.
 This REST interface runs over normal HTTP and not over HTTPS.
