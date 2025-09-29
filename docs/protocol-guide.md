@@ -458,67 +458,11 @@ Successful response body:
 ```
 ## Key establishment
 
-TODO: We are still in the process of writing this documentation.
-From here on down, it is still a very rough draft.
-
 The following ladder diagram shows the establishment of a new key:
 
 ![Key establishment](/docs/figures/ladder-diagram-get-key.png)
 
-The main responsibilities of the clients in the DSKE protocol are:
-
-1. Each client registers itself with all hubs in the network.
-
-2. Each client receives a large pool of Pre-Shared Random Data (PSRD) from each hub in the network.
-
-3. The two clients involved in the key establishment (Carol and Conny in this example) run
-   the DSKE protocol with all of the hubs to produce the key.
-   One of the clients (Carol) is the initiator and the other client (Conny) is the responder.
-
-   3.1. The initiator client allocates a key using locally generated random data.
-
-   3.2. The initiator client (Carol) splits the allocated key into _N_ shares using 
-        [Shamir's Secret Sharing (SSS)](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)
-        algorithm, where _N_ is the number of hubs.
-
-   3.3. The initiator client (Carol) sends each share to a separate hub, and that hub relays the
-        share to the responder client.
-
-   3.4. When a share is sent from the initiator client to a hub or from a hub to the responder
-        client, the share is one-time-pad encrypted and authenticated using a chunk of bits that
-        are consumed from the Pre-Shared Random Data (PSRD) exchanged a-priori between that
-        particular client and that particular hub.
-
-   3.5. The responder client receives shares from some subset of the hubs.
-        Perhaps it doesn't receive all shares from all hubs because some hubs might be compromised
-        or might have failed.
-
-   3.6. The responder client reconstructs the client-to-client key from the received shares.
-        [Shamir's Secret Sharing (SSS)](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)
-        algorithm allows the client-to-client key to be reconstructed, even if some of the shares
-        are missing.
-
-## Placeholders
-
-1. Prior to the production of any keys, the hubs distribute blocks of Pre-Shared Random Data (PSRD)
-   to the clients using a secure out-of-band mechanism.
-   The DSKE protocol produces client-to-hub shared secrets by allocating chunks of bits from this
-   PSRD.
-
-2. The hubs act as relay nodes. In our example, each hub relays the carol-to-hub shared secret
-   to conny by one-time-pad encrypting it using the conny-to-hub shared secret.
-
-3. Each hub only relays a fragment of the client-to-client key, known as a share.
-   [Shamir's Secret Sharing (SSS)](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing).
-   Client Carol splits the key into shares and sends those share to client Conny, using a different
-   hub to relay each share.
-   Client Conny reconstructs the key from received shares received from the hubs.
-   Shamir's Secret Sharing algorithm has guarantees that:
-
-   A. The hubs are not able to learn any information from the client-to-client full key from the
-      single share that is relayed through them. At least _k_
-
-   B. 
+TODO: Complete this section
 
 ## Comparison with other key establishment protocols
 
