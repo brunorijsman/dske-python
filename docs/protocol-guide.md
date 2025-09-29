@@ -426,7 +426,24 @@ purposes.
 
 ## Pool ownership
 
-TODO
+So far, we have seen several scenarios where a node allocates a key from a local PSRD pool and
+uses that key to encrypt a key share or to sign a DSKE message.
+The node then sends meta-data about the allocated key to a peer node.
+This allows the peer node to use the received key meta-data to retrieve the same key from its local
+PSRD pool and decrypt the key share or to validate the signature.
+
+Sometimes the node who allocates the key and sends the meta-data is a client and other times it
+is a hub.
+This leads to a race condition:
+when two nodes (a client and hub) send a message to each other at roughly the same time,
+it may happen that they allocate the same bytes from the PSRD pool.
+When they receive the meta-data from their peer, they find that the bytes indicated in the received
+meta-data are already allocated for a different purpose.
+
+We solve this problem by having each node keep two separate PSRD pools: one pool from which the
+client allocates bytes and a different pool from which the hub allocates bytes.
+We refer to this as the concept of pool ownership: each PSRD pool is owned by either the client or
+the hub.
 
 ## Client onboarding
 
