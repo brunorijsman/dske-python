@@ -70,7 +70,7 @@ In the example scenario, clients Carol and Conny are responsible for producing a
 and for delivering this key to encryptors Patrick and Porter respectively.
 The other clients are faded out because they play no role in our example.
 
-In our implementation, each client node runs in a separate process, listening on a separate
+In our implementation, each client runs in a separate process, listening on a separate
 HTTP port.
 
 ### Hubs
