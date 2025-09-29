@@ -291,7 +291,23 @@ But any attacker cannot retrieve the shared secret data because the data itself 
 
 For more details about the implementation see the [developer guide](/docs/developer-guide.md).
 
+## Key relaying
+
+TODO
+
+## Message authentication
+
+TODO
+
+## Pool ownership
+
+TODO
+
 ## Client onboarding
+
+Now that we have explained the basic concepts behind the DSKE protocol, we are finally ready to
+describe the actual protocol in detail.
+We start with client onboarding.
 
 The following ladder diagram shows the onboarding of a new client in the network.
 Note that all the steps in the ladder diagram are red, which means that they are all
