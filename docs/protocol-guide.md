@@ -294,7 +294,8 @@ For more details about the implementation see the [developer guide](/docs/develo
 ## Client onboarding
 
 The following ladder diagram shows the onboarding of a new client in the network.
-Note that all the steps in the ladder diagram are red, which means that they are all out-of-band
+Note that all the steps in the ladder diagram are red, which means that they are all
+[out-of-band](#out-of-band-versus-in-band)
 steps.
 
 ![Client onboarding](/docs/figures/ladder-diagram-startup.png)
