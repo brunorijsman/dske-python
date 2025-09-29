@@ -38,7 +38,7 @@ The following figure shows a typical example network topology:
 
 ![Example network topology](/docs/figures/topology.png)
 
-The topology sonsists of the following types of nodes:
+The topology consists of the following types of nodes:
 * Clients.
 * Hubs.
 * Encryptors.
