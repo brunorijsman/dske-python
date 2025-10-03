@@ -4,5 +4,5 @@ Logging.
 
 import logging
 
-LOGGER = logging.getLogger("dske")
+LOGGER = logging.getLogger("uvicorn.dske")
 LOGGER.setLevel(logging.DEBUG)

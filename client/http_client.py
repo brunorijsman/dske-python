@@ -6,6 +6,7 @@ import httpx
 import pydantic
 from common import exceptions
 from common.allocation import Allocation
+from common.logging import LOGGER
 from common.signature import Signature
 from common.signing_key import SigningKey
 from common.pool import Pool
@@ -85,6 +86,7 @@ class HttpClient:
                 params=params,
                 exception=str(exc),
             ) from exc
+        LOGGER.info(f"Call GET {url} {response.status_code}")
         if response.status_code != 200:
             raise exceptions.HTTPError(
                 method="GET",
@@ -165,6 +167,7 @@ class HttpClient:
                     data=api_request_obj,
                     exception=str(exc),
                 ) from exc
+            LOGGER.info(f"Call {method} {url} {response.status_code}")
             if response.status_code != 200:
                 raise exceptions.HTTPError(
                     method=method,
