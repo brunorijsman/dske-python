@@ -196,13 +196,3 @@ Sharing a secret means sending the some information about the `Allocation` objec
 which bytes in which blocks have been allocated, but not the byte values themselves.
 The peer then uses this information to create a corresponding `Allocation` object with
 identical byte values.
-
-TODO: Allocations are also made for the shares themselves.
-
-In an HTTP transaction, the request message (client to hub) and the response message (hub to client)
-both need to be authenticated and each require an `Allocation` for that authentication.
-
-TODO: Hmmm.... Maybe we don't need to concept of ownership. The response can just use the same
-allocation as the request. The client always makes the allocation.
-
-
