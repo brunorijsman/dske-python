@@ -542,6 +542,147 @@ The following ladder diagram shows the establishment of a new key:
 
 ![Key establishment](figures/ladder-diagram-get-key.png)
 
+In the example scenario shown in the above ladder diagram, encryptors Patrick and Porter establish
+a key.
+
+### Initiator encryptor gets key
+
+One of the two encryptors -Patrick in this example- is the initiator: he initiates the key
+establishment process by invoking the `Get key` API as defined in section 5.3 of
+[ETSI GS QKD 014 V1.1.1 (2019-02)](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf).
+The client-side of this API call is implemented in the manager script `manager.py` and the
+server-side is implemented by the client node.
+(The naming is confusing here - the client node is called that because it is the client-side of
+the client-hub interface.)
+
+We only implement a minimal subset of the ETSI QKD 014 interface - the point of this repository
+is to demonstrate a DSKE protocol, not to have a fully compliant ETSI QKD 014 implementation.
+See
+[QuKayDee](https://qukaydee.com)
+or
+[qkd_kme_server](https://github.com/thomasarmel/qkd_kme_server)
+if you want to experiment with a full ETSI QKD 014 implementation.
+
+Method: `GET`
+
+URL: `/client/{client_name}/etsi/api/v1/keys/{slave_SAE_ID}/enc_keys`
+
+Note that this API call always referred to as the `Get key` API call, but the URL path
+actually ends in `enc_keys`.
+
+URL parameters: 
+
+| Name | Type | Description |
+|---|---|---|
+| ```slave_SAE_ID``` | string | The identifier of the slave Secure Application Entity (SAE) |
+
+In this example, the slave SAE is encryptor Porter.
+However, to simplify the code and to avoid to configure locally attached SAEs on the client nodes,
+our implementation expects the name of the responder Key Management Entity (KME), i.e. the responder
+client node (i.e. Conny in this example).
+
+Query parameters: The ETSI QKD 014 specification defines two parameters `number` and `size` but
+those are not implemented in this repository.
+
+Request body: None
+
+Successful response body:
+```
+{
+  "keys": {
+    "key_ID": "string",   # A UUID uniquely identifying the key
+    "key": "string"       # The base64 encoded key value
+  }
+}
+```
+
+### Initiator client posts key shares to all hubs
+
+When a client receives a `Get key` request from an encryptor, the client performs the following
+steps to produce the key and to deliver it back to the encryptor:
+
+ 1. Randomly generate a key value.
+
+ 2. Use Shamir's Secret Sharing (SSS) algorithm to split the key into _n_ shares, where _n_ is the
+    number of hubs over which the key will be relayed.
+
+ 3. Relays each of the _n_ shares to a different hub using the `POST key-share` API call.
+
+ 4. The share value in the `POST key-share` API call is encrypted using the process
+    described [above](#key-relaying):
+    the client allocates a number of bytes equal to the user key size from the PSRD pool and uses it
+    as a one-time pad to encrypt the share.
+    The client includes the meta-data of the PSRD pool allocation in the `POST key-share` API
+    call;
+    this allows the hub to allocate the same bytes from its PSRD pool and decrypt the share value.
+
+ 5. The whole `POST key-share` message is also authenticated as described
+    [above](#message-authentication):
+    the client allocates a number of bytes equal to the authentication key size from the PSRD pool
+    and uses to compute an HMAC to sign the message.
+    Both the signature itself and also the meta-data of the PSRD pool allocation are encoded into
+    the `DSKE-Signature` HTTP header.
+    When the hub receives the `POST key-share` message, he uses the meta-data to allocate the
+    same authentication key from his local PSRD pool and uses it to verify the signature.
+
+ 6. When at least _k_ shares have been successfully relayed to hubs, the client returns the
+    key ID (a UUID) and the key value to the encryptor.
+
+Method: `POST`
+
+URL: `/hub/{hub_name}/dske/api/v1/key-share`
+
+Request body:
+```
+{
+  "client_name": "string",            # The name of the client.
+  "user_key_id": "string",            # The UUID of the user key.
+  "share_index": "integer",           # The index of the share (0, 1, ..., n-1).
+  "encryption_key_allocation": {      # The PSRD pool allocation for the share encryption key.
+    [                                 # List of allocation fragments
+      block_uuid: "string",           # The UUID of the PSRD block from which the fragment was allocated.
+      start_byte: "integer",          # The index of the start byte for the fragment within the block.
+      size: "integer"                 # The size of the fragment
+    ]
+  },
+  "encrypted_share_value": "string"   # Base64 encoded encrypted share value
+}
+```
+
+Successful response body: None
+
+### Initiator encryptor sends key ID to responder encryptor
+
+Once the initiator encryptor (Patrick) has received the key ID and the key value from the initiator
+client (Carol),
+the initiator encryptor (Patrick) uses some mechanism to send the key ID (but not the key value)
+to the responder encryptor (Porter).
+Note that (unlike the key value) the key ID is not a secret; it is perfectly okay to send it over
+a public channel.
+
+The exact mechanism that is used for this depends on which encryption protocol the encryptors
+Patrick and Porter as using.
+For example, if they are running
+[IPsec](https://en.wikipedia.org/wiki/IPsec) as the encryption protocol,
+the IPsec protocol uses some extensions defined in
+[RFC8784: Mixing Preshared Keys in the Internet Key Exchange Protocol Version 2 (IKEv2) for Post-quantum Security](https://datatracker.ietf.org/doc/html/rfc8784).
+The details are far to complex to describe here; see
+[this blog post](https://hikingandcoding.com/2024/07/16/how-to-configure-an-ipsec-tunnel-using-qkd-keys/)
+or
+[this webinar](https://www.brighttalk.com/webcast/19861/639582)
+for more information.
+Other encryption protocols (e.g. TLS, MACsec, optical encryption) have similar but different
+mechanisms.
+
+In our code the transfer of the key ID from initiator to responder encryptor is implemented in
+the `manager.py` script.
+
+### Responder encryptor gets key
+
+TODO: Complete this section
+
+### Responder client gets key shares from all hubs
+
 TODO: Complete this section
 
 ## Comparison with other key establishment protocols
