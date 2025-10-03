@@ -1,5 +1,3 @@
-TODO: Second get-key-pair fails
-
 TODO: Better error response if authentication key is bad (and return to pool if allocated)
       - Bad block uuid
       - Start and end of range
