@@ -1,3 +1,20 @@
+TODO: Add log messages
+
+TODO: Use async features to post all shares to the peer hubs in parallel, instead of sequentially
+      one after the other. Ditto for getting the shares on the responder client.
+
+TODO: Check if at least k out of n shares are posted successfully; if not return error.
+
+TODO: Get all shares from hubs in parallel. 
+
+TODO: Check if at least k out of n shares are gotten successfully; if not return error.
+
+TODO: Test case: key relay is still successful if less than k hubs fail
+
+TODO: Test case: key relay fails gracefully if more k or more hubs fail
+
+TODO: Cleanup Shamir's Secret Sharing (SSS) code
+
 TODO: Better error response if authentication key is bad (and return to pool if allocated)
       - Bad block uuid
       - Start and end of range
@@ -23,8 +40,6 @@ TODO: Allow a client to register itself again (after a restart). Done; just need
 
 TODO: Add statistics management API and topology command to query it.
 
-TODO: Add log messages
-
 TODO: More unit test cases to get code coverage up
 
 TODO: Add Sphinx documentation
@@ -33,9 +48,6 @@ TODO: Add Sphinx documentation
 TODO: Cleanup share after all clients have retrieved it, or after timeout.
 
 TODO: Request new PSRD blocks when they run low (have a threshold)
-
-TODO: Use async features to send all shares to the peer hubs in parallel, instead of sequentially
-      one after the other. Ditto for getting the shares on the responder client.
 
 TODO: Better way to avoid circular imports that then current # type: ignore
 
