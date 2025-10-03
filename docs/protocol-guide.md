@@ -799,3 +799,25 @@ slave SAE (encryptor).
 allows a master SAE to establish a key with more than one slave SAE;
 this is referred to as key multicast.
 
+### Full implementation of ETSI GS QKD 014 API
+
+The repository contains a subset implementation of
+[ETSI GS QKD 014 V1.1.1 (2019-02)](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf)
+for the purpose of delivering keys to encryptors.
+Since the purpose of this repository is to provide proof-of-concept for the DSKE protocol and
+not to have a full standards-compliant implementation of ETSI GS QKD 014, many simplifications have
+been made including:
+
+ * The ETSI GS QKD 014 API uses HTTP and not HTTPS; it is neither encrypted nor authenticated.
+
+ * Each KMS (client node) can only have one local SAE (encryptor) and it is assumed that the
+   SAE ID is equal to the client node name.
+
+ * The `GET` method for the `Get key` interface does not support the query parameters `number` or
+   `size`. Only one key of the default size can be retrieved.
+
+ * The `POST` method for the `Get key` interface is not supported.
+
+ * The `POST` method for the `Get key with key IDs` interface is not supported.
+
+ * Error handling is not as robust as it should be.
