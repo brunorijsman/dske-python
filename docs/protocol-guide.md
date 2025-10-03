@@ -632,6 +632,8 @@ Method: `POST`
 
 URL: `/hub/{hub_name}/dske/api/v1/key-share`
 
+TODO: Document `DSKE-Signature` header here
+
 Request body:
 ```
 {
