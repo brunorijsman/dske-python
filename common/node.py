@@ -58,7 +58,6 @@ class Node:
         except OSError as error:
             if error.errno == errno.EADDRINUSE:
                 return True
-            print(error.errno)
             return False
         sock.close()
         return False

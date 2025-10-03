@@ -2,8 +2,12 @@
 
 disable=
     fixme,
+    logging-fstring-interpolation,
     too-few-public-methods,
     too-many-instance-attributes,
     too-many-arguments,
     too-many-positional-arguments,
     too-many-public-methods,
+
+enable=
+    logging-format-interpolation

@@ -4,8 +4,8 @@ Common functions for the project.
 
 import base64
 import os
-import sys
 import pathlib
+from .logging import LOGGER
 
 
 def bytes_to_str(data: bytes | None, truncate: bool = False) -> str | None:
@@ -58,7 +58,7 @@ def create_pid_file(node_type: str, node_name: str) -> None:
     """
     file_name = pid_file_name(node_type, node_name)
     if pid_file_exists(node_type, node_name):
-        print(f"Warning: overwriting existing PID file {file_name}", file=sys.stderr)
+        LOGGER.warning(f"Warning: overwriting existing PID file {file_name}")
     with open(file_name, "w", encoding="utf-8") as pid_file:
         pid_file.write(f"{os.getpid()}\n")
 
@@ -67,7 +67,6 @@ def delete_pid_file(node_type: str, node_name: str) -> None:
     """
     Delete the process ID file for the node.
     """
-    # TODO: Make this a WARNING log message
     os.remove(pid_file_name(node_type, node_name))
 
 

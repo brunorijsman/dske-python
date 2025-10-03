@@ -3,12 +3,12 @@ A peer hub.
 """
 
 import asyncio
-import sys
 from uuid import UUID
 from common import exceptions
 from common.allocation import Allocation
 from common.block import APIBlock, Block
 from common.encryption_key import EncryptionKey
+from common.logging import LOGGER
 from common.pool import Pool
 from common.registration_api import (
     APIPutRegistrationRequest,
@@ -112,9 +112,8 @@ class PeerHub:
                 url, data, APIPutRegistrationResponse
             )
         except exceptions.HTTPError:
-            print(
-                f"Failed to register client {self._client.name} with peer hub at {self._base_url}",
-                file=sys.stderr,
+            LOGGER.error(
+                f"Failed to register client {self._client.name} with peer hub at {self._base_url}"
             )
             return False
         self._hub_name = registration.hub_name
@@ -149,8 +148,9 @@ class PeerHub:
         try:
             api_block = await self._http_client.get(url, params, APIBlock)
         except exceptions.HTTPError:
-            # TODO: Use logging instead of print
-            print(f"Failed to request PSRD block from peer hub at {self._base_url}")
+            LOGGER.error(
+                f"Failed to request PSRD block from peer hub at {self._base_url}"
+            )
             return False
         block = Block.from_api(api_block)
         pool.add_block(block)
