@@ -45,10 +45,6 @@ TODO: Make the swagger docs also work off-line
 
 TODO: Type annotations everywhere
 
-TODO: Implement and test get multiple keys over ETSI QKD API
-
-TODO: Implement and test get non-default key size over ETSI QKD API
-
 TODO: Tests get wrong key-id over ETSI QKD API
 
 TODO: Test creation and deletion of PID file
