@@ -63,7 +63,7 @@ class Client:
             "max_key_per_request": self._max_keys_per_request,
             "max_key_size": self._max_key_size_in_bits,
             "min_key_size": self._min_key_size_in_bits,
-            "max_sae_id_count": 0,  # TODO: Add support for key multicast
+            "max_sae_id_count": 0,
         }
 
     async def etsi_get_key(self, _slave_sae_id: str):

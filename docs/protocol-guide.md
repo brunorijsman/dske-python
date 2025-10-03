@@ -790,3 +790,12 @@ when two clients want to establish a key, they have to agree on a set of hubs th
 common that can act as relays.
 Or, alternatively, a mechanism could be introduced to do multi-hop relaying of key shares across
 a series of multiple hubs.
+
+### Add support for key multicast
+
+The current implementation only allows a master SAE (encryptor) to establish a key with a single
+slave SAE (encryptor).
+[ETSI GS QKD 014 V1.1.1 (2019-02)](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf)
+allows a master SAE to establish a key with more than one slave SAE;
+this is referred to as key multicast.
+
