@@ -542,14 +542,25 @@ The following ladder diagram shows the establishment of a new key:
 
 ![Key establishment](figures/ladder-diagram-get-key.png)
 
+### Initiator and responder roles
+
 In the example scenario shown in the above ladder diagram, encryptors Patrick and Porter establish
 a key.
 
+In each key establishment one of the two encryptors (Patrick in this example) is the initiator:
+he initiates the key establishment process.
+The other encryptor encryptor (Porter) is the responder: he follows the lead of the initiator.
+
+[ETSI GS QKD 014 V1.1.1 (2019-02)](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf) still uses the terms master Secure Application Entity (SAE) and slave SAE.
+These terms master and slave will be updated to initiator and responder in version `v2` of the
+API which is expected to be published soon.
+
 ### Initiator encryptor gets key
 
-One of the two encryptors -Patrick in this example- is the initiator: he initiates the key
-establishment process by invoking the `Get key` API as defined in section 5.3 of
+The initiator encryptor (Patrick) the initiates the key establishment process by invoking the
+`Get key` API as defined in section 5.3 of
 [ETSI GS QKD 014 V1.1.1 (2019-02)](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf).
+
 The client-side of this API call is implemented in the manager script `manager.py` and the
 server-side is implemented by the client node.
 (The naming is confusing here - the client node is called that because it is the client-side of
@@ -657,18 +668,18 @@ Successful response body: None
 
 Once the initiator encryptor (Patrick) has received the key ID and the key value from the initiator
 client (Carol),
-the initiator encryptor (Patrick) uses some mechanism to send the key ID (but not the key value)
+the initiator encryptor (Patrick) uses _some_ mechanism to send the key ID (but not the key value)
 to the responder encryptor (Porter).
 Note that (unlike the key value) the key ID is not a secret; it is perfectly okay to send it over
 a public channel.
 
-The exact mechanism that is used for this depends on which encryption protocol the encryptors
-Patrick and Porter as using.
+The exact mechanism that is used for sending the key ID depends on which encryption protocol the
+encryptors Patrick and Porter as using.
 For example, if they are running
 [IPsec](https://en.wikipedia.org/wiki/IPsec) as the encryption protocol,
 the IPsec protocol uses some extensions defined in
 [RFC8784: Mixing Preshared Keys in the Internet Key Exchange Protocol Version 2 (IKEv2) for Post-quantum Security](https://datatracker.ietf.org/doc/html/rfc8784).
-The details are far to complex to describe here; see
+The details are too complex to describe here; see
 [this blog post](https://hikingandcoding.com/2024/07/16/how-to-configure-an-ipsec-tunnel-using-qkd-keys/)
 or
 [this webinar](https://www.brighttalk.com/webcast/19861/639582)
@@ -682,6 +693,8 @@ the `manager.py` script.
 ### Responder encryptor gets key
 
 TODO: Complete this section
+
+When the responding encryptor
 
 ### Responder client gets key shares from all hubs
 
