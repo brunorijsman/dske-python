@@ -94,7 +94,6 @@ async def post_mgmt_stop():
     # TODO: Can we delete the PID file later, when the process actually terminates?
     utils.delete_pid_file("client", _CLIENT.name)
     os.kill(os.getpid(), signal.SIGTERM)
-    # TODO: Does this result actually get returned
     return {"result": "Hub stopped"}
 
 
