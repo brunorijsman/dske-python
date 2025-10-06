@@ -17,7 +17,7 @@ class HttpClient:
     An asynchronous HTTP client that:
       - Uses httpx to make requests.
       - Uses Pydantic to encode/decode request/response data.
-      - Takes care of request authentication using an authentication key from a pool.
+      - Takes care of request authentication using a signing key from a pool.
     """
 
     APIObject = pydantic.BaseModel
@@ -26,7 +26,7 @@ class HttpClient:
 
     class Auth(httpx.Auth):
         """
-        An httpx Auth class that uses an authentication key from a pool to sign requests.
+        An httpx Auth class that uses a signing key from a pool to sign requests.
         """
 
         def __init__(self, local_pool, peer_pool):
@@ -94,7 +94,6 @@ class HttpClient:
                 response=response.content,
             )
         if api_response_class is None:
-            # TODO: Check that the response is empty, since none is expected
             return None
         try:
             obj = api_response_class.model_validate(response.json())
