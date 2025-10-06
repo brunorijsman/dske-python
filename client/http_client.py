@@ -1,5 +1,5 @@
 """
-HTTP client for making GET and POST requests and decoding the response using Pydantic.
+HTTP client for issuing HTTP requests and decoding the response using Pydantic.
 """
 
 import httpx
