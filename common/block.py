@@ -34,7 +34,6 @@ class Block:
     def __init__(self, block_uuid: UUID, data: bytes):
         self._block_uuid = block_uuid
         self._size = len(data)
-        # TODO: Use consistent naming: data or value
         self._data = data
         self._allocated = bitarray(self._size)
         self._consumed = bitarray(self._size)
