@@ -2,6 +2,8 @@
 Exceptions.
 """
 
+from uuid import UUID
+
 
 class DSKEException(Exception):
     """
@@ -87,4 +89,38 @@ class UnknownKeyIDError(DSKEException):
     def __init__(self, key_id: str):
         super().__init__(
             message=f"Unknown key ID: {key_id}",
+        )
+
+
+class CouldNotScatterEnoughSharesError(DSKEException):
+    """
+    Unable to scatter enough shares to peer hubs.
+    """
+
+    def __init__(
+        self, key_id: UUID, nr_successful_shares: int, nr_required_shares: int
+    ):
+        super().__init__(
+            message=(
+                f"Could not scatter enough shares for key ID {str(key_id)}. "
+                f"Only {nr_successful_shares} shares were successfully scattered, "
+                f"while at least {nr_required_shares} shares are required."
+            ),
+        )
+
+
+class CouldNotGatherEnoughSharesError(DSKEException):
+    """
+    Unable to gather enough shares from peer hubs.
+    """
+
+    def __init__(
+        self, key_id: UUID, nr_successful_shares: int, nr_required_shares: int
+    ):
+        super().__init__(
+            message=(
+                f"Could not gather enough shares for key ID {str(key_id)}. "
+                f"Only {nr_successful_shares} shares were successfully gathered, "
+                f"while at least {nr_required_shares} shares are required."
+            ),
         )

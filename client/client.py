@@ -4,6 +4,7 @@ A DSKE client, or just client for short.
 
 import asyncio
 from uuid import UUID
+from common import exceptions
 from common import shamir
 from common import utils
 from common.logging import LOGGER
@@ -130,6 +131,7 @@ class Client:
         """
         nr_shares = len(self._peer_hubs)
         shares = key.split_into_shares(nr_shares, _MIN_NR_SHARES)
+        assert len(shares) == nr_shares
         coroutines = [
             peer_hub.post_share(share)
             for peer_hub, share in zip(self._peer_hubs, shares)
@@ -138,30 +140,49 @@ class Client:
         success_results = [
             result for result in results if not isinstance(result, Exception)
         ]
+        nr_shares_successfully_scattered = len(success_results)
         LOGGER.info(
-            f"Successfully scattered {len(success_results)} out of {len(results)} shares "
+            f"Successfully scattered {nr_shares_successfully_scattered} out of {nr_shares} shares "
             f"for key ID {key.key_id}"
         )
-        # TODO: Make sure at least k shares were successfully posted
-        for peer_hub in self._peer_hubs:
-            peer_hub.delete_fully_consumed_blocks()
+        self.delete_fully_consumed_blocks()
+        if nr_shares_successfully_scattered < _MIN_NR_SHARES:
+            raise exceptions.CouldNotScatterEnoughSharesError(
+                key.key_id, nr_shares_successfully_scattered, _MIN_NR_SHARES
+            )
 
     async def gather_key_from_peer_hubs(self, key_id: UUID) -> UserKey:
         """
         Gather key shares from the peer hubs, and reconstruct the key out of (a subset of)
         the key shares.
         """
+        nr_shares_attempted_to_gather = len(self._peer_hubs)
         coroutines = [peer_hub.get_share(key_id) for peer_hub in self._peer_hubs]
         results = await asyncio.gather(*coroutines, return_exceptions=True)
         shares = [result for result in results if not isinstance(result, Exception)]
+        nr_shares_successfully_gathered = len(shares)
         LOGGER.info(
-            f"Successfully gathered {len(shares)} out of {len(results)} shares "
+            f"Successfully gathered {nr_shares_successfully_gathered} shares "
+            f"out of {nr_shares_attempted_to_gather} attempted "
             f"for key ID {key_id}"
         )
-        # Check that we have at least _MIN_NR_SHARES shares
+        self.delete_fully_consumed_blocks()
+        if nr_shares_successfully_gathered < _MIN_NR_SHARES:
+            raise exceptions.CouldNotGatherEnoughSharesError(
+                key_id, nr_shares_successfully_gathered, _MIN_NR_SHARES
+            )
         shamir_input = [(share.share_index, share.value) for share in shares]
+        # TODO: handle exception raised by reconstruct_binary_secret_from_shares
         key_value = shamir.reconstruct_binary_secret_from_shares(
             _MIN_NR_SHARES, shamir_input
         )
         key = UserKey(key_id, key_value)
         return key
+
+    def delete_fully_consumed_blocks(self) -> None:
+        """
+        Delete fully consumed blocks from all peer hubs.
+        """
+        # TODO: Do have this logic on hubs as well? If not, add it.
+        for peer_hub in self._peer_hubs:
+            peer_hub.delete_fully_consumed_blocks()

@@ -255,9 +255,6 @@ def _recover_secret(threshold: int, shares: Sequence[RawShare]) -> bytes:
     return shared_secret
 
 
-# ---- Place holder code until real Shamir Secret Sharing is implemented --------------------------
-
-
 def split_binary_secret_into_shares(
     secret: bytes,
     nr_shares: int,
