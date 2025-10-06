@@ -121,7 +121,6 @@ class Client:
         """
         Unregister from all peer hubs.
         """
-        # TODO: Rename this to stop_all_peer_hubs()?
         for peer_hub in self._peer_hubs:
             await peer_hub.unregister()
 
