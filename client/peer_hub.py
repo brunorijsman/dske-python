@@ -22,6 +22,7 @@ from .http_client import HttpClient
 # TODO: Decide on logic on how the PSRD block size is decided. Does the client decide? Does
 #       the hub decide?
 _PSRD_BLOCK_SIZE_IN_BYTES = 1000
+_FAILED_REQUEST_RETRY_DELAY_IN_SECONDS = 1.0
 
 
 class PeerHub:
@@ -92,10 +93,10 @@ class PeerHub:
         """
         try:
             while not await self.attempt_registration():
-                await asyncio.sleep(1.0)  # TODO: Introduce constants for the delay
+                await asyncio.sleep(_FAILED_REQUEST_RETRY_DELAY_IN_SECONDS)
             for owner in (Pool.Owner.LOCAL, Pool.Owner.PEER):
                 while not await self.attempt_request_psrd(owner):
-                    await asyncio.sleep(1.0)
+                    await asyncio.sleep(_FAILED_REQUEST_RETRY_DELAY_IN_SECONDS)
         except asyncio.CancelledError:
             # The task is cancelled when the client is shut down before startup is complete.
             # TODO: Do we need to do anything here? The un-registration is done elsewhere
