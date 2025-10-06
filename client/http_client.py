@@ -77,6 +77,7 @@ class HttpClient:
         try:
             response = await self._httpx_client.get(url, params=params, auth=auth)
         except httpx.HTTPError as exc:
+            LOGGER.error(f"Call GET {url} exception {str(exc)}")
             raise exceptions.HTTPError(
                 method="GET",
                 url=url,
@@ -84,8 +85,8 @@ class HttpClient:
                 params=params,
                 exception=str(exc),
             ) from exc
-        LOGGER.info(f"Call GET {url} {response.status_code}")
         if response.status_code != 200:
+            LOGGER.error(f"Call GET {url} {response.status_code}")
             raise exceptions.HTTPError(
                 method="GET",
                 url=url,
@@ -94,6 +95,7 @@ class HttpClient:
                 status_code=response.status_code,
                 response=response.content,
             )
+        LOGGER.info(f"Call GET {url} {response.status_code}")
         if api_response_class is None:
             return None
         try:
@@ -157,6 +159,7 @@ class HttpClient:
             try:
                 response = await httpx_client.request(method, url, json=json, auth=auth)
             except httpx.HTTPError as exc:
+                LOGGER.error(f"Call {method} {url} exception {str(exc)}")
                 raise exceptions.HTTPError(
                     method=method,
                     url=url,
