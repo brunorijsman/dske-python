@@ -12,9 +12,6 @@ from common.signing_key import SigningKey
 from common.pool import Pool
 
 
-# TODO: Introduce common APIError to return and decode non-OK response
-
-
 class HttpClient:
     """
     An asynchronous HTTP client that:
