@@ -128,16 +128,15 @@ class Client:
         """
         Split the key into key shares, and send each key share to a peer hub.
         """
-        # Split key into shares
         nr_shares = len(self._peer_hubs)
         shares = key.split_into_shares(nr_shares, _MIN_NR_SHARES)
-        # TODO: Error handling. If there was an issue allocating any one of the encryption or
-        #       authentication keys, deallocate all of the ones that were allocated, and return
-        #       and error to the caller.
-        # POST the key shares to the peer hubs
-        for peer_hub, share in zip(self._peer_hubs, shares):
-            await peer_hub.post_share(share)
-        # Delete fully consumed blocks from all pools
+        coroutines = [
+            peer_hub.post_share(share)
+            for peer_hub, share in zip(self._peer_hubs, shares)
+        ]
+        await asyncio.gather(*coroutines, return_exceptions=True)
+        # TODO: Handle exceptions in the results of asyncio.gather()
+        # TODO: Make sure at least k shares were successfully posted
         for peer_hub in self._peer_hubs:
             peer_hub.delete_fully_consumed_blocks()
 
