@@ -26,7 +26,8 @@ class HttpClient:
 
     class Auth(httpx.Auth):
         """
-        An httpx Auth class that uses a signing key from a pool to sign requests.
+        An httpx Auth class that uses a signing key from a pool to sign requests and to validate
+        signatures on responses.
         """
 
         def __init__(self, local_pool, peer_pool):
