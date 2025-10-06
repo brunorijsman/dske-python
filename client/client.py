@@ -143,7 +143,6 @@ class Client:
             f"Successfully scattered {len(success_results)} out of {len(results)} shares "
             f"for key ID {key.key_id}"
         )
-        # TODO: Handle exceptions in the results of asyncio.gather()
         # TODO: Make sure at least k shares were successfully posted
         for peer_hub in self._peer_hubs:
             peer_hub.delete_fully_consumed_blocks()
