@@ -1,19 +1,8 @@
-TODO: Add log messages
-
-TODO: Use async features to post all shares to the peer hubs in parallel, instead of sequentially
-      one after the other. Ditto for getting the shares on the responder client.
-
-TODO: Check if at least k out of n shares are posted successfully; if not return error.
-
-TODO: Get all shares from hubs in parallel. 
-
-TODO: Check if at least k out of n shares are gotten successfully; if not return error.
-
 TODO: Test case: key relay is still successful if less than k hubs fail
 
 TODO: Test case: key relay fails gracefully if more k or more hubs fail
 
-TODO: Cleanup Shamir's Secret Sharing (SSS) code
+TODO: Cleanup Shamir's Secret Sharing (SSS) code (no back-and-forth conversion to RawShare)
 
 TODO: Better error response if authentication key is bad (and return to pool if allocated)
       - Bad block uuid
