@@ -6,6 +6,7 @@ import asyncio
 from uuid import UUID
 from common import shamir
 from common import utils
+from common.logging import LOGGER
 from common.user_key import UserKey
 from .peer_hub import PeerHub
 
@@ -134,7 +135,14 @@ class Client:
             peer_hub.post_share(share)
             for peer_hub, share in zip(self._peer_hubs, shares)
         ]
-        await asyncio.gather(*coroutines, return_exceptions=True)
+        results = await asyncio.gather(*coroutines, return_exceptions=True)
+        success_results = [
+            result for result in results if not isinstance(result, Exception)
+        ]
+        LOGGER.info(
+            f"Successfully scattered {len(success_results)} out of {len(results)} shares "
+            f"for key ID {key.key_id}"
+        )
         # TODO: Handle exceptions in the results of asyncio.gather()
         # TODO: Make sure at least k shares were successfully posted
         for peer_hub in self._peer_hubs:
@@ -146,9 +154,13 @@ class Client:
         the key shares.
         """
         coroutines = [peer_hub.get_share(key_id) for peer_hub in self._peer_hubs]
-        shares = await asyncio.gather(*coroutines, return_exceptions=True)
-        # TODO: Handle exceptions in the results of asyncio.gather()
-        # TODO: Check if we have enough shares
+        results = await asyncio.gather(*coroutines, return_exceptions=True)
+        shares = [result for result in results if not isinstance(result, Exception)]
+        LOGGER.info(
+            f"Successfully gathered {len(shares)} out of {len(results)} shares "
+            f"for key ID {key_id}"
+        )
+        # Check that we have at least _MIN_NR_SHARES shares
         shamir_input = [(share.share_index, share.value) for share in shares]
         key_value = shamir.reconstruct_binary_secret_from_shares(
             _MIN_NR_SHARES, shamir_input
