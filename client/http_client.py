@@ -167,8 +167,8 @@ class HttpClient:
                     data=api_request_obj,
                     exception=str(exc),
                 ) from exc
-            LOGGER.info(f"Call {method} {url} {response.status_code}")
             if response.status_code != 200:
+                LOGGER.error(f"Call {method} {url} {response.status_code}")
                 raise exceptions.HTTPError(
                     method=method,
                     url=url,
@@ -177,16 +177,8 @@ class HttpClient:
                     status_code=response.status_code,
                     response=response.content,
                 )
+            LOGGER.info(f"Call {method} {url} {response.status_code}")
             if api_response_class is None:
-                if response is not None:
-                    raise exceptions.HTTPError(
-                        method=method,
-                        url=url,
-                        reason="Unexpected response",
-                        data=api_request_obj,
-                        status_code=response.status_code,
-                        response=response.content.decode("utf-8"),
-                    )
                 return None
             try:
                 obj = api_response_class.model_validate(response.json())
