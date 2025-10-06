@@ -2,6 +2,7 @@
 A DSKE client, or just client for short.
 """
 
+import asyncio
 from uuid import UUID
 from common import shamir
 from common import utils
@@ -145,15 +146,10 @@ class Client:
         Gather key shares from the peer hubs, and reconstruct the key out of (a subset of)
         the key shares.
         """
-        # Attempt to get a key share from every peer hub.
-        shares = []
-        for peer_hub in self._peer_hubs:
-            # TODO: Handle exception. If an exception occurs, we just skip the peer hub, and move
-            #       on to the next one. We just need K out of N shares to reconstruct the key.
-            share = await peer_hub.get_share(key_id)
-            shares.append(share)
+        coroutines = [peer_hub.get_share(key_id) for peer_hub in self._peer_hubs]
+        shares = await asyncio.gather(*coroutines, return_exceptions=True)
+        # TODO: Handle exceptions in the results of asyncio.gather()
         # TODO: Check if we have enough shares
-        # Reconstruct the key from the shares
         shamir_input = [(share.share_index, share.value) for share in shares]
         key_value = shamir.reconstruct_binary_secret_from_shares(
             _MIN_NR_SHARES, shamir_input
