@@ -585,7 +585,7 @@ URL parameters:
 
 | Name | Type | Description |
 |---|---|---|
-| ```slave_SAE_ID``` | string | The identifier of the slave Secure Application Entity (SAE) |
+| ```slave_SAE_ID``` | string | The identifier of the slave Secure Application Entity (SAE), i.e. the responder encryptor. |
 
 In this example, the slave SAE is encryptor Porter.
 However, to simplify the code and to avoid to configure locally attached SAEs on the client nodes,
@@ -692,9 +692,46 @@ the `manager.py` script.
 
 ### Responder encryptor gets key
 
-TODO: Complete this section
+Once the responder encryptor (Porter) has received the key ID from the initiator encryptor
+(Patrick), he retrieves the key value from the responder client (Conny) by invoking the
+`Get key with key IDs` API as defined in section 5.4 of
+[ETSI GS QKD 014 V1.1.1 (2019-02)](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf).
 
-When the responding encryptor
+Method: `GET`
+
+URL: `/client/{client_name}/etsi/api/v1/keys/{master_SAE_ID}/dec_keys`
+
+Note that this API call always referred to as the `Get key with key IDs` API call, but the URL path
+actually ends in `dec_keys`.
+
+URL parameters: 
+
+| Name | Type | Description |
+|---|---|---|
+| ```master_SAE_ID``` | string | The identifier of the master Secure Application Entity (SAE), i.e. the initiator encryptor. |
+
+As in the `Get Key` flow
+[above](#initiator-encryptor-gets-key)
+the current simplified implementation requires that SAE IDs are the same as the KME IDs (client
+names) to which they are attached.
+
+Query parameters:
+
+| Name | Type | Description |
+|---|---|---|
+| ```key_ID``` | UUID | The UUID of the requested key (as receive from the master SAE). |
+
+Request body: None
+
+Successful response body:
+```
+{
+  "keys": {
+    "key_ID": "string",   # The key UUID
+    "key": "string"       # The base64 encoded key value
+  }
+}
+```
 
 ### Responder client gets key shares from all hubs
 
