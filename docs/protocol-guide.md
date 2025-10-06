@@ -609,8 +609,8 @@ Successful response body:
 
 ### Initiator client posts key shares to all hubs
 
-When a client receives a `Get key` request from an encryptor, the client performs the following
-steps to produce the key and to deliver it back to the encryptor:
+When an initiator client (KME) receives a `Get key` request from an initiator encryptor (SAE),
+the client performs the following steps to produce the key and to deliver it back to the encryptor:
 
  1. Randomly generate a key value.
 
@@ -735,7 +735,53 @@ Successful response body:
 
 ### Responder client gets key shares from all hubs
 
-TODO: Complete this section
+When a responder client (KME) receives a `Get key with key IDs` request from a responder
+encryptor (SAE), the client performs the following steps to retrieve the key and to deliver it
+back to the encryptor:
+
+ 1. The client retrieves each of the _n_ shares from a different hub using a
+    `GET key-share` API call.
+
+ 2. Both the `GET key-share` request and response are authenticated using signing keys
+    allocated from the PSRD pools.
+
+ 3. The share value returned in the `GET key-share` response is encrypted using an encryption
+    key allocated from the PSRD pool.
+
+ 4. When the client has retrieved least _k_ shares from the hubs, the user key is reconstructed
+    from the shares using Shamir's Secret Sharing (SSS) algorithm.
+
+ 5. The reconstructed user key is returned to the encryptor in `Get key with key IDs` response.
+
+Method: `GET`
+
+URL: `/hub/{hub_name}/dske/api/v1/key-share`
+
+TODO: Document `DSKE-Signature` header here
+
+Query parameters:
+
+| Name | Type | Description |
+|---|---|---|
+| ```client_name``` | string | The name of the client requesting the share. |
+| ```key_id``` | UUID | The UUID of the user key whose share is being requested. |
+
+Request body: None.
+
+Successful response body:
+```
+{
+  "share_index": "integer",           # The index of the share (0, 1, ..., n-1).
+  "encryption_key_allocation": {      # The PSRD pool allocation for the share encryption key.
+    [                                 # List of allocation fragments
+      block_uuid: "string",           # The UUID of the PSRD block from which the fragment was allocated.
+      start_byte: "integer",          # The index of the start byte for the fragment within the block.
+      size: "integer"                 # The size of the fragment
+    ]
+  },
+  "encrypted_share_value": "string"   # Base64 encoded encrypted share value
+}
+```
 
 ## Comparison with other key establishment protocols
 
