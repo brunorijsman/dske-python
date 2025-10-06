@@ -178,7 +178,15 @@ class HttpClient:
                     response=response.content,
                 )
             if api_response_class is None:
-                # TODO: Check that the response is empty, since none is expected
+                if response is not None:
+                    raise exceptions.HTTPError(
+                        method=method,
+                        url=url,
+                        reason="Unexpected response",
+                        data=api_request_obj,
+                        status_code=response.status_code,
+                        response=response.content.decode("utf-8"),
+                    )
                 return None
             try:
                 obj = api_response_class.model_validate(response.json())
