@@ -5,10 +5,10 @@ implemented in this repository.
 
 ## Inspiration
 
-The DSKE implementation in this repository is inspired by:
+Our DSKE implementation is inspired by:
 
 * IETF Internet Draft draft-mwag-dske-02<br>
-  The Distributed Symmetric Key Establishment (DSKE) Protocol.<br>
+  Distributed Symmetric Key Establishment (DSKE).<br>
   [https://datatracker.ietf.org/doc/draft-mwag-dske/02/](https://datatracker.ietf.org/doc/draft-mwag-dske/02/)
 
  * Paper arXiv:2205.00615:<br>
@@ -19,17 +19,17 @@ The DSKE implementation in this repository is inspired by:
    Composable Security of Distributed Symmetric Key Establishment Protocol.<br>
    [https://arxiv.org/abs/2304.13789](https://arxiv.org/abs/2304.13789)
 
-I say "inspired by" because:
+We say "inspired by" because:
 
  * The draft and the paper only describe the general approach.
    They do not describe the protocol in sufficient detail for an unambiguous interoperable
    implementation.
    For example, the draft and the paper do not specify message formats or finite state machines.
 
- * My implementation deviates from the draft and the paper in some aspects.
-   Sometimes, I found it difficult to follow the details in the description.
-   Other times, the description was clear enough, but I made a conscious decision to deviate.
-   A list of differences between the IETF draft and this implementation is given
+ * Our implementation deviates from the draft and the paper in some aspects.
+   Sometimes, we found it difficult to follow the details in the description.
+   Other times, the description was clear enough, but we made a conscious decision to deviate.
+   A list of differences between the draft/paper and this implementation is given
    [below](#differences-between-the-ietf-draft-and-this-implementation).
 
 ## Network topology
@@ -106,7 +106,8 @@ to encrypt user traffic that is sent through a encrypted connection.
 uses the term Secure Application Entity (SAE) instead of encryptor.
 
 Examples of encryptors include:
-* Optical encryptors, such as
+* [Optical](https://en.wikipedia.org/wiki/Optical_transport_network)
+  encryptors, such as
   [Ciena WaveLogic](https://www.ciena.com/solutions/data-security-and-encryption).
 * [MACsec](https://en.wikipedia.org/wiki/IEEE_802.1AE) encryptors, such as
   [Juniper QFX switches](https://www.juniper.net/us/en/products/switches/qfx-series.html).
@@ -152,13 +153,12 @@ The topology contains the following software interfaces:
 ### DSKE interface
 
 The DSKE interface is the interface between the clients and the hubs.
-The clients and hubs run the DSKE protocol over this interface, which is described in detail
-[below](#dske-protocol).
+The clients and hubs run the DSKE protocol over this interface.
 Using the DSKE protocol, the clients and the hubs collaborate with each other to establish the keys.
 
 ### Key delivery interface
 
-The key delivery interface the the interface between the clients and the encryptors.
+The key delivery interface is the interface between the clients and the encryptors.
 The encryptors use the key delivery interface to retrieve keys from the clients.
 
 There are two standard key delivery protocols:
@@ -175,7 +175,11 @@ There are two standard key delivery protocols:
 The code in this repository uses a simplified implementation of ETSI QKD 014.
 The point of this repository is not to have a full-blown implementation of ETSI QKD 014 but
 rather to implement the DSKE protocol.
-See [QuKayDee](https://qukaydee.com/) if you want to get experience with the ETSI QKD 014 protocol.
+See
+[QuKayDee](https://qukaydee.com/)
+or
+[qkd_kme_server](https://github.com/thomasarmel/qkd_kme_server)
+if you want to get experience with the ETSI QKD 014 protocol.
 
 ### Management interface
 
@@ -807,7 +811,7 @@ The following table compares these protocols:
 | Requires out-of-band distribution of information | No | No | No | Yes |
 
 
-## Differences between the IETF draft and this implementation
+## Differences between the IETF draft / arXiv papers and this implementation
 
 In this section we describe the differences between the DSKE protocol as specified in
 [draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/)
