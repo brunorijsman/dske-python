@@ -78,7 +78,6 @@ class Client:
         # TODO: Store the _slave_sae_id somewhere. It should be used to determine who is allowed
         #       to retrieve the key on the other side by calling Get Key with Key IDs.
         #       Perhaps also store the master_sae_id to keep track of who the initiator/master is.
-        # See remarks about ETSI QKD API in file TODO
         assert self._default_key_size_in_bits % 8 == 0
         size_in_bytes = self._default_key_size_in_bits // 8
         key = UserKey.create_random_key(size_in_bytes)
@@ -95,12 +94,12 @@ class Client:
         """
         ETSI QKD 014 V1.1.1 Get key with key IDs API.
         """
-        # TODO: Make sure that this client is actually a responder
-        #       This probably involves passing the master and responders in the share
-        # TODO: Use the Master SAE ID?
-        # TODO: key_id should be a list; allow to get more than one key in a single call.
-        # TODO: Error handling; the gather could fail for any number of reasons.
-        key_id = UUID(key_id)
+        # TODO: Pass the master SAE ID and the slave SAE ID along with the relayed shares
+        #       and check that they match here.
+        try:
+            key_id = UUID(key_id)
+        except ValueError as exc:
+            raise exceptions.InvalidKeyIDError(key_id) from exc
         key = await self.gather_key_from_peer_hubs(key_id)
         return {
             "keys": [

@@ -3,6 +3,7 @@ Exceptions.
 """
 
 from uuid import UUID
+from fastapi import status
 
 
 class DSKEException(Exception):
@@ -10,9 +11,11 @@ class DSKEException(Exception):
     Base class for all exceptions in the DSKE module.
     """
 
-    def __init__(self, message: str):
+    def __init__(self, status_code: int, message: str, details: dict | None = None):
         super().__init__(message)
+        self.status_code = status_code
         self.message = message
+        self.details = details
 
 
 class ClientNotRegisteredError(DSKEException):
@@ -21,8 +24,11 @@ class ClientNotRegisteredError(DSKEException):
     """
 
     def __init__(self, client_name: str):
+
         super().__init__(
-            message=f"Client {client_name} is not registered.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Client is not registered.",
+            details={"client_name": client_name},
         )
 
 
@@ -33,6 +39,7 @@ class InvalidPoolOwnerError(DSKEException):
 
     def __init__(self, pool_owner_str: str):
         super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=f"Pool owner {pool_owner_str} is invalid.",
         )
 
@@ -53,31 +60,39 @@ class HTTPError(DSKEException):
         response: str | None = None,
         exception: str | None = None,
     ):
-        message = f"HTTP {method} failed."
-        message += f"URL: {url}."
+        message = "HTTP request failed."
+        details = {}
+        details["method"] = method
+        details["url"] = url
         if reason is not None:
-            message += f" Reason: {reason}. "
+            details["reason"] = reason
         if params is not None:
-            message += f" Params: {params}. "
+            details["params"] = params
         if data is not None:
-            message += f" Data: {data}. "
+            details["data"] = data
         if status_code is not None:
-            message += f" Status code: {status_code}. "
+            details["status_code"] = status_code
         if response is not None:
-            message += f" Response: {response}. "
+            details["response"] = response
         if exception is not None:
-            message += f" Exception: {exception}. "
-        super().__init__(message=message)
+            details["exception"] = exception
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message=message,
+            details=details,
+        )
 
 
 class InvalidKeyIDError(DSKEException):
     """
-    Exception raised when an invalid key ID is provided (not a valid UUID).
+    Exception raised when an invalid key ID is provided (e.g. not a valid UUID).
     """
 
     def __init__(self, key_id: str):
         super().__init__(
-            message=f"Invalid key ID: {key_id}",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Invalid key ID.",
+            details={"key_id": key_id},
         )
 
 
@@ -88,7 +103,9 @@ class UnknownKeyIDError(DSKEException):
 
     def __init__(self, key_id: str):
         super().__init__(
-            message=f"Unknown key ID: {key_id}",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Unknown key ID",
+            details={"key_ID": key_id},
         )
 
 
@@ -101,11 +118,13 @@ class CouldNotScatterEnoughSharesError(DSKEException):
         self, key_id: UUID, nr_successful_shares: int, nr_required_shares: int
     ):
         super().__init__(
-            message=(
-                f"Could not scatter enough shares for key ID {str(key_id)}. "
-                f"Only {nr_successful_shares} shares were successfully scattered, "
-                f"while at least {nr_required_shares} shares are required."
-            ),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Could not scatter enough shares for key.",
+            details={
+                "key_id": str(key_id),
+                "nr_successful_shares": nr_successful_shares,
+                "nr_required_shares": nr_required_shares,
+            },
         )
 
 
@@ -118,9 +137,11 @@ class CouldNotGatherEnoughSharesError(DSKEException):
         self, key_id: UUID, nr_successful_shares: int, nr_required_shares: int
     ):
         super().__init__(
-            message=(
-                f"Could not gather enough shares for key ID {str(key_id)}. "
-                f"Only {nr_successful_shares} shares were successfully gathered, "
-                f"while at least {nr_required_shares} shares are required."
-            ),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Could not gather enough shares for key.",
+            details={
+                "key_id": str(key_id),
+                "nr_successful_shares": nr_successful_shares,
+                "nr_required_shares": nr_required_shares,
+            },
         )

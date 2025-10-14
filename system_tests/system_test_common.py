@@ -198,6 +198,28 @@ def status_node(node):
     return status
 
 
+def get_key_with_key_ids(
+    master_client: str,
+    slave_client: str,
+    key_id: str,
+    expected_status_code: int = 200,
+) -> None:
+    """
+    Get a key pair from a pair of DSKE clients using the ETSI QKD API.
+    """
+    args = [
+        configuration.DEFAULT_CONFIGURATION_FILE,
+        "etsi-qkd",
+        master_client,
+        slave_client,
+        "get-key-with-key-ids",
+        key_id,
+    ]
+    output = _run_manager(args)
+    if expected_status_code != 200:
+        assert some_output_matches(output, rf"Status code: {expected_status_code}")
+
+
 def get_key_pair(master_client: str, slave_client: str) -> None:
     """
     Get a key pair from a pair of DSKE clients using the ETSI QKD API.

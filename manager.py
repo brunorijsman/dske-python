@@ -266,6 +266,18 @@ class Manager:
         for node in self.filtered_nodes():
             self.status_node(node)
 
+    def report_response(self, response: requests.Response):
+        """
+        Report a response from a node.
+        """
+        if response.status_code != 200:
+            print(f"Status code: {response.status_code}")
+        try:
+            response_json = response.json()
+            print(json.dumps(response_json, indent=2))
+        except json.JSONDecodeError:
+            print(response.text)
+
     def status_node(self, node: Node):
         """
         Report status for a node.
@@ -277,8 +289,7 @@ class Manager:
         except requests.exceptions.RequestException as exc:
             print(f"Failed get status for {node.type} {node.name}: {exc}")
             return
-        # TODO: Check response (error handling)
-        print(json.dumps(response.json(), indent=2))
+        self.report_response(response)
 
     def etsi_qkd(self):
         """
@@ -322,7 +333,7 @@ class Manager:
         except requests.exceptions.RequestException as exc:
             self.error(f"Failed to invoke ETSI QKD Status API: {exc}")
             return
-        print(json.dumps(response.json(), indent=2))
+        self.report_response(response)
 
     def etsi_qkd_get_key(self, master_node: Node, slave_node: Node) -> None | dict:
         """
@@ -339,7 +350,7 @@ class Manager:
             # TODO Better error handling
             self.error(f"Failed to invoke ETSI QKD Get Key API: {exc}")
             return None
-        print(json.dumps(response.json(), indent=2))
+        self.report_response(response)
         return response.json()
 
     def etsi_qkd_get_key_with_key_ids(
@@ -358,7 +369,7 @@ class Manager:
             # TODO: Check response (error handling)
         except requests.exceptions.RequestException as exc:
             self.error(f"Failed to invoke ETSI QKD Get Key API: {exc}")
-        print(json.dumps(response.json(), indent=2))
+        self.report_response(response)
         return response.json()
 
     def etsi_qkd_get_key_pair(self, master_node: Node, slave_node: Node):

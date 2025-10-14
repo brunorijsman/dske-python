@@ -10,6 +10,7 @@ import fastapi
 import uvicorn
 from common import configuration
 from common import utils
+from common.exceptions import DSKEException
 from .client import Client
 
 
@@ -50,6 +51,17 @@ async def lifespan(_app: fastapi.FastAPI):
 
 
 _APP = fastapi.FastAPI(lifespan=lifespan)
+
+
+@_APP.exception_handler(DSKEException)
+async def dske_exception_handler(_request: fastapi.Request, exc: DSKEException):
+    """
+    Handle DSKE exceptions.
+    """
+    return fastapi.responses.JSONResponse(
+        status_code=exc.status_code,
+        content={"message": exc.message, "details": exc.details},
+    )
 
 
 @_APP.get(f"/client/{_CLIENT.name}/etsi/api/v1/keys/{{slave_sae_id}}/status")
