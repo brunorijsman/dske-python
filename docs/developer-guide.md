@@ -1,4 +1,4 @@
-[Back to main page](/)
+[Back to main page](/dske-python/)
 
 # Developer guide
 

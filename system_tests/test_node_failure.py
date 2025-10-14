@@ -12,4 +12,4 @@ def test_less_than_k_node_failures_before_get_key():
     system_test_common.start_topology()
     system_test_common.stop_node("hub", "helen")
     system_test_common.get_key_pair("celia", "curtis")
-    system_test_common.stop_topology(not_started_node=("hub", "helen"))
+    system_test_common.stop_topology(stopped_nodes=[("hub", "helen")])
