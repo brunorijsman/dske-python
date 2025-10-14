@@ -1,3 +1,5 @@
+[Back to main page](/README.md)
+
 # Developer guide
 
 ## Technology stack

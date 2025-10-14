@@ -1,3 +1,5 @@
+[Back to main page](/README.md)
+
 # Getting started guide
 
 ## Installation

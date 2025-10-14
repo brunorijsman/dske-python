@@ -1,3 +1,5 @@
+[Back to main page](/README.md)
+
 # User guide
 
 ## Topology file
