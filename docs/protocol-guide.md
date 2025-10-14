@@ -200,7 +200,7 @@ Before we describe the DSKE protocol, we first describe
 [Shamir's Secret Sharing (SSS)](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)
 algorithm, which is an essential component in the DSKE protocol.
 
-Shamir's Secret Sharing allows a secret to be split up into some number (_n_) parts.
+Shamir's Secret Sharing allows a secret to be split up into some number (_n_) of parts.
 Each part is called a share of the secret.
 The original secret can be reconstructed if you have at least _k_ out of the original _n_ shares
 (were _k_ is some number smaller than _n_).
@@ -237,8 +237,8 @@ military
 , SIM cards, NFC, QKD, etc.
 
 In our code we implement the out-of-band DSKE interface as an HTTP REST interface.
-In real life, as we just mentioned, HTTP would not be used for this purpose; instead some secure
-physical delivery mechanism would be used.
+In real life HTTP would not be used for this purpose; instead some secure
+physical delivery mechanism would be used, as we just mentioned.
 We use HTTP as a simulation of this physical mechanism to enable automated testing of use case
 scenarios.
 
@@ -322,10 +322,11 @@ from a client Carol to all hubs.
    using an encryption key that is allocated from the PSRD pool associated with that particular
    hub.
 
- * When client Carol sends the encrypted key share to a hub, she include the meta-data about the
+ * When client Carol sends the encrypted key share to a hub, she includes the meta-data about the
    encryption key to the hub.
    This allows the hub to retrieve the exact same decryption key from its local copy of the PSRD
    pool.
+   The encryption key value itself is never on-the-wire; only it's public metadata.
 
 Note that the blue keys are different keys than the red keys in the figures.
 The blue keys are the user keys that will be delivered to the encryptors.
@@ -368,11 +369,19 @@ You have to _trust_ that relay node B will not abuse or leak knowledge of the en
 This is why B is called a _trusted_ relay node.
 
 In Distribute Symmetric Key Encryption (DSKE) the problem of having to trust relay nodes is
-addressed using Shamir Secret Sharing (SSS).
+addressed using Shamir's Secret Sharing (SSS).
 The secret key is split into _n_ key shares.
 Each hub (which is a relay node) only knows one share of the key.
 At least _k_ hubs would have to conspire with each other to be able to gain any knowledge of
 the complete key.
+
+Similarly, attacker Eve would have to hack at least _k_ hub nodes and recover _k_ shares to be
+recover the secret user key.
+Note that only applies to hub nodes and not to links;
+even if attacker Eve hacks all _n_ client-to-hub links and taps all `POST key-share` and
+all `GET key-share` messages, she is still not able to recover the secret user key
+because the key shares in the messages are One-Time-Pad (OTP) encrypted using encryption
+keys allocated from Pre-Shared Random Data (PSRD).
 
 This same mechanism also provides resilience to the DSKE protocol:
 as long as there are _k_ surviving hub nodes, the DSKE protocol continues to work in the face
@@ -408,7 +417,7 @@ Client Carol signs sent messages as follows:
    header `DSKE-Signature`.
    This produces a signed message.
 
- * The `DSKE-Signature` header does not only contain the signature (i.e. the HMAC code)
+ * The `DSKE-Signature` header does not only contain the signature itself (i.e. the HMAC code)
    but also meta-data about the signature key.
 
 Hub Hank validates the signature on received messages as follows:
@@ -430,11 +439,11 @@ purposes.
 
 ## Pool ownership
 
-So far, we have seen several scenarios where a node allocates a key from a local PSRD pool and
-uses that key to encrypt a key share or to sign a DSKE message.
+So far, we have seen several scenarios where a node (i.e. a client or a hub) allocates a key from
+a local PSRD pool and uses that key to encrypt a key share or to sign a DSKE message.
 The node then sends meta-data about the allocated key to a peer node.
 This allows the peer node to use the received key meta-data to retrieve the same key from its local
-PSRD pool and decrypt the key share or to validate the signature.
+PSRD pool and use that key to decrypt the key share or to validate the signature.
 
 Sometimes the node who allocates the key and sends the meta-data is a client and other times it
 is a hub.
@@ -477,7 +486,7 @@ hubs  Hank, Helen, Hilary, Holly, and Hugo.
 The client knows which hubs to register itself with because the list of hub URLs is provided to the
 client process as a command-line argument when it starts up.
 In the current implementation, the hub is not provided with a lists of clients; it simply allows
-can client to register itself.
+any client to register itself.
 
 If the hub is not yet running, the registration will fail.
 In that case, the client periodically keeps retrying the registration.
@@ -506,6 +515,14 @@ Successful response body:
   "hub_name": "string"   # The name of the hub.
 }
 ```
+
+Note that we include the node name (in this case `hub_name`) in the path of the URL;
+this allows deployments where all nodes run on a single server on a single port 
+behind a reverse proxy (e.g. 
+[NGINX](https://nginx.org/)
+)
+where the reverse proxy uses the node name in the URL to dispatch the request to the correct
+process.
 
 ### Request Pre-Shared Random Data (PSRD)
 
@@ -592,9 +609,9 @@ URL parameters:
 | ```slave_SAE_ID``` | string | The identifier of the slave Secure Application Entity (SAE), i.e. the responder encryptor. |
 
 In this example, the slave SAE is encryptor Porter.
-However, to simplify the code and to avoid to configure locally attached SAEs on the client nodes,
-our implementation expects the name of the responder Key Management Entity (KME), i.e. the responder
-client node (i.e. Conny in this example).
+However, to simplify the code and to avoid the need to configure locally attached SAEs on 
+the client nodes, our implementation expects that name of the slave SAE is equal to the name of
+the responder Key Management Entity (KME), i.e. the responder client node (Conny in this example).
 
 Query parameters: The ETSI QKD 014 specification defines two parameters `number` and `size` but
 those are not implemented in this repository.
