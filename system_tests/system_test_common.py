@@ -6,6 +6,7 @@ import json
 import os
 import re
 import subprocess
+from typing import Tuple
 from common import configuration
 
 
@@ -34,7 +35,10 @@ def start_topology_again():
     some_output_matches(output, r"Giving up on waiting for all nodes to be stopped")
 
 
-def stop_topology(not_started=False):
+def stop_topology(
+    not_started: bool = False,
+    not_started_node: None | Tuple[str, str] = None,
+):
     """
     Stop a topology.
     """
@@ -45,11 +49,37 @@ def stop_topology(not_started=False):
     for node in reversed(config.nodes):
         line = rf"Stopping {node.type} {node.name} on port {node.port}"
         assert next_output_matches(output, line)
-        line = rf"Failed to stop {node.type} {node.name}"
         if not_started:
+            expect_failure = True
+        elif (
+            not_started_node is not None
+            and node.type == not_started_node[0]
+            and node.name == not_started_node[1]
+        ):
+            expect_failure = True
+        else:
+            expect_failure = False
+        line = rf"Failed to stop {node.type} {node.name}"
+        if expect_failure:
             assert next_output_matches(output, line)
         else:
             assert not next_output_matches(output, line)
+    check_wait_for_all_nodes_stopped_output(output)
+
+
+def stop_node(node_type: str, node_name: str):
+    """
+    Stop a node.
+    """
+    args = [
+        configuration.DEFAULT_CONFIGURATION_FILE,
+        f"--{node_type}",
+        node_name,
+        "stop",
+    ]
+    output = _run_manager(args)
+    line = rf"Stopping {node_type} {node_name} on port"
+    assert next_output_matches(output, line)
     check_wait_for_all_nodes_stopped_output(output)
 
 
