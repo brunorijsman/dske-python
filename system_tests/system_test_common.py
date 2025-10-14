@@ -9,6 +9,7 @@ import sys
 import subprocess
 from typing import List, Tuple
 from common import configuration
+from common.node import NodeType
 
 
 def start_topology():
@@ -43,6 +44,7 @@ def stop_topology(
     """
     Stop a topology.
     """
+    print(f"{stopped_nodes=}", file=sys.stderr)
     # Initiate shutdown of each node
     args = [configuration.DEFAULT_CONFIGURATION_FILE, "stop"]
     output = _run_manager(args)
@@ -53,8 +55,14 @@ def stop_topology(
         if not_started:
             expect_failure = True
         elif stopped_nodes is not None:
+            print("Checking stopped nodes...", file=sys.stderr)
             expect_failure = False
-            for stopped_node_type, stopped_node_name in stopped_nodes:
+            for stopped_node_type_str, stopped_node_name in stopped_nodes:
+                stopped_node_type = NodeType.from_str(stopped_node_type_str)
+                print(
+                    f"{stopped_node_name=} {stopped_node_type=} {node=}",
+                    file=sys.stderr,
+                )
                 if node.type == stopped_node_type and node.name == stopped_node_name:
                     expect_failure = True
                     break

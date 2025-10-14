@@ -22,6 +22,18 @@ class NodeType(enum.IntEnum):
         """
         return self.name.lower()
 
+    @staticmethod
+    def from_str(label: str) -> "NodeType":
+        """
+        Convert a string to a NodeType.
+        """
+        label = label.lower()
+        if label == "hub":
+            return NodeType.HUB
+        if label == "client":
+            return NodeType.CLIENT
+        raise ValueError(f"Unknown node type: {label}")
+
 
 @dataclasses.dataclass(order=True)
 class Node:
