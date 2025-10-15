@@ -41,12 +41,13 @@ Key establishment protocols are also known as
 [key agreement protocols](https://en.wikipedia.org/wiki/Key-agreement_protocol)
 or key distribution protocols.
 
-When two devices want to communicate with each other over a network, they use encryption.
-The sender encrypts the traffic using an encryption key.
-And the receiver decrypts the traffic using a decryption key.
+When two devices want to communicate with each other over a network in a secure manner,
+they use encryption:
+the sender encrypts the traffic using an encryption key
+and the receiver decrypts the traffic using a decryption key.
 
 Encrypting the traffic provides confidentiality: it keeps the information secret even if there
-is some party (a so-called eavesdropper) who is able to observe the data as it flows over
+is some party (an eavesdropper) who is able to observe the data as it flows over
 the network.
 
 Confidentiality is not the only aspect of secure communications.
@@ -65,7 +66,7 @@ decryption key.
 This means that the sender and the receiver have to agree on this encryption key before they
 can exchange any encrypted data.
 
-One possible approach is simple to manually configure the encryption key on both devices.
+One possible approach is to simply manually configure the encryption key on both devices.
 This approach is called using a 
 [Pre-Shared Key (PSK)](https://en.wikipedia.org/wiki/Pre-shared_key)
 and has several disadvantages:
@@ -100,7 +101,7 @@ What is important for the present discussion is that all of these algorithms are
 the observation that there exist certain mathematical functions which are very easy to compute
 for a computer, but for which the inverse function is very difficult to compute, even for
 the biggest super computer.
-For example, any computer can multiple two large prime numbers very quickly.
+For example, any computer can multiply two large prime numbers very quickly.
 But if the prime numbers are large enough, it takes millions of years to factor the resulting
 product back into the original prime factors.
 To be specific, the security of RSA depends on the computational complexity of factoring,
@@ -151,7 +152,7 @@ quantum-unsafe key agreement protocols:
    implements key establishment using the quantum-mechanical properties of photons that are
    exchanged over optical fibers or through free space.
 
- * [Distributed Symmetric Key Establishment (DSKE)] implement quantum-safe key establishment
+ * Distributed Symmetric Key Establishment (DSKE) implements quantum-safe key establishment
    in a completely different manner.
    The rest of this chapter describes the details of how our implementation of the DSKE protocol
    works.
