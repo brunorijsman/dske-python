@@ -2,6 +2,20 @@
 
 # Getting started guide
 
+This chapter is intended for readers who just want to get started actually running the code
+without any background information.
+We walk you through the steps for installing the code and producing some keys
+using the Distributed Symmetric Key Establishment (DSKE) protocol.
+
+For a description of what DSKE is and how it works, see the
+[Protocol guide](/docs/protocol-guide.md).
+
+For full reference documentation for the commands used in these steps, see the
+[User guide](/docs/user-guide.md).
+
+If you are a software developer and would like more details about the implementation, see the
+[Developer guide](/docs/developer-guide.md).
+
 ## Installation
 
 Clone the repository:
