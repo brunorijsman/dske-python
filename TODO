@@ -1,5 +1,3 @@
-TODO: Test case: key relay fails gracefully if more k or more hubs fail
-
 TODO: Cleanup Shamir's Secret Sharing (SSS) code (no back-and-forth conversion to RawShare)
 
 TODO: Better error response if authentication key is bad (and return to pool if allocated)
