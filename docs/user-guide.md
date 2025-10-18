@@ -2,12 +2,28 @@
 
 # User guide
 
+This page contains detailed end-user documentation.
+It describes how to use the `manager.py` script to start and stop topologies and to generate
+keys.
+
+For an overview of what Distributed Symmetric Key Establishment (DSKE) is and what problem it solves
+see the [introduction](/docs/what-is-dske-and-what-problem-does-it-solve.md).
+
+If you just want hands-on instructions on how to get started running the code and generating keys
+with a minimum of background information see the
+[getting started guide](/docs/getting-started-guide.md).
+
+For a detailed description of the DSKE protocol, see the
+[protocol guide](/docs/protocol-guide.md).
+
+If you are a software developer and would like more details about the implementation, see the
+[developer guide](/docs/developer-guide.md).
+
 ## Topology file
 
-We need a topology YAML file which describes the topology of the network.
+We first need a topology YAML file which describes the topology of the network.
 It lists the names of the DSKE clients (clients for short) and the
 DSKE security hubs (hubs for short).
-Local distributors are not yet implemented.
 
 The repository contains an example `topology.yaml` file:
 
@@ -30,7 +46,7 @@ clients:
 ## The topology manager
 
 The script `manager.py` is used to:
-* Start a topology
+* Start a topology.
 * Stop a topology.
 * Retrieve the status of one or more nodes.
 * Retrieve keys from client nodes.
@@ -77,13 +93,13 @@ options:
   -h, --help            show this help message and exit
 </pre>
 
-
 ## Start the topology
 
-To start the DSKE topology:
+To start all nodes in the DSKE topology, use the manager `start` command:
 
 <pre>
 $ <b>./manager.py topology.yaml start</b>
+Waiting for all nodes to be stopped
 Starting hub hank on port 8100
 Starting hub helen on port 8101
 Starting hub hilary on port 8102
@@ -94,239 +110,145 @@ Starting client celia on port 8106
 Starting client cindy on port 8107
 Starting client connie on port 8108
 Starting client curtis on port 8109
+Waiting for all nodes to be started
 </pre>
 
-Here `topology.yaml` is the topology file that specifies the names of the hubs and clients that
+`topology.yaml` is the topology file that specifies the names of the hubs and clients that
 are part of the topology.
 
-Starting a topology spawns one Python process for each node, where a node is either a DSKE client 
-(client for short) or a DSKE Security Hub (hub for short).  
-Local distributors are not yet modelled.
+The output reports that 10 nodes are started in total: 5 hub nodes (hank, helen, hilary, holly,
+and hugo) and 5 client nodes (carol, celia, cindy, connie, and curtis).
 
-You can see these processed using `ps` command:
+The reported port numbers (8100, 8101, etc.) are the TCP port numbers for the REST interface of
+each node.
+
+## Stop the topology
+
+To stop all nodes in the topology, use the manager `stop` command:
 
 <pre>
- $ <b>ps</b>
-  PID TTY           TIME CMD
-81631 ttys000    0:01.57 Python -m hub hank --port 8100
-81632 ttys000    0:01.56 Python -m hub helen --port 8101
-81633 ttys000    0:01.56 Python -m hub hilary --port 8102
-81634 ttys000    0:01.57 Python -m hub holly --port 8103
-81635 ttys000    0:01.56 Python -m hub hugo --port 8104
-81636 ttys000    0:01.96 Python -m client carol --port 8105 --hubs http://127.0.0.1:8100 http://127.0.0.1:8101 http://127.0.0.1:8102 http://127.0.0.1:8103 http://127.0.0.1:8104
-81637 ttys000    0:01.96 Python -m client celia --port 8106 --hubs http://127.0.0.1:8100 http://127.0.0.1:8101 http://127.0.0.1:8102 http://127.0.0.1:8103 http://127.0.0.1:8104
-81638 ttys000    0:01.97 Python -m client cindy --port 8107 --hubs http://127.0.0.1:8100 http://127.0.0.1:8101 http://127.0.0.1:8102 http://127.0.0.1:8103 http://127.0.0.1:8104
-81639 ttys000    0:01.97 Python -m client connie --port 8108 --hubs http://127.0.0.1:8100 http://127.0.0.1:8101 http://127.0.0.1:8102 http://127.0.0.1:8103 http://127.0.0.1:8104
-81640 ttys000    0:01.96 Python -m client curtis --port 8109 --hubs http://127.0.0.1:8100 http://127.0.0.1:8101 http://127.0.0.1:8102 http://127.0.0.1:8103 http://127.0.0.1:8104
+$ <b>./manager.py topology.yaml stop</b>
+Stopping client curtis on port 8109
+Stopping client connie on port 8108
+Stopping client cindy on port 8107
+Stopping client celia on port 8106
+Stopping client carol on port 8105
+Stopping hub hugo on port 8104
+Stopping hub holly on port 8103
+Stopping hub hilary on port 8102
+Stopping hub helen on port 8101
+Stopping hub hank on port 8100
+Waiting for all nodes to be stopped
+</pre>
+
+## One background process per node
+
+Starting a topology spawns one Python background process for each node. 
+You can see these processes using `ps` command:
+
+<pre>
+ $ <b>ps | grep Python</b>
+ 5818 ttys000    0:01.27 Python -m hub hank --port 8100
+ 5819 ttys000    0:01.26 Python -m hub helen --port 8101
+ 5820 ttys000    0:01.27 Python -m hub hilary --port 8102
+ 5821 ttys000    0:01.26 Python -m hub holly --port 8103
+ 5822 ttys000    0:01.25 Python -m hub hugo --port 8104
+ 5823 ttys000    0:01.55 Python -m client carol --port 8105 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
+ 5824 ttys000    0:01.55 Python -m client celia --port 8106 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
+ 5825 ttys000    0:01.55 Python -m client cindy --port 8107 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
+ 5826 ttys000    0:01.53 Python -m client connie --port 8108 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
+ 5827 ttys000    0:01.52 Python -m client curtis --port 8109 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
 ...
 </pre>
 
-The reported port numbers are the port numbers for the REST interface (including documentation) of
-each node.
+## Waiting for nodes to be started
 
-## REST interfaces
-
-The nodes communicate with each other over REST interfaces, implemented using FastAPI.
-There are four types of REST interfaces:
-
-1. `api` REST interfaces model the actual DSKE protocol specified in the draft. 
-   Note that the draft currently only describes the protocol at the semantic level, and not (yet)
-   the message encoding. 
-   We do not intend to imply that REST is the best encoding for the message encoding; a leaner 
-   binary encoding may be more appropriate for this type of protocol.
-   We only chose REST to make prototyping and studying the protocol easier the semantic level.
-
-2. `oob` REST interfaces model the out-of-band actions mentioned in the draft, for example 
-   delivering a block of pre-shared random data (PSRD).
-   In real life, this would not be done over a REST interface but using some other mechanism
-   (e.g. physically shipping a tamper-proof device with gigabytes of random data). 
-   In this code we use REST interface to model these actions so that we can automate the scripting
-   of entire end-to-end testing scenarios.
-
-3. `esti` REST interfaces are implement the ETSI QKD 014 interface (a subset at this time) on the
-   DSKE clients to deliver the produced keys to the Secure Application Entity (SAE) consumers.
-
-4. `mgmt` management REST interfaces to control and debug the various nodes (e.g. to stop them and
-   to retrieve operational status to "look inside" of them to see what is happening).
-
-
-## REST interface documentation
-
-The REST interface for each node is available at the reported port number when the topology was
-started.
-
-In the above example, the REST interface for hub "Hank" is available at `http://127.0.0.1:8100`
-
-In addition to the REST interface itself, documentation is also available at
-`http://127.0.0.1:8100/docs` and `http://127.0.0.1:8100/redoc`.
-You can also manually invoke the REST APIs from the documentation page (click on an API endpoint
-and then click on "Try it out").
-
-Here is an example of the automatically generated documentation at `http://127.0.0.1:8105/docs`
-for a client node:
-
-![Client REST API documentation](docs/figures/client-rest-api-documentation.png)
-
-Here is an example of the automatically generated documentation at `http://127.0.0.1:8100/docs`
-for a hub node:
-
-![Hub REST API documentation](docs/figures/hub-rest-api-documentation.png)
-
-When you click on the row for `POST /dske/hub/api/v1/key-share` you see the detailed documentation
-for that particular REST endpoint:
-
-![Hub POST key-share details documentation](docs/figures/hub-post-key-share-endpoint-details-documentation.png)
-
-### Invoking the REST interface
-
-Here is an example of invoking the API to get the status of 
-
-In this example, we pipe the output of `curl` through `jq` (JSON query) to pretty-print the
-JSON REST response:
+It takes some time for each background process to startup and to get to the point that the
+process is ready to accept and process incoming requests over its REST interfaces.
+If we try to invoke any REST API before the node is fully started, we will get an error.
+This is why the `start` command explicitly waits for all nodes to be started (it
+reports `Waiting for all nodes to be started` at the end):
 
 <pre>
-$ <b>curl --silent http://127.0.0.1:8100/dske/hub/mgmt/v1/status | jq</b>
-{
-  "hub_name": "hank",
-  "peer_clients": [
-    {
-      "client_name": "carol",
-      "pool": {
-        "blocks": [
-          {
-            "uuid": "14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5",
-            "size": 1000,
-            "data": "AAAAAAAAAAAAAA==...",
-            "allocated": 18,
-            "consumed": 16
-          }
-        ]
-      }
-    },
-    {
-      "client_name": "celia",
-      "pool": {
-        "blocks": [
-          {
-            "uuid": "7734118a-24f6-4fb0-9cba-8d00bbbaedc7",
-            "size": 1000,
-            "data": "AAAAAAAAAAAAAA==...",
-            "allocated": 18,
-            "consumed": 18
-          }
-        ]
-      }
-    },
-    ... snip ...
-  ],
-  "shares": [
-    {
-      "key_id": "6050fccc-b882-402e-8ca1-62f0147999de",
-      "share_index": 0,
-      "value": "1AvP8kSDA1KExw==...",
-      "encrypted_value": null,
-      "encryption_key_allocation": null,
-      "signature_key_allocation": null
-    }
-  ]
-}
+$ <b>./manager.py topology.yaml start</b>
+Waiting for all nodes to be stopped
+Starting hub hank on port 8100
+...
+Starting client curtis on port 8109
+<b>Waiting for all nodes to be started</b>
 </pre>
 
-Note 1: The `status` REST API is intended for debugging and understanding the protocol; it exposes
-information that should not be exposed in a production environment.
+## Waiting for nodes to be stopped
 
-Note 2: There is currently no authentication on any of the REST interfaces.
-It is my understanding (but I could be wrong) that the DSKE protocol does not require the API
-interfaces to be authenticated nor encrypted to be secure.
-
-
-## Report the topology status
-
-Use the manager `status` command to report the status of each node in the topology:
+Similarly, it takes some time for each background process to completely stop and get to the
+point that the TCP port number can be used again for restarting a node on the same TCP port again.
+Even if the background process is completely stopped, the TCP port number can get stuck in
+state TIME_WAIT and it can take the operating system up to 60 seconds to release the TCP port.
+This is why the `start` command explicitly waits for all needed TCP ports to be available
+(it reports `Waiting for all nodes to be stopped` at the beginning).
 
 <pre>
-$ <b>./manager.py topology.yaml status</b>
-Status for hub hank on port 8100
-{
-  "hub_name": "hank",
-  "peer_clients": [
-    {
-      "client_name": "carol",
-      "pool": {
-        "blocks": [
-          {
-            "uuid": "14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5",
-            "size": 1000,
-            "data": "AAAAAAAAAAAAAA==...",
-            "allocated": 18,
-            "consumed": 16
-          }
-        ]
-      }
-    },
-    ... snip ...
-    {
-      "hub_name": "holly",
-      "registered": true,
-      "psrd_pool": {
-        "blocks": [
-          {
-            "uuid": "67193b56-13fe-4e43-a42c-103097fcdbae",
-            "size": 1000,
-            "data": "hGV7ypmUQBiiBQ==...",
-            "allocated": 0,
-            "consumed": 0
-          }
-        ]
-      }
-    },
-    {
-      "hub_name": "hugo",
-      "registered": true,
-      "psrd_pool": {
-        "blocks": [
-          {
-            "uuid": "64ba8d8f-d26c-498f-854a-123346074072",
-            "size": 1000,
-            "data": "iSZnsqd1CSIEWw==...",
-            "allocated": 0,
-            "consumed": 0
-          }
-        ]
-      }
-    }
-  ]
-}
+$ <b>./manager.py topology.yaml start</b>
+<b>Waiting for all nodes to be stopped</b>
+Starting hub hank on port 8100
+...
+Starting client curtis on port 8109
+Waiting for all nodes to be started
 </pre>
 
-You can also use the `--client` or `--hub` command-line option to only report the status of a single
-client or hub node, for example:
+If it takes longer than expected for a node to stop and for the TCP port to become available again
+(i.e. to exist from state TIME_WAIT) the stop command will periodically report that it is still
+waiting (this should not take longer than 60 seconds):
 
 <pre>
-$ <b>./manager.py topology.yaml --client celia status</b>
-Status for client celia on port 8106
-{
-  "client_name": "celia",
-  "peer_hubs": [
-    ... snip ...
-    {
-      "hub_name": "hugo",
-      "registered": true,
-      "psrd_pool": {
-        "blocks": [
-          {
-            "uuid": "78a32566-5ee1-4adb-b468-91c12ae4920c",
-            "size": 1000,
-            "data": "AAAAAAAAAAAAAA==...",
-            "allocated": 18,
-            "consumed": 16
-          }
-        ]
-      }
-    }
-  ]
-}
+$ <b>./manager.py topology.yaml stop</b>
+Stopping client curtis on port 8109
+...
+Stopping hub hank on port 8100
+Waiting for all nodes to be stopped
+<b>Still waiting for client connie to be stopped
+Still waiting for client connie to be stopped
+Still waiting for client connie to be stopped</b>
 </pre>
+
+## The `--client` and `--hub` command line options
+
+The manager command line option `--client CLIENT` can be used to apply a command to a single
+client node.
+For example, to start one individual client carol:
+
+<pre>
+$ <b>./manager.py topology.yaml --client carol start</b>
+Waiting for client carol to be stopped
+Starting client carol on port 8105
+Waiting for client carol to be started
+</pre>
+
+Similarly, the manager command line option `--hub HUB` can be used to apply a command to a single
+hub node.
+For example, to stop one individual hub hugo:
+
+<pre>
+$ <b>./manager.py topology.yaml --hub hugo stop</b>
+Stopping hub hugo on port 8104
+Waiting for hub hugo to be stopped
+</pre>
+
+You can use the `--client` and `--hub` command line options multiple times.
+For example:
+
+<pre>$ <b>./manager.py topology.yaml --client carol --client corrie --hub hank start</b>
+Waiting for client carol, client corrie, hub hank to be stopped
+Starting hub hank on port 8100
+Starting client carol on port 8105
+Waiting for client carol, client corrie, hub hank to be started
+</pre>
+
+## Starting and stopping nodes directly
+
+TODO: Document this
+
+TODO: Continue from here
 
 ## Get encryption keys
 
@@ -424,6 +346,94 @@ The `size` and `number` GET parameters are not yet supported.
 `POST` methods are not yet supported.
 Multicast keys are not yet supported.
 
+## Report the topology status
+
+Use the manager `status` command to report the status of each node in the topology:
+
+<pre>
+$ <b>./manager.py topology.yaml status</b>
+Status for hub hank on port 8100
+{
+  "hub_name": "hank",
+  "peer_clients": [
+    {
+      "client_name": "carol",
+      "pool": {
+        "blocks": [
+          {
+            "uuid": "14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5",
+            "size": 1000,
+            "data": "AAAAAAAAAAAAAA==...",
+            "allocated": 18,
+            "consumed": 16
+          }
+        ]
+      }
+    },
+    ... snip ...
+    {
+      "hub_name": "holly",
+      "registered": true,
+      "psrd_pool": {
+        "blocks": [
+          {
+            "uuid": "67193b56-13fe-4e43-a42c-103097fcdbae",
+            "size": 1000,
+            "data": "hGV7ypmUQBiiBQ==...",
+            "allocated": 0,
+            "consumed": 0
+          }
+        ]
+      }
+    },
+    {
+      "hub_name": "hugo",
+      "registered": true,
+      "psrd_pool": {
+        "blocks": [
+          {
+            "uuid": "64ba8d8f-d26c-498f-854a-123346074072",
+            "size": 1000,
+            "data": "iSZnsqd1CSIEWw==...",
+            "allocated": 0,
+            "consumed": 0
+          }
+        ]
+      }
+    }
+  ]
+}
+</pre>
+
+You can also use the `--client` or `--hub` command-line option to only report the status of a single
+client or hub node, for example:
+
+<pre>
+$ <b>./manager.py topology.yaml --client celia status</b>
+Status for client celia on port 8106
+{
+  "client_name": "celia",
+  "peer_hubs": [
+    ... snip ...
+    {
+      "hub_name": "hugo",
+      "registered": true,
+      "psrd_pool": {
+        "blocks": [
+          {
+            "uuid": "78a32566-5ee1-4adb-b468-91c12ae4920c",
+            "size": 1000,
+            "data": "AAAAAAAAAAAAAA==...",
+            "allocated": 18,
+            "consumed": 16
+          }
+        ]
+      }
+    }
+  ]
+}
+</pre>
+
 ## Log files
 
 Each node produces an `.out` log file for debugging purposes.
@@ -448,23 +458,118 @@ url='http://127.0.0.1:8100/dske/hub/api/v1/key-share'
 ... snip ...
 </pre>
 
+## REST interfaces
 
-## Stop the topology
+The nodes communicate with each other over REST interfaces, implemented using FastAPI.
+There are four types of REST interfaces:
 
-To stop the topology, use the manager stop command:
+1. `api` REST interfaces model the actual DSKE protocol specified in the draft. 
+   Note that the draft currently only describes the protocol at the semantic level, and not (yet)
+   the message encoding. 
+   We do not intend to imply that REST is the best encoding for the message encoding; a leaner 
+   binary encoding may be more appropriate for this type of protocol.
+   We only chose REST to make prototyping and studying the protocol easier the semantic level.
+
+2. `oob` REST interfaces model the out-of-band actions mentioned in the draft, for example 
+   delivering a block of pre-shared random data (PSRD).
+   In real life, this would not be done over a REST interface but using some other mechanism
+   (e.g. physically shipping a tamper-proof device with gigabytes of random data). 
+   In this code we use REST interface to model these actions so that we can automate the scripting
+   of entire end-to-end testing scenarios.
+
+3. `esti` REST interfaces are implement the ETSI QKD 014 interface (a subset at this time) on the
+   DSKE clients to deliver the produced keys to the Secure Application Entity (SAE) consumers.
+
+4. `mgmt` management REST interfaces to control and debug the various nodes (e.g. to stop them and
+   to retrieve operational status to "look inside" of them to see what is happening).
+
+## REST interface documentation
+
+The REST interface for each node is available at the reported port number when the topology was
+started.
+
+In the above example, the REST interface for hub "Hank" is available at `http://127.0.0.1:8100`
+
+In addition to the REST interface itself, documentation is also available at
+`http://127.0.0.1:8100/docs` and `http://127.0.0.1:8100/redoc`.
+You can also manually invoke the REST APIs from the documentation page (click on an API endpoint
+and then click on "Try it out").
+
+Here is an example of the automatically generated documentation at `http://127.0.0.1:8105/docs`
+for a client node:
+
+![Client REST API documentation](docs/figures/client-rest-api-documentation.png)
+
+Here is an example of the automatically generated documentation at `http://127.0.0.1:8100/docs`
+for a hub node:
+
+![Hub REST API documentation](docs/figures/hub-rest-api-documentation.png)
+
+When you click on the row for `POST /dske/hub/api/v1/key-share` you see the detailed documentation
+for that particular REST endpoint:
+
+![Hub POST key-share details documentation](docs/figures/hub-post-key-share-endpoint-details-documentation.png)
+
+### Invoking the REST interface
+
+Here is an example of invoking the API to get the status of 
+
+In this example, we pipe the output of `curl` through `jq` (JSON query) to pretty-print the
+JSON REST response:
 
 <pre>
-$ <b>./manager.py topology.yaml stop</b>
-Stopping client curtis on port 8109
-Stopping client connie on port 8108
-Stopping client cindy on port 8107
-Stopping client celia on port 8106
-Stopping client carol on port 8105
-Stopping hub hugo on port 8104
-Stopping hub holly on port 8103
-Stopping hub hilary on port 8102
-Stopping hub helen on port 8101
-Stopping hub hank on port 8100
-Waiting for all nodes to be stopped
+$ <b>curl --silent http://127.0.0.1:8100/dske/hub/mgmt/v1/status | jq</b>
+{
+  "hub_name": "hank",
+  "peer_clients": [
+    {
+      "client_name": "carol",
+      "pool": {
+        "blocks": [
+          {
+            "uuid": "14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5",
+            "size": 1000,
+            "data": "AAAAAAAAAAAAAA==...",
+            "allocated": 18,
+            "consumed": 16
+          }
+        ]
+      }
+    },
+    {
+      "client_name": "celia",
+      "pool": {
+        "blocks": [
+          {
+            "uuid": "7734118a-24f6-4fb0-9cba-8d00bbbaedc7",
+            "size": 1000,
+            "data": "AAAAAAAAAAAAAA==...",
+            "allocated": 18,
+            "consumed": 18
+          }
+        ]
+      }
+    },
+    ... snip ...
+  ],
+  "shares": [
+    {
+      "key_id": "6050fccc-b882-402e-8ca1-62f0147999de",
+      "share_index": 0,
+      "value": "1AvP8kSDA1KExw==...",
+      "encrypted_value": null,
+      "encryption_key_allocation": null,
+      "signature_key_allocation": null
+    }
+  ]
+}
 </pre>
+
+Note 1: The `status` REST API is intended for debugging and understanding the protocol; it exposes
+information that should not be exposed in a production environment.
+
+Note 2: There is currently no authentication on any of the REST interfaces.
+It is my understanding (but I could be wrong) that the DSKE protocol does not require the API
+interfaces to be authenticated nor encrypted to be secure.
+
 

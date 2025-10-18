@@ -59,3 +59,7 @@ TODO: Error if get-key-with-key-ids if the API is invoked on client which is not
 
 TODO: Use data (instead of value) in Fragment for consistency. Also in documentation (including
       figures)
+
+TODO: Rename topology file to configuration file
+
+TODO: Use configuration file dske_default_config.yaml by default

@@ -65,9 +65,8 @@ class Manager:
         """
         parser = argparse.ArgumentParser(description="DSKE Manager")
         parser.add_argument("configfile", help="Configuration filename")
-        client_xor_hub_group = parser.add_mutually_exclusive_group()
-        client_xor_hub_group.add_argument("--client", help="Filter on client name")
-        client_xor_hub_group.add_argument("--hub", help="Filter on hub name")
+        parser.add_argument("--client", help="Filter on client name", action="append")
+        parser.add_argument("--hub", help="Filter on hub name", action="append")
         subparsers = parser.add_subparsers(dest="command")
         subparsers.required = True
         _start_parser = subparsers.add_parser(
@@ -116,59 +115,58 @@ class Manager:
         config = configuration.parse_configuration_file(self._args.configfile)
         self._nodes = config.nodes
 
-    def filtered_nodes(self, reverse_order=False) -> list[Node]:
+    def selected_nodes(self, reverse_order=False) -> list[Node]:
         """
         Return a list of all nodes in the topology (except those that are filtered).
         """
-        filtered_nodes = []
+        selected_nodes = []
         for node in self._nodes:
-            if not self.is_node_filtered(node):
-                filtered_nodes.append(node)
+            if self.is_node_selected(node):
+                selected_nodes.append(node)
         if reverse_order:
-            filtered_nodes.reverse()
-        return filtered_nodes
+            selected_nodes.reverse()
+        return selected_nodes
 
-    def is_node_filtered(self, node: Node) -> bool:
+    def is_node_selected(self, node: Node) -> bool:
         """
-        Determine if a node should be filtered out.
+        Determine if a node is selected (i.e., not filtered out).
         """
-        if self._args.client is not None:
-            match node.type:
-                case NodeType.CLIENT:
-                    return node.name != self._args.client
-                case NodeType.HUB:
-                    return True
-        if self._args.hub is not None:
-            match node.type:
-                case NodeType.CLIENT:
-                    return True
-                case NodeType.HUB:
-                    return node.name != self._args.hub
-        return False
+        if self._args.client is None and self._args.hub is None:
+            return True
+        match node.type:
+            case NodeType.CLIENT:
+                if self._args.client is None:
+                    return False
+                return node.name in self._args.client
+            case NodeType.HUB:
+                if self._args.hub is None:
+                    return False
+                return node.name in self._args.hub
+        assert False, "Unreachable"
 
     def start_topology(self):
         """
         Start all nodes.
         """
-        if not self.wait_for_all_nodes_stopped():
+        if not self.wait_for_selected_nodes_stopped():
             print(
                 "Not starting topology since nodes from previous topology run were not stopped"
             )
             return
         client_extra_args = []
-        for node in self.filtered_nodes():
+        for node in self.selected_nodes():
             if node.type == NodeType.HUB:
                 client_extra_args.append(node.base_url)
         if client_extra_args:
             client_extra_args = ["--hubs"] + client_extra_args
         # This code relies on the fact that nodes are ordered to have hubs before clients, so that
         # client_extra_args is built up before the first client is started.
-        for node in self.filtered_nodes():
+        for node in self.selected_nodes():
             if node.type == NodeType.HUB:
                 self.start_node(node)
             else:
                 self.start_node(node, client_extra_args)
-        self.wait_for_all_nodes_started()
+        self.wait_for_selected_nodes_started()
 
     def start_node(self, node: Node, extra_args: list | None = None):
         """
@@ -195,9 +193,9 @@ class Manager:
         Stop all nodes.
         """
         # Stop the clients first, so that they can cleanly unregister from the hubs.
-        for node in self.filtered_nodes(reverse_order=True):
+        for node in self.selected_nodes(reverse_order=True):
             self.stop_node(node)
-        self.wait_for_all_nodes_stopped()
+        self.wait_for_selected_nodes_stopped()
 
     def stop_node(self, node: Node):
         """
@@ -211,51 +209,71 @@ class Manager:
             print(f"Failed to stop {node.type} {node.name}: {exc}")
         # TODO: Check response (error handling)
 
-    def wait_for_all_nodes_condition(
+    def selected_nodes_description(self):
+        """
+        A human-readable description of the nodes selected by the filtering conditions.
+        """
+        if self._args.client is None and self._args.hub is None:
+            return "all nodes"
+        description = ""
+        if self._args.client is not None:
+            for client_name in self._args.client:
+                if description != "":
+                    description += ", "
+                description += f"client {client_name}"
+        if self._args.hub is not None:
+            for hub_name in self._args.hub:
+                if description != "":
+                    description += ", "
+                description += f"hub {hub_name}"
+        return description
+
+    def wait_for_selected_nodes_condition(
         self, condition_func: typing.Callable[[Node], bool], condition_description: str
     ):
         """
         Wait for some condition to be true for all nodes (or give up if it takes too long)
         """
-        print(f"Waiting for all nodes to be {condition_description}")
+        which_nodes = self.selected_nodes_description()
+        print(f"Waiting for {which_nodes} to be {condition_description}")
         max_attempts = 25
         seconds_between_attempts = 3.0
         total_time = max_attempts * seconds_between_attempts
         assert total_time > 60
         first_check = True
         for _ in range(max_attempts):
-            all_nodes_meet_condition = True
-            for node in self.filtered_nodes():
+            selected_nodes_meet_condition = True
+            for node in self.selected_nodes():
                 if not condition_func(node):
-                    all_nodes_meet_condition = False
+                    selected_nodes_meet_condition = False
                     if not first_check:
                         print(
                             f"Still waiting for {node.type} {node.name} "
                             f"to be {condition_description}"
                         )
-            if all_nodes_meet_condition:
+            if selected_nodes_meet_condition:
                 return True
             time.sleep(seconds_between_attempts)
             first_check = False
         print(
-            f"Giving up on waiting for all nodes to be {condition_description} "
+            f"Giving up on waiting for {which_nodes} to be {condition_description} "
             f"after waiting for {total_time} seconds"
         )
         return False
 
-    def wait_for_all_nodes_started(self):
+    def wait_for_selected_nodes_started(self):
         """
         Wait for all nodes to be started (or fail if it takes too long)
         """
-        return self.wait_for_all_nodes_condition(
+        return self.wait_for_selected_nodes_condition(
             lambda node: node.is_started(), "started"
         )
 
-    def wait_for_all_nodes_stopped(self):
+    def wait_for_selected_nodes_stopped(self):
         """
         Wait for all nodes to be stopped (or fail if it takes too long)
         """
-        return self.wait_for_all_nodes_condition(
+        return self.wait_for_selected_nodes_condition(
             lambda node: node.is_stopped(), "stopped"
         )
 
@@ -263,7 +281,7 @@ class Manager:
         """
         Report status for all hubs and clients.
         """
-        for node in self.filtered_nodes():
+        for node in self.selected_nodes():
             self.status_node(node)
 
     def report_response(self, response: requests.Response):
