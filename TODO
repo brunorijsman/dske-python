@@ -1,3 +1,7 @@
+TODO: Add management get-status to system test
+
+TODO: Add ETSI QKD get-status to system test
+
 TODO: Cleanup Shamir's Secret Sharing (SSS) code (no back-and-forth conversion to RawShare)
 
 TODO: Better error response if authentication key is bad (and return to pool if allocated)
