@@ -35,6 +35,8 @@ Documentation:
 
 * [Getting started guide](/docs/getting-started-guide.md)
 
+* [Introduction: What is DSKE and what problem does it solve?](/docs/what-is-dske-and-what-problem-does-it-solve.md)
+
 * [Protocol guide](/docs/protocol-guide.md)
 
 * [User guide](/docs/user-guide.md)
