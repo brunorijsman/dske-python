@@ -213,14 +213,28 @@ def check_output(
             assert some_output_matches(output, expected_output_line)
 
 
+def extract_key_id(output) -> None | str:
+    """
+    Extract the key ID from the output of a Get Key request.
+    """
+    for line in output:
+        print(f"Searching for key ID in line: <{line}>", file=sys.stderr)  ### DEBUG
+        match = re.search(r'"key_ID": "(\S+)"', line)
+        print(f"{match=}", file=sys.stderr)  ### DEBUG
+        if match:
+            return match.group(1)
+    return None
+
+
 def get_key(
     master_client: str,
     slave_client: str,
     expected_status_code: int = 200,
     expected_output_lines: None | List[str] = None,
-) -> None:
+) -> None | str:
     """
     Get key from a pair of DSKE clients using the ETSI QKD API.
+    Returns the key ID as a string on success or None on failure.
     """
     args = [
         configuration.DEFAULT_CONFIGURATION_FILE,
@@ -230,8 +244,11 @@ def get_key(
         "get-key",
     ]
     output = _run_manager(args)
-    print(f"Before check\n{output=}\n", file=sys.stderr)
     check_output(output, expected_status_code, expected_output_lines)
+    if expected_status_code == 200:
+        key_id = extract_key_id(output)
+        return key_id
+    return None
 
 
 def get_key_with_key_ids(

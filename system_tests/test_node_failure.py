@@ -49,3 +49,26 @@ def test_three_node_failures_before_get_key():
     system_test_common.stop_topology(
         stopped_nodes=[("hub", "hank"), ("hub", "helen"), ("hub", "hugo")]
     )
+
+
+def test_three_node_failures_after_get_key():
+    """
+    Three node failures after the initial Get Key request.
+    Two nodes remain, which is less than k=3.
+    The initial Get Key should succeed, but the subsequent Get key with key IDs should fail.
+    """
+    system_test_common.start_topology()
+    key_id = system_test_common.get_key("celia", "connie")
+    system_test_common.stop_node("hub", "hank")
+    system_test_common.stop_node("hub", "helen")
+    system_test_common.stop_node("hub", "hugo")
+    system_test_common.get_key_with_key_ids(
+        "celia",
+        "connie",
+        key_id,
+        expected_status_code=503,
+        expected_output_lines=[r"Could not gather enough shares for key"],
+    )
+    system_test_common.stop_topology(
+        stopped_nodes=[("hub", "hank"), ("hub", "helen"), ("hub", "hugo")]
+    )
