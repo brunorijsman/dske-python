@@ -198,14 +198,51 @@ def status_node(node):
     return status
 
 
+def check_output(
+    output,
+    expected_status_code: int,
+    expected_output_lines: None | List[str],
+):
+    """
+    Check output from the manager.
+    """
+    if expected_status_code != 200:
+        assert some_output_matches(output, rf"Status code: {expected_status_code}")
+    if expected_output_lines is not None:
+        for expected_output_line in expected_output_lines:
+            assert some_output_matches(output, expected_output_line)
+
+
+def get_key(
+    master_client: str,
+    slave_client: str,
+    expected_status_code: int = 200,
+    expected_output_lines: None | List[str] = None,
+) -> None:
+    """
+    Get key from a pair of DSKE clients using the ETSI QKD API.
+    """
+    args = [
+        configuration.DEFAULT_CONFIGURATION_FILE,
+        "etsi-qkd",
+        master_client,
+        slave_client,
+        "get-key",
+    ]
+    output = _run_manager(args)
+    print(f"Before check\n{output=}\n", file=sys.stderr)
+    check_output(output, expected_status_code, expected_output_lines)
+
+
 def get_key_with_key_ids(
     master_client: str,
     slave_client: str,
     key_id: str,
     expected_status_code: int = 200,
+    expected_output_lines: None | List[str] = None,
 ) -> None:
     """
-    Get a key pair from a pair of DSKE clients using the ETSI QKD API.
+    Get key with key IDs from a pair of DSKE clients using the ETSI QKD API.
     """
     args = [
         configuration.DEFAULT_CONFIGURATION_FILE,
@@ -216,8 +253,7 @@ def get_key_with_key_ids(
         key_id,
     ]
     output = _run_manager(args)
-    if expected_status_code != 200:
-        assert some_output_matches(output, rf"Status code: {expected_status_code}")
+    check_output(output, expected_status_code, expected_output_lines)
 
 
 def get_key_pair(master_client: str, slave_client: str) -> None:
@@ -232,7 +268,7 @@ def get_key_pair(master_client: str, slave_client: str) -> None:
         "get-key-pair",
     ]
     output = _run_manager(args)
-    assert some_output_matches(output, r"Key values match")
+    check_output(output, 200, [r"Key values match"])
 
 
 def _run_manager(args):

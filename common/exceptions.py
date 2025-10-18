@@ -118,7 +118,7 @@ class CouldNotScatterEnoughSharesError(DSKEException):
         self, key_id: UUID, nr_successful_shares: int, nr_required_shares: int
     ):
         super().__init__(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             message="Could not scatter enough shares for key.",
             details={
                 "key_id": str(key_id),
@@ -137,7 +137,7 @@ class CouldNotGatherEnoughSharesError(DSKEException):
         self, key_id: UUID, nr_successful_shares: int, nr_required_shares: int
     ):
         super().__init__(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             message="Could not gather enough shares for key.",
             details={
                 "key_id": str(key_id),

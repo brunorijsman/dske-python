@@ -30,4 +30,22 @@ def test_two_node_failures_before_get_key():
     system_test_common.stop_topology(stopped_nodes=[("hub", "helen"), ("hub", "hugo")])
 
 
-# TODO: test_three_node_failures_before_get_key (expected to fail)
+def test_three_node_failures_before_get_key():
+    """
+    Three node failures before the initial Get Key request.
+    Two nodes remain, which is less than k=3.
+    Key establishment should fail.
+    """
+    system_test_common.start_topology()
+    system_test_common.stop_node("hub", "hank")
+    system_test_common.stop_node("hub", "helen")
+    system_test_common.stop_node("hub", "hugo")
+    system_test_common.get_key(
+        "celia",
+        "connie",
+        expected_status_code=503,
+        expected_output_lines=[r"Could not scatter enough shares for key"],
+    )
+    system_test_common.stop_topology(
+        stopped_nodes=[("hub", "hank"), ("hub", "helen"), ("hub", "hugo")]
+    )
