@@ -7,14 +7,17 @@ without any background information.
 We walk you through the steps for installing the code and producing some keys
 using the Distributed Symmetric Key Establishment (DSKE) protocol.
 
-For a description of what DSKE is and how it works, see the
-[Protocol guide](/docs/protocol-guide.md).
+For an overview of what DSKE is and what problem it solves see the
+[introduction](/docs/what-is-dske-and-what-problem-does-it-solve.md).
+
+For a detailed description of the DSKE protocol, see the
+[protocol guide](/docs/protocol-guide.md).
 
 For full reference documentation for the commands used in these steps, see the
-[User guide](/docs/user-guide.md).
+[user guide](/docs/user-guide.md).
 
 If you are a software developer and would like more details about the implementation, see the
-[Developer guide](/docs/developer-guide.md).
+[developer guide](/docs/developer-guide.md).
 
 ## Installation
 
