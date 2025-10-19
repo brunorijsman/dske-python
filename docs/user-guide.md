@@ -246,9 +246,65 @@ Waiting for client carol, client corrie, hub hank to be started
 
 ## Starting and stopping nodes directly
 
-TODO: Document this
+Behind the scenes, the `manager.py` script spawns a separate Python process each client node
+and for each hub node.
+If you so desire, you can also start these Python processes manually.
 
-TODO: Continue from here
+The Python module `client` implements the client node process.
+Use the `--help` option to see its usage:
+
+<pre>
+$ <b>python -m client --help</b>
+usage: __main__.py [-h] [--port PORT] [--hubs HUBS [HUBS ...]] name
+
+DSKE Client
+
+positional arguments:
+  name                  Client name
+
+options:
+  -h, --help            show this help message and exit
+  --port PORT           Port number
+  --hubs HUBS [HUBS ...]
+                        Base URLs for hubs (e.g., http://127.0.0.1:8100)
+</pre>
+
+The typical usage is to provide the client name, the port number, and a list of base URLs for
+the hubs in the network. For example:
+
+<pre>
+$ <b>python -m client carol --port 8105 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo</b>
+</pre>
+
+Similarly, the Python module `hub` implements the client node process.
+Use the `--help` option to see its usage:
+
+<pre>
+$ <b>python -m hub --help</b>
+
+usage: __main__.py [-h] [-p PORT] name
+
+DSKE Hub
+
+positional arguments:
+  name             Hub name
+
+options:
+  -h, --help       show this help message and exit
+  -p, --port PORT  Port number
+</pre>
+
+The typical usage is to provide the hub name and the port number.
+
+<pre>
+$ <b>python -m hub helen --port 8101
+</pre>
+
+As you can see, manually starting clients and hubs involves typing long error-prone commands
+and requires some book-keeping about which node uses which TCP port number.
+This is why the `manager.py` script exists;
+it collects all the necessary information from the topology file and starts all the nodes with
+the correct (long) command-line arguments.
 
 ## Get encryption keys
 
@@ -498,17 +554,17 @@ and then click on "Try it out").
 Here is an example of the automatically generated documentation at `http://127.0.0.1:8105/docs`
 for a client node:
 
-![Client REST API documentation](docs/figures/client-rest-api-documentation.png)
+![Client REST API documentation](figures/client-rest-api-documentation.png)
 
 Here is an example of the automatically generated documentation at `http://127.0.0.1:8100/docs`
 for a hub node:
 
-![Hub REST API documentation](docs/figures/hub-rest-api-documentation.png)
+![Hub REST API documentation](figures/hub-rest-api-documentation.png)
 
 When you click on the row for `POST /dske/hub/api/v1/key-share` you see the detailed documentation
 for that particular REST endpoint:
 
-![Hub POST key-share details documentation](docs/figures/hub-post-key-share-endpoint-details-documentation.png)
+![Hub POST key-share details documentation](figures/hub-post-key-share-endpoint-details-documentation.png)
 
 ### Invoking the REST interface
 
