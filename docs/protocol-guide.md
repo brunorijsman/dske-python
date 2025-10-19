@@ -32,15 +32,17 @@ where the disks are destroyed after the same block of PSRD is delivered to each 
 
 Imagine, for now, that two clients Carol and Celia have exchanged blocks of PSRD.
 This means that Carol and Celia both have a identical copies of the PSRD blocks, and no-one else
-knows what they blocks of PSRD are.
+knows what these blocks of PSRD are.
 
-Carol and Celia can now agree on a key using a public conversation.
+Carol and Celia can now agree on a Carol-Celia encryption key using a public
+conversation.
 For example, Carol could announce that she will use bytes numbers 100 through 228 of PSRD block
 number 123 as the key.
 We refer to this as the meta-data for the encryption key.
 Since Celia has a copy of PSRD block 123, she can extract bytes 100 through 228 and find the
 same encryption key.
-But no-one else knows the contents of PSRD block 123, so no-one else can determine what the key is.
+But no-one else knows the contents of PSRD block 123, so no-one else can determine what the 
+Carol-Celia encryption key is.
 
 Carol and Celia need to make sure that they are really talking to each other and not to some
 imposter.
@@ -49,8 +51,8 @@ The clients authenticate messages by extracting an authentication key from the P
 The sender (say Carol) allocates the authentication key and uses it to sign the message.
 Carol sends the meta-data for the authentication key (but not the key value), the signature, and
 the message itself to the receiver (say Celia).
-Celia extracts the authentication key value from her copy of the PSRD and uses it to validate
-the received signature.
+Celia uses the received key meta-data to extract the authentication key value from her copy of the
+PSRD and uses it to validate the received signature.
 
 The scheme that we have described thus far becomes impractical if we have a very large number of
 clients.
@@ -64,10 +66,11 @@ Instead of establishing a key directly between a pair of clients, we use the hub
 nodes.
 The clients do not establish PSRD with directly with each other;
 instead, the clients establish PSRD with the hubs.
-As an example, let's say we have two clients Carol and Celia, and one hub Hank, and let's say
-Carol and Celia want to agree on a key.
+
+As an example, let's say we have two clients Carol and Celia, and one hub Hank.
+And let's say Carol and Celia want to agree on a key.
 First, Carol and Hank agree on a local Carol-Hank key using the mechanism described above.
-Then, Celia and Hank agree on a local Celia-Hank key using, again, the mechanism described above.
+Then, Celia and Hank agree on a local Celia-Hank key, also using the mechanism described above.
 Finally, the end-to-end Carol-Celia key is established.
 Carol allocates some random bytes as the end-to-end Carol-Celia key.
 Carol sends the end-to-end Carol-Celia key to Hank, encrypting it using the local Carol-Hank key.
@@ -78,7 +81,7 @@ Note that the end-to-end Carol-Celia key is decrypted and re-encrypted at Hank i
 In other words, for a brief moment, Hank knows what the end-to-end Carol-Celia key is.
 We have to trust Hank not to abuse that knowledge or be hacked by an attacker to steal that 
 knowledge.
-For this reason, Hand is called a Trusted Relay Node (TRN).
+Because Hank needs to be trusted, Hank is called a Trusted Relay Node (TRN).
 
 Also, hub Hank becomes a Single Point of Failure (SPoF).
 If hub Hank fails, the clients relying on Hank are enable to establish keys.
@@ -102,7 +105,7 @@ If you have fewer than _k_ shares, no information about the secret can be extrac
 
 We use Shamir's secret sharing as follows.
 After Carol allocates the end-to-end Carol-Celia key, she splits the key up into _n_ shares.
-She they relays each of these _n_ shares to Celia using a different hub.
+She then relays each of these _n_ shares to Celia using a different hub.
 Thus, she uses _n_ hubs in parallel to relay each of the _n_ shares.
 
 This solves both the trusting problem and the single point of failure problem.
