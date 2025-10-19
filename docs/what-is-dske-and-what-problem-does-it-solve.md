@@ -15,26 +15,26 @@ the sender encrypts the traffic using an encryption key
 and the receiver decrypts the traffic using a decryption key.
 
 Encrypting the traffic provides confidentiality: it keeps the information secret even if there
-is some party (an eavesdropper) who is able to observe the data as it flows over
+is some party (an eavesdropper) who is able to observe the encrypted data as it flows over
 the network.
 
 Confidentiality is not the only aspect of secure communications.
 One also needs integrity (making sure the data was not modified in transit),
-authentication (verify the identity of the parties communicating - 
-that each participant is who they claim to be),
+authentication (verify that each communicating party is who they claim to be),
 and non-repudiation (prevent a sender from denying having sent a message,
 or a receiver from denying having received it).
-But here, we focus on confidentiality.
+But here we focus on confidentiality.
 
 For the transfer of large volumes of data, the encryption en decryption is typically done
 using a symmetric encryption protocol.
 In symmetric encryption protocols the same key is used as both the encryption key and the
 decryption key.
 
-This means that the sender and the receiver have to agree on this encryption key before they
-can exchange any encrypted data.
+Before a sender and a receiver can communicate with each other using a symmetric encryption
+protocol they must first agree on which encryption key to use.
 
-One possible approach is to simply manually configure the encryption key on both devices.
+One possible approach is to simply manually configure the encryption key on both the sender
+device and the receiver device.
 This approach is called using a 
 [Pre-Shared Key (PSK)](https://en.wikipedia.org/wiki/Pre-shared_key)
 and has several disadvantages:
@@ -58,13 +58,13 @@ As another example,
 [Transport Layer Security (TLS)](https://en.wikipedia.org/wiki/Transport_Layer_Security)
 includes specific messages and procedures for key establishment.
 
-But underlying all of these specific protocols, there is a common set of mathematical algorithms
-that is used by all these different protocols to establish keys, including:
+But underpinning all of these specific key establishment protocols, there is a common set of
+mathematical algorithms that is used by all of them:
  * [Diffie-Hellman (DH)](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange)
  * [Elliptic Curve Diffie-Hellman (ECDH)](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman)
  * [Rivest Shamir Adleman (RSA)](https://en.wikipedia.org/wiki/RSA_cryptosystem)
 
-We won't go into the details of how these key exchange protocols work.
+We won't go into the details of how these mathematical algorithms work.
 What is important for the present discussion is that all of these algorithms are based on
 the observation that there exist certain mathematical functions which are very easy to compute
 for a computer, but for which the inverse function is very difficult to compute, even for
@@ -72,35 +72,38 @@ the biggest super computer.
 For example, any computer can multiply two large prime numbers very quickly.
 But if the prime numbers are large enough, it takes millions of years to factor the resulting
 product back into the original prime factors.
-To be specific, the security of RSA depends on the computational complexity of factoring,
-and the security of DH and ECDH depend on the computational complexity of logarithms in a discrete
-field (for here, it is not important what that means exactly).
+To be specific, the security of RSA depends on the computational complexity of
+[factorization](https://en.wikipedia.org/wiki/Factorization),
+and the security of DH and ECDH depend on the computational complexity of
+[logarithms in a discrete field](https://en.wikipedia.org/wiki/Discrete_logarithm)
+.
 
 ## Shor's algorithm
 
-In 1994 this assumption about the computation complexity were shattered
-by the discovery of a new algorithm called
-[Shor's algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm)
-that runs on a new type of computer called a
+In 1994 the assumption that factorization and discrete logarithms were very difficult to compute
+was shattered by the discovery of a new algorithm called
+[Shor's algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm).
+Shor's algorithm is able to factor large numbers and compute discrete logarithms very fast,
+but it can only run on a new type of computer called a
 [quantum computer](https://en.wikipedia.org/wiki/Quantum_computing).
-Shor's algorithm is able to factor large numbers and compute logarithms in a discrete field
-very fast.
 
 This means that an attacker who has access to a sufficiently powerful quantum computer
 to run Shor's algorithm will be able to break existing key establishment protocols such as DH,
 ECDH, and RSA.
 Such a sufficiently powerful quantum computer is referred to as a
-Cryptographically Relevant Quantum Computer (CRQC).
+Cryptanalytically Relevant Quantum Computer (CRQC).
 
 Quantum computers do already exist;
 they are commercially available from 
 [many large companies and startups](https://thequantuminsider.com/2025/09/23/top-quantum-computing-companies/).
 But none of the quantum computers that exist today are sufficiently reliable and powerful to run
-Shor's algorithm; there are no CRQCs yet.
+Shor's algorithm;
+in other words: there are no CRQCs yet.
 
 Various experts have different estimates for when the first CRQC will appear, in other words
-when existing key establishment protocols such as DH, ECDH, and RSA will be broken.
-But the general consensus is that it will most likely happen in the next 5 to 15 years.
+when existing key establishment protocols such as DH, ECDH, and RSA will be broken:
+
+![When is Q-Day?](figures/when-is-q-day.png)
 
 For this reason, various governments and standardization organizations have enacted rules
 and guidelines requiring organizations to migrate away from the current quantum-unsafe key

@@ -17,15 +17,16 @@ echo "Converting PDF to PNG"
 magick convert -density 300 -units pixelsperinch -trim +profile "icc" figures.pdf figures.png
 
 echo "Renaming files"
-mv figures-0.png wireshark-started.png
-mv figures-1.png wireshark-trace.png
-mv figures-2.png swagger-docs.png
-mv figures-3.png topology.png
-mv figures-4.png client-to-hub-relaying.png
-mv figures-5.png hub-to-client-relaying.png
-mv figures-6.png trusted-relay-node.png
-mv figures-7.png message-signing.png
-mv figures-8.png ladder-diagram-startup.png
-mv figures-9.png ladder-diagram-get-key.png
-mv figures-10.png block-fsm.png
-mv figures-11.png block-and-fragments.png
+mv figures-0.png when-is-q-day.png
+mv figures-1.png wireshark-started.png
+mv figures-2.png wireshark-trace.png
+mv figures-3.png swagger-docs.png
+mv figures-4.png topology.png
+mv figures-5.png client-to-hub-relaying.png
+mv figures-6.png hub-to-client-relaying.png
+mv figures-7.png trusted-relay-node.png
+mv figures-8.png message-signing.png
+mv figures-9.png ladder-diagram-startup.png
+mv figures-10.png ladder-diagram-get-key.png
+mv figures-11.png block-fsm.png
+mv figures-12.png block-and-fragments.png
