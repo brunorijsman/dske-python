@@ -297,7 +297,7 @@ options:
 The typical usage is to provide the hub name and the port number.
 
 <pre>
-$ <b>python -m hub helen --port 8101
+$ <b>python -m hub helen --port 8101</b>
 </pre>
 
 As you can see, manually starting clients and hubs involves typing long error-prone commands
