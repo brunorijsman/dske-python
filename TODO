@@ -67,3 +67,5 @@ TODO: Use configuration file dske_default_config.yaml by default
 TODO: Avoid usage: __main__.py in --help output for client / hub
 
 TODO: Add site map to Google Search Console
+
+TODO: Consistently use httpx for client side (not requests for synchronous calls)
