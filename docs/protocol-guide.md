@@ -9,6 +9,114 @@ If you are not yet familiar with the concepts of quantum-safe security, Post Qua
 (PQC) or Quantum Key Distribution (QKD), it is helpful to first read the introduction:
 [what is DSKE and what problem does it solve?](/what-is-dske-and-what-problem-does-it-solve.md).
 
+## High-level overview
+
+We start with a high-level overview of how the protocol works. 
+Our goal is try to avoid losing the forest for the trees later on when we dive into the details.
+We gloss over many important details and we use some terminology without defining it; these
+details and definitions will be filled in in the remainder of the chapter.
+
+We have a network consisting of network nodes.
+These nodes are connected to each other using a normal IP network (i.e. using routers and switches).
+
+Some of these nodes want to exchange encrypted traffic with each other, and for this reason they
+need to agree on encryption keys.
+We refer to these nodes as DSKE client nodes, or simply clients.
+The clients are running the DSKE protocol as the key establishment protocol.
+
+The DSKE protocol relies heavily on using very large blocks of Pre-Shared Random Data (PSRD).
+Before two nodes can establish keys, they first need to exchange blocks of PSRD.
+The exchange of PSRD uses what we refer to as a secure out-of-band mechanism.
+Think, for example, of using armed guards to exchange tamper-proof disks full of random data,
+where the disks are destroyed after the same block of PSRD is delivered to each of a pair of nodes.
+
+Imagine, for now, that two clients Carol and Celia have exchanged blocks of PSRD.
+This means that Carol and Celia both have a identical copies of the PSRD blocks, and no-one else
+knows what they blocks of PSRD are.
+
+Carol and Celia can now agree on a key using a public conversation.
+For example, Carol could announce that she will use bytes numbers 100 through 228 of PSRD block
+number 123 as the key.
+We refer to this as the meta-data for the encryption key.
+Since Celia has a copy of PSRD block 123, she can extract bytes 100 through 228 and find the
+same encryption key.
+But no-one else knows the contents of PSRD block 123, so no-one else can determine what the key is.
+
+Carol and Celia need to make sure that they are really talking to each other and not to some
+imposter.
+In other words, Carol and Celia need to authenticate each other.
+The clients authenticate messages by extracting an authentication key from the PSRD.
+The sender (say Carol) allocates the authentication key and uses it to sign the message.
+Carol sends the meta-data for the authentication key (but not the key value), the signature, and
+the message itself to the receiver (say Celia).
+Celia extracts the authentication key value from her copy of the PSRD and uses it to validate
+the received signature.
+
+The scheme that we have described thus far becomes impractical if we have a very large number of
+clients.
+Each client would have to pro-actively and a-priori exchange PSRD with each of the other clients
+on the network that it could potentially wish to communicate with at some point in the future.
+
+For this reason, we introduce a second type of node that we refer to as a DSKE security hub,
+or simply hub for short.
+
+Instead of establishing a key directly between a pair of clients, we use the hubs as trusted relay
+nodes.
+The clients do not establish PSRD with directly with each other;
+instead, the clients establish PSRD with the hubs.
+As an example, let's say we have two clients Carol and Celia, and one hub Hank, and let's say
+Carol and Celia want to agree on a key.
+First, Carol and Hank agree on a local Carol-Hank key using the mechanism described above.
+Then, Celia and Hank agree on a local Celia-Hank key using, again, the mechanism described above.
+Finally, the end-to-end Carol-Celia key is established.
+Carol allocates some random bytes as the end-to-end Carol-Celia key.
+Carol sends the end-to-end Carol-Celia key to Hank, encrypting it using the local Carol-Hank key.
+And then Hank forwards the end-to-end Carol-Celia key to Celia, encrypting it using the
+local Celia-Hank key.
+
+Note that the end-to-end Carol-Celia key is decrypted and re-encrypted at Hank in this process.
+In other words, for a brief moment, Hank knows what the end-to-end Carol-Celia key is.
+We have to trust Hank not to abuse that knowledge or be hacked by an attacker to steal that 
+knowledge.
+For this reason, Hand is called a Trusted Relay Node (TRN).
+
+Also, hub Hank becomes a Single Point of Failure (SPoF).
+If hub Hank fails, the clients relying on Hank are enable to establish keys.
+
+To ameliorate both the problem of having to trust the hub node and the problem of the hub node
+being a single point of failure, we introduce the concept of using multiple hub nodes in
+parallel.
+This is where the "Distributed" in "Distributed Symmetric Key Establishment" comes from.
+
+To understand how using multiple hubs works, we fist need to understand
+[Shamir's Secret Sharing (SSS)](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)
+algorithm.
+
+Shamir's secret sharing allows us to split the end-to-end Carol-Celia key into some number (_n_)
+of parts.
+Here, _n_ is the number of hubs that we will use in parallel to relay the key.
+Each part is called a share of the key.
+The original key can be reconstructed if you have at least _k_ out of the original _n_ shares
+(were _k_ is some number smaller than _n_).
+If you have fewer than _k_ shares, no information about the secret can be extracted.
+
+We use Shamir's secret sharing as follows.
+After Carol allocates the end-to-end Carol-Celia key, she splits the key up into _n_ shares.
+She they relays each of these _n_ shares to Celia using a different hub.
+Thus, she uses _n_ hubs in parallel to relay each of the _n_ shares.
+
+This solves both the trusting problem and the single point of failure problem.
+
+Each hub only has knowledge of a single share of the end-to-end key.
+It would require _k_ hubs to conspire with each other (or _k_ hubs to be hacked)
+for the hubs or the attacker to reconstruct the end-to-end key.
+As long as fewer than _k_ shares are leaked, no information whatsoever about the end-to-end key
+is leaker.
+
+Also, if some of the hubs fail, the end-to-end key establishment can still complete successfully.
+The protocol continues to work as long as at least _k_ hubs remain (i.e. as longs as no more than 
+_n_ - _k_ nodes fail).
+
 ## Inspiration
 
 Our DSKE implementation is inspired by:
@@ -37,8 +145,6 @@ We say "inspired by" because:
    Other times, the description was clear enough, but we made a conscious decision to deviate.
    A list of differences between the draft/paper and this implementation is given
    [below](#differences-between-the-ietf-draft-and-this-implementation).
-
-## TODO: Add DSKE overview
 
 ## Network topology
 
