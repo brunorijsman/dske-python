@@ -150,12 +150,10 @@ def check_wait_for_all_nodes_stopped_output(output):
     """
     Check the output of the manager for the part where it waits for all nodes to be stopped.
     """
-    assert next_output_matches(output, r"Waiting for all nodes to be stopped")
+    assert next_output_matches(output, r"Waiting for .* to be stopped")
     while next_output_matches(output, r"Still waiting for .* to be stopped"):
         pass
-    assert not next_output_matches(
-        output, r"Giving up on waiting for all nodes to be stopped"
-    )
+    assert not next_output_matches(output, r"Giving up on waiting for .* to be stopped")
 
 
 def check_wait_for_all_nodes_started_output(output):
