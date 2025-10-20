@@ -2,9 +2,13 @@
 A DSKE security hub, or DSKE hub, or just hub for short.
 """
 
+import asyncio
+import os
+import signal
 from uuid import UUID
 import fastapi
 from common import exceptions
+from common import utils
 from common.allocation import Allocation
 from common.block import Block
 from common.encryption_key import EncryptionKey
@@ -23,11 +27,13 @@ class Hub:
     _name: str
     _peer_clients: dict[str, PeerClient]  # Indexed by client name
     _shares: dict[UUID, Share]  # Indexed by key UUID
+    _stop_task: asyncio.Task | None
 
     def __init__(self, name: str):
         self._name = name
         self._peer_clients = {}
         self._shares = {}
+        self._stop_task = None
 
     @property
     def name(self):
@@ -139,3 +145,18 @@ class Hub:
         )
         peer_client.add_dske_signing_key_header_to_response(headers_temp_response)
         return response
+
+    def initiate_stop(self):
+        """
+        Initiate stopping the hub.
+        """
+        self._stop_task = asyncio.create_task(self._stop_after_delay())
+
+    async def _stop_after_delay(self):
+        """
+        Stop the hub after a short delay to allow the HTTP response to be sent and to avoid
+        TIME_WAIT states on the server.
+        """
+        await asyncio.sleep(0.5)
+        utils.delete_pid_file("hub", self._name)
+        os.kill(os.getpid(), signal.SIGTERM)

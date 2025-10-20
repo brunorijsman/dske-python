@@ -107,7 +107,7 @@ async def post_mgmt_stop():
     utils.delete_pid_file("client", _CLIENT.name)
     # TODO: Process close listening socket when receive SIGTERM
     os.kill(os.getpid(), signal.SIGTERM)
-    return {"result": "Hub stopped"}
+    return {"result": "Client stopped"}
 
 
 def main():

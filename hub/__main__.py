@@ -3,8 +3,6 @@ Main module for a DSKE security hub.
 """
 
 import argparse
-import os
-import signal
 import fastapi
 import pydantic
 import uvicorn
@@ -156,11 +154,8 @@ async def post_mgmt_stop():
     """
     Management: Post stop.
     """
-    # TODO: Can we delete the PID file later, when the process actually terminates?
-    utils.delete_pid_file("hub", _HUB.name)
-    os.kill(os.getpid(), signal.SIGTERM)
-    # TODO: Does this result actually get returned
-    return {"result": "Hub stopped"}
+    _HUB.initiate_stop()
+    return {"result": "Hub stop initiated"}
 
 
 def main():
