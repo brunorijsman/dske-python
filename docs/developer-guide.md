@@ -2,6 +2,21 @@
 
 # Developer guide
 
+This page is intended for software developers;
+it contains a high-level overview of the implementation.
+
+For an overview of what Distributed Symmetric Key Establishment (DSKE) is and what problem it solves
+see the [introduction](/docs/what-is-dske-and-what-problem-does-it-solve.md).
+
+For a detailed description of the DSKE protocol, see the
+[protocol guide](/docs/protocol-guide.md).
+
+If you just want hands-on instructions on how to get started running the code and generating keys
+with a minimum of background information see the
+[getting started guide](/docs/getting-started-guide.md).
+Or, for more details see the
+[user guide](/docs/user-guide.md).
+
 ## Technology stack
 
 Our technology stack is:
