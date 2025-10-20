@@ -68,10 +68,6 @@ TODO: Error if get-key-with-key-ids if the API is invoked on client which is not
 TODO: Use data (instead of value) in Fragment for consistency. Also in documentation (including
       figures)
 
-TODO: Rename topology file to configuration file
-
-TODO: Use configuration file dske_default_config.yaml by default
-
 TODO: Avoid usage: __main__.py in --help output for client / hub
 
 TODO: Add site map to Google Search Console
