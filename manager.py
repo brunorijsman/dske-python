@@ -203,7 +203,9 @@ class Manager:
         """
         print(f"Stopping {node.type} {node.name} on port {node.port}")
         url = f"{node.base_url}/mgmt/v1/stop"
-        self.http_request("POST", url)
+        self.http_request(
+            "POST", url, f"stop {node.type} {node.name}", quiet_success=True
+        )
 
     def selected_nodes_description(self):
         """
@@ -280,26 +282,13 @@ class Manager:
         for node in self.selected_nodes():
             self.status_node(node)
 
-    def report_response(self, response: httpx.Response):
-        """
-        Report a response from a node.
-        """
-        if response.status_code != 200:
-            print(f"Status code: {response.status_code}")
-        try:
-            response_json = response.json()
-            print(json.dumps(response_json, indent=2))
-        except json.JSONDecodeError:
-            print(response.text)
-
     def status_node(self, node: Node):
         """
         Report status for a node.
         """
         print(f"Status for {node.type} {node.name} on port {node.port}")
         url = f"{node.base_url}/mgmt/v1/status"
-        response = self.http_request("GET", url)
-        self.report_response(response)
+        self.http_request("GET", url, "get status")
 
     def etsi_qkd(self):
         """
@@ -338,8 +327,7 @@ class Manager:
             f"Invoke ETSI QKD Status API for client {master_node.name} on port {master_node.port}"
         )
         url = f"{master_node.base_url}/etsi/api/v1/keys/{slave_node.name}/status"
-        response = self.http_request("GET", url)
-        self.report_response(response)
+        self.http_request("GET", url, "get status")
 
     def etsi_qkd_get_key(self, master_node: Node, slave_node: Node) -> None | dict:
         """
@@ -349,8 +337,9 @@ class Manager:
             f"Invoke ETSI QKD Get Key API for client {master_node.name} on port {master_node.port}"
         )
         url = f"{master_node.base_url}/etsi/api/v1/keys/{slave_node.name}/enc_keys"
-        response = self.http_request("GET", url)
-        self.report_response(response)
+        response = self.http_request("GET", url, "get key")
+        if response is None:
+            return None
         return response.json()
 
     def etsi_qkd_get_key_with_key_ids(
@@ -364,8 +353,9 @@ class Manager:
             f"on port {slave_node.port}"
         )
         url = f"{slave_node.base_url}/etsi/api/v1/keys/{master_node.name}/dec_keys?key_ID={key_id}"
-        response = self.http_request("GET", url)
-        self.report_response(response)
+        response = self.http_request("GET", url, "get key with key IDs")
+        if response is None:
+            return None
         return response.json()
 
     def etsi_qkd_get_key_pair(self, master_node: Node, slave_node: Node):
@@ -384,20 +374,28 @@ class Manager:
         else:
             print("Key values do not match")
 
-    def http_request(self, method: str, url: str) -> httpx.Response:
+    def http_request(
+        self, method: str, url: str, action: str | None, quiet_success=False
+    ) -> httpx.Response:
         """
         Make an HTTP request.
         """
         try:
             response = httpx.request(method, url, timeout=1.0)
         except httpx.HTTPError as exc:
-            self.error(f"Failed to make HTTP request {method} {url}: {exc}")
+            if action is not None:
+                print(f"Failed to {action}: {method} {url} raised exception {exc}")
             return None
         if response.status_code != 200:
-            self.error(
-                f"HTTP request {method} {url} failed "
-                f"with status code {response.status_code}: {response.text}"
+            print(
+                f"Failed to {action}: {method} {url} returned status code {response.status_code}"
             )
+        if not quiet_success:
+            try:
+                response_json = response.json()
+                print(json.dumps(response_json, indent=2))
+            except json.JSONDecodeError:
+                print(response.text)
         return response
 
 

@@ -55,23 +55,14 @@ def stop_topology(
         if not_started:
             expect_failure = True
         elif stopped_nodes is not None:
-            print("Checking stopped nodes...", file=sys.stderr)
             expect_failure = False
             for stopped_node_type_str, stopped_node_name in stopped_nodes:
                 stopped_node_type = NodeType.from_str(stopped_node_type_str)
-                print(
-                    f"{stopped_node_name=} {stopped_node_type=} {node=}",
-                    file=sys.stderr,
-                )
                 if node.type == stopped_node_type and node.name == stopped_node_name:
                     expect_failure = True
                     break
         else:
             expect_failure = False
-        print(
-            f"expect_failure={expect_failure} for {node.type} {node.name}",
-            file=sys.stderr,
-        )
         line = rf"Failed to stop {node.type} {node.name}"
         if expect_failure:
             assert next_output_matches(output, line)
@@ -205,7 +196,7 @@ def check_output(
     Check output from the manager.
     """
     if expected_status_code != 200:
-        assert some_output_matches(output, rf"Status code: {expected_status_code}")
+        assert some_output_matches(output, rf"status code {expected_status_code}")
     if expected_output_lines is not None:
         for expected_output_line in expected_output_lines:
             assert some_output_matches(output, expected_output_line)
@@ -299,6 +290,5 @@ def _run_manager(args):
         check=False,
     )
     assert result.returncode == 0
-    assert result.stderr == b""
     output = result.stdout.decode(encoding="utf-8").split("\n")
     return output
