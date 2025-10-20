@@ -11,7 +11,7 @@ import subprocess
 import sys
 import time
 import typing
-import requests
+import httpx
 from common import configuration
 from common.node import Node, NodeType
 
@@ -203,11 +203,7 @@ class Manager:
         """
         print(f"Stopping {node.type} {node.name} on port {node.port}")
         url = f"{node.base_url}/mgmt/v1/stop"
-        try:
-            _response = requests.post(url, timeout=1.0)
-        except requests.exceptions.RequestException as exc:
-            print(f"Failed to stop {node.type} {node.name}: {exc}")
-        # TODO: Check response (error handling)
+        self.http_request("POST", url)
 
     def selected_nodes_description(self):
         """
@@ -284,7 +280,7 @@ class Manager:
         for node in self.selected_nodes():
             self.status_node(node)
 
-    def report_response(self, response: requests.Response):
+    def report_response(self, response: httpx.Response):
         """
         Report a response from a node.
         """
@@ -302,11 +298,7 @@ class Manager:
         """
         print(f"Status for {node.type} {node.name} on port {node.port}")
         url = f"{node.base_url}/mgmt/v1/status"
-        try:
-            response = requests.get(url, timeout=1.0)
-        except requests.exceptions.RequestException as exc:
-            print(f"Failed get status for {node.type} {node.name}: {exc}")
-            return
+        response = self.http_request("GET", url)
         self.report_response(response)
 
     def etsi_qkd(self):
@@ -346,12 +338,7 @@ class Manager:
             f"Invoke ETSI QKD Status API for client {master_node.name} on port {master_node.port}"
         )
         url = f"{master_node.base_url}/etsi/api/v1/keys/{slave_node.name}/status"
-        try:
-            response = requests.get(url, timeout=1.0)
-            # TODO: Check response (error handling)
-        except requests.exceptions.RequestException as exc:
-            self.error(f"Failed to invoke ETSI QKD Status API: {exc}")
-            return
+        response = self.http_request("GET", url)
         self.report_response(response)
 
     def etsi_qkd_get_key(self, master_node: Node, slave_node: Node) -> None | dict:
@@ -362,13 +349,7 @@ class Manager:
             f"Invoke ETSI QKD Get Key API for client {master_node.name} on port {master_node.port}"
         )
         url = f"{master_node.base_url}/etsi/api/v1/keys/{slave_node.name}/enc_keys"
-        try:
-            response = requests.get(url, timeout=1.0)
-            # TODO: Check response (error handling)
-        except requests.exceptions.RequestException as exc:
-            # TODO Better error handling
-            self.error(f"Failed to invoke ETSI QKD Get Key API: {exc}")
-            return None
+        response = self.http_request("GET", url)
         self.report_response(response)
         return response.json()
 
@@ -383,11 +364,7 @@ class Manager:
             f"on port {slave_node.port}"
         )
         url = f"{slave_node.base_url}/etsi/api/v1/keys/{master_node.name}/dec_keys?key_ID={key_id}"
-        try:
-            response = requests.get(url, timeout=1.0)
-            # TODO: Check response (error handling)
-        except requests.exceptions.RequestException as exc:
-            self.error(f"Failed to invoke ETSI QKD Get Key API: {exc}")
+        response = self.http_request("GET", url)
         self.report_response(response)
         return response.json()
 
@@ -406,6 +383,22 @@ class Manager:
             print("Key values match")
         else:
             print("Key values do not match")
+
+    def http_request(self, method: str, url: str) -> httpx.Response:
+        """
+        Make an HTTP request.
+        """
+        try:
+            response = httpx.request(method, url, timeout=1.0)
+        except httpx.HTTPError as exc:
+            self.error(f"Failed to make HTTP request {method} {url}: {exc}")
+            return None
+        if response.status_code != 200:
+            self.error(
+                f"HTTP request {method} {url} failed "
+                f"with status code {response.status_code}: {response.text}"
+            )
+        return response
 
 
 if __name__ == "__main__":
