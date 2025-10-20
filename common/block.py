@@ -45,6 +45,13 @@ class Block:
         """
         return self._block_uuid
 
+    @property
+    def bytes_available_for_allocation(self):
+        """
+        Return the number of bytes available for allocation in the block.
+        """
+        return self._size - self._allocated.count()
+
     def to_mgmt(self):
         """
         Get the management status.

@@ -48,6 +48,13 @@ class Pool:
         """
         return self._owner
 
+    @property
+    def bytes_available(self):
+        """
+        Return the number of bytes available for allocation in the pool.
+        """
+        return sum(block.bytes_available_for_allocation for block in self._blocks)
+
     def to_mgmt(self) -> dict:
         """
         Get the management status.
