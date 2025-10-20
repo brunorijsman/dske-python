@@ -4,6 +4,7 @@
         "Adleman",
         "APIPSRD",
         "aread",
+        "ASGI",
         "bitarray",
         "camila",
         "Ciena",
@@ -29,6 +30,7 @@
         "getpid",
         "HMAC",
         "htmlcov",
+        "HTTPX",
         "ISAKMP",
         "Kozlik",
         "Mersenne",
@@ -53,6 +55,7 @@
         "Shamir",
         "Shor's",
         "urandom",
+        "Uvicorn",
         "venv"
     ],
     "editor.wordWrapColumn": 100,

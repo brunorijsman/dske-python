@@ -19,16 +19,23 @@ Or, for more details see the
 
 ## Technology stack
 
-Our technology stack is:
+The code technology stack includes:
 * [Python 3.13](https://www.python.org/) as the programming language.
-* [FastAPI](https://www.python.org/) for HTTP APIs.
+  The nodes (clients and hubs) are asynchronous;
+  the manager is synchronous.
+* [FastAPI](https://www.python.org/) for server-side HTTP APIs.
+* [HTTPX](https://www.python-httpx.org/) for client-side HTTP APIs.
+* [Uvicorn](https://uvicorn.dev/)as the ASGI (synchronous Server Gateway Interface) web server.
 * [Git](https://git-scm.com/) and [Github](https://github.com/brunorijsman/dske-python) for version control.
+
+The development toolchain includes:
 * [Github actions](https://github.com/features/actions) for continuous integration.
 * [Pylint](https://pypi.org/project/pylint/) for linting.
 * [Black](https://black.readthedocs.io/) for code formatting.
 * [Coverage](https://coverage.readthedocs.io/) for code coverage.
 * [Pip](https://pypi.org/project/pip/) for dependency management.
 * [Venv](https://docs.python.org/3/library/venv.html) for virtual environments.
+* [Markdown](https://en.wikipedia.org/wiki/Markdown) for documentation.
 
 ## DSKE protocol
 
@@ -42,8 +49,10 @@ See [the DSKE protocol page](/docs/dske-protocol.md) for more details.
 ## Proof of concept
 
 The code is intended to be a proof-of-concept to study the DSKE protocol; it is not
-suitable for  production deployments for numerous reasons (e.g. we have made no effort to prevent
-side-channel attacks).
+suitable for  production deployments for numerous reasons (e.g. 
+state is not persisted and the protocol needs to start from scratch every time a daemon restarts,
+we have made no effort to prevent side-channel attacks,
+etc.)
 
 ## Check-and-test script
 
@@ -90,41 +99,69 @@ for the network node as reported when the topology is started.
 
 Here we provide a summary of the API endpoints and their purpose.
 
-### Hub API endpoints
-
-The hubs provides the following API endpoints:
-
-| Method | URL | Purpose | Authenticated |
-|-|-|-|-|
-| PUT | `/hub/HUB_NAME/dske/oob/v1/registration` | Register a client with a hub. | No |
-| GET | `/hub/HUB_NAME/dske/oob/v1/psrd` | Allows a client to get a block of Pre-Shared Random Data (PSRD) from the hub. | No |
-| POST | `/hub/HUB_NAME/dske/api/v1/key-share` | Allows an initiator client to add a key share to the hub, so that it can later be retrieved by the responder client. | Yes |
-| GET | `/hub/HUB_NAME/dske/api/v1/key-share` | Allows a responder client to add a key share to the hub, that was previously added by the initiator client. | Yes |
-| GET | `/hub/HUB_NAME/mgmt/v1/status` | Get the status of the hub. | No |
-| POST | `/hub/HUB_NAME/mgmt/v1/stop` | Stop the hub. | No |
-
-See the [authentication section](#authentication) below for more details on authentication.
-
-HUB_NAME is the name of the hub.
-If each hub runs in a separate process (and hence has a separate port number) as is currently the
-case, this is not really needed.
-We include it anyway to allow for the possibility of running all hubs (and clients) in a single
-process with a single port.
+### API naming conventions
 
 The API endpoints belong to one of the following groups:
 
 | Endpoint path | Purpose |
 |-|-|
 | `.../dske/...` | DSKE protocol. |
- | `.../dske/oob/...` | The out-of-band (OOB) portion of the DSKE protocol.  |
-| `.../dske/api/...` | The in-band portion of the DSKE protocol. . |
+ | `.../dske/oob/...` | The out-of-band (OOB) portion of the DSKE protocol. |
+| `.../dske/api/...` | The in-band portion of the DSKE protocol. |
 | `../mgmt/...` | Used for management. Since this code is not intended for production deployment, these endpoints are also not authenticated. |
+
+All API endpoints include the node type and the node name at the start of the URL path.
+For example:
+
+| Node type | URL prefix |
+|-|-|
+| PUT | `/hub/HUB_NAME/...` |
+| GET | `/client/CLIENT_NAME/...` |
+
+Currently, this is not really necessary for anything, since each node runs in its own process
+on a different HTTP port.
+But we anticipate that we (or someone else) may run this code as a cloud-based service at some
+point in the future (similar to what we did with
+[QuKayDee](https://qukaydee.com) for QKD).
+In that case, the cloud-based service would expose only a single HTTP port, and some proxy
+(e.g [Nginx](https://nginx.org/)) would use URL-based routing to dispatch each request to the
+correct node process.
 
 All API endpoints are versioned (currently `v1`).
 
+Putting all of this together, an example of a complete URL for one of the API endpoints is:
+`/hub/HUB_NAME/dske/api/v1/key-share`
+
+### Hub API endpoints
+
+The hubs provides the following API endpoints:
+
+| Method | URL | Purpose | Authenticated |
+|-|-|-|-|
+| PUT | `/hub/HUB_NAME /dske/oob/v1 /registration` | Register a client with a hub. | No |
+| GET | `/hub/HUB_NAME /dske/oob/v1 /psrd` | A client gets a block of Pre-Shared Random Data (PSRD) from the hub. | No |
+| POST | `/hub/HUB_NAME /dske/api/v1 /key-share` | An initiator client adds a key share to the hub. The share can later be retrieved by the responder client. | Yes |
+| GET | `/hub/HUB_NAME /dske/api/v1 /key-share` | A responder client retrieves a key share from the hub. The share was previously added by the initiator client. | Yes |
+| GET | `/hub/HUB_NAME /mgmt/v1 /status` | Get the management status of the hub. | No |
+| POST | `/hub/HUB_NAME /mgmt/v1 /stop` | Stop the hub. | No |
+
+### Clients API endpoints
+
+The clients provides the following API endpoints:
+
+| Method | URL | Purpose | Authenticated |
+|-|-|-|-|
+| GET | `/client/CLIENT_NAME /etsi/api/v1 /keys/SLAVE_SAE_ID/enc_keys` | An initiator encryptor gets a key from a client. | No |
+| GET | `/client/CLIENT_NAME /etsi/api/v1 /keys/MASTER_SAE_ID/dec_keys ?key_ID=KEY_ID` | A responder encryptor gets a key with key ID from a client. | No |
+| GET | `/client/CLIENT_NAME /etsi/api/v1 /keys/SLAVE_SAE_ID/status` | An encryptor gets the QKD link status from client. | No |
+| GET | `/hub/HUB_NAME /mgmt/v1/status` | Get the management status of the client. | No |
+| POST | `/hub/HUB_NAME /mgmt/v1/stop` | Stop the club. | No |
+
 ## Authentication
 
-Only the in-band DSKE protocol API endpoints (`.../dske/api/...`) are authenticated.
+Only the in-band DSKE protocol API endpoints (`.../dske/api/...`) are authenticated
+using the authentication mechanism described in the
+[protocol guide](/docs/protocol-guide.md)
 
 The out-of-band DSKE protocol API endpoints (`.../dske/oob/...`) are not authenticated.
 They only exist to simulate actions that would be some secure out-of-band physical distribution
@@ -138,7 +175,7 @@ we only implement a simplified subset of the
 [ETSI QKD 014](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf)
 key delivery interface.
 
-TODO
+TODO Continue from here
 
 ## Pre-Shared Random Data (PSRD) management
 
