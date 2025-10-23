@@ -283,7 +283,11 @@ def get_key_with_key_ids(
     check_output(output, expected_status_code, expected_output_lines)
 
 
-def get_key_pair(master_client: str, slave_client: str) -> None:
+def get_key_pair(
+    master_client: str,
+    slave_client: str,
+    size: int | None = None,
+) -> None:
     """
     Get a key pair from a pair of DSKE clients using the ETSI QKD API.
     """
@@ -294,6 +298,8 @@ def get_key_pair(master_client: str, slave_client: str) -> None:
         slave_client,
         "get-key-pair",
     ]
+    if size is not None:
+        args += ["--size", str(size)]
     output = _run_manager(args)
     check_output(output, 200, [r"Key values match"])
 

@@ -30,6 +30,13 @@ def test_get_key_pair():
     system_test_common.get_key_pair("carol", "cindy")
 
 
+def test_get_key_pair_non_default_size():
+    """
+    Get key pair with non-default size.
+    """
+    system_test_common.get_key_pair("carol", "cindy", size=1024)
+
+
 def test_key_id_not_uuid():
     """
     ETSI QKD Get key with key IDs, using a key ID that is not a UUID (expect error).
