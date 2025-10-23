@@ -1,5 +1,7 @@
 TODO: (Re)start get PSRD task when pool runs low
 
+TODO: Wrong error message when trying to get more key than available in pool
+
 TODO: Add test cases for replenishing pools
 
 TODO: Do we really need the allocated / consumed distinction? Can't we simply return the fragment
