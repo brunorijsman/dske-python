@@ -1,3 +1,5 @@
+TODO: Add ETSI QKD get-status to system test
+
 TODO: (Re)start get PSRD task when pool runs low
 
 TODO: Add test cases for replenishing pools
@@ -10,9 +12,6 @@ TODO: Add pool thresholds to configuration (and document this)
 TODO: Remove fully consumed blocks
 
 TODO: Make dske.yaml the default configuration file, and add a --config option to change it
-
-
-TODO: Add ETSI QKD get-status to system test
 
 TODO: Cleanup Shamir's Secret Sharing (SSS) code (no back-and-forth conversion to RawShare)
 
