@@ -26,9 +26,9 @@ The code technology stack includes:
 * [FastAPI](https://www.python.org/) for server-side HTTP APIs.
 * [HTTPX](https://www.python-httpx.org/) for client-side HTTP APIs.
 * [Uvicorn](https://uvicorn.dev/)as the ASGI (synchronous Server Gateway Interface) web server.
-* [Git](https://git-scm.com/) and [Github](https://github.com/brunorijsman/dske-python) for version control.
 
 The development toolchain includes:
+* [Git](https://git-scm.com/) and [Github](https://github.com/brunorijsman/dske-python) for version control.
 * [Github actions](https://github.com/features/actions) for continuous integration.
 * [Pylint](https://pypi.org/project/pylint/) for linting.
 * [Black](https://black.readthedocs.io/) for code formatting.
@@ -36,15 +36,6 @@ The development toolchain includes:
 * [Pip](https://pypi.org/project/pip/) for dependency management.
 * [Venv](https://docs.python.org/3/library/venv.html) for virtual environments.
 * [Markdown](https://en.wikipedia.org/wiki/Markdown) for documentation.
-
-## DSKE protocol
-
-The Distributed Symmetric Key Establishment (DSKE) implementation in this repository is based on
-IETF draft
-[draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/).
-It has been developed completely independently of the authors of the draft, based only on the public
-information in the draft.
-See [the DSKE protocol page](dske-protocol.md) for more details.
 
 ## Proof of concept
 
@@ -103,28 +94,27 @@ Here we provide a summary of the API endpoints and their purpose.
 
 The API endpoints belong to one of the following groups:
 
-| Endpoint path | Purpose |
+| API endpoint URL | Purpose |
 |-|-|
 | `.../dske/...` | DSKE protocol. |
  | `.../dske/oob/...` | The out-of-band (OOB) portion of the DSKE protocol. |
 | `.../dske/api/...` | The in-band portion of the DSKE protocol. |
-| `../mgmt/...` | Used for management. Since this code is not intended for production deployment, these endpoints are also not authenticated. |
+| `../mgmt/...` | Used to manage the nodes. |
 
 All API endpoints include the node type and the node name at the start of the URL path.
 For example:
 
-| Node type | URL prefix |
+| Node type | API endpoint URL |
 |-|-|
-| PUT | `/hub/HUB_NAME/...` |
-| GET | `/client/CLIENT_NAME/...` |
+| Hub | `/hub/HUB_NAME/...` |
+| Client | `/client/CLIENT_NAME/...` |
 
-Currently, this is not really necessary for anything, since each node runs in its own process
-on a different HTTP port.
-But we anticipate that we (or someone else) may run this code as a cloud-based service at some
-point in the future (similar to what we did with
-[QuKayDee](https://qukaydee.com) for QKD).
-In that case, the cloud-based service would expose only a single HTTP port, and some proxy
-(e.g [Nginx](https://nginx.org/)) would use URL-based routing to dispatch each request to the
+Including the node name in the URL is currently not really necessary since each node runs in its
+own process on a different HTTP port.
+But if this code is run as a cloud-based service (similar to
+[QuKayDee](https://qukaydee.com)
+for QKD) sitting behind a proxy
+(e.g [Nginx](https://nginx.org/)) we can use URL-based routing to dispatch each request to the
 correct node process.
 
 All API endpoints are versioned (currently `v1`).
@@ -164,8 +154,8 @@ using the authentication mechanism described in the
 [protocol guide](protocol-guide.md)
 
 The out-of-band DSKE protocol API endpoints (`.../dske/oob/...`) are not authenticated.
-They only exist to simulate actions that would be some secure out-of-band physical distribution
-mechanism in real life for the purpose of automated testing.
+They only exist for the purpose of automated testing, simulating actions that would be some 
+secure out-of-band physical distribution mechanism in real life.
 
 The management API endpoints (`../mgmt/...`) are also not authenticated because this implementation
 is not intended for production deployment.
@@ -175,18 +165,23 @@ we only implement a simplified subset of the
 [ETSI QKD 014](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf)
 key delivery interface.
 
-TODO Continue from here
-
 ## Pre-Shared Random Data (PSRD) management
 
 Pre-Shared Random Data (PSRD) is a central concept in DSKE.
 This section summarizes how PSRD is implemented in the code.
 
+PSRD management is implemented using the classes `Block`, `Pool`, `Fragment`, and `Allocation`.
+We describe each of these classes below.
+The relationship between these classes are shown in the following figure:
+
+![PSRD Management Classes](figures/psrd-management-classes.png)
+
 ### Class `Block`
 
-The class `Block` represents a block PSRD bytes that the hub sends to the client.
-The hub sends the block to the client using some secure out-of-band mechanism;
-in our code this mechanism is represented by the `.../dske/oob/v1/psrd` REST interface endpoint.
+The class `Block` represents a block of PSRD bytes that the hub sends to the client.
+
+A client requests one block of PSRD from the hub sending a GET request to the
+`/hub/HUB_NAME/dske/oob/v1/psrd` API endpoint.
 
 The `Block` class has the following attributes:
 
@@ -194,7 +189,6 @@ The `Block` class has the following attributes:
 |-|-|-|
 | block_uuid | UUID | Uniquely identifies the block. |
 | size | int | Size of the block in bytes. |
-| owned | bool | True is the block is owned: it is possible to both allocate and consume fragments from this block. False if the block is not owned: it is not possible to locally allocate fragments; it is only possible to consume fragments that have been allocated by the peer node. The concept of ownership is described in more detail below. |
 | data | bytes | The bytes in the block. |
 | allocated | bitarray | A bit for each byte in the block to indicate whether the byte is allocated. |
 | consumed | bitarray | A bit for each byte in the block to indicate whether the byte is consumed. |
@@ -205,18 +199,28 @@ The state of each byte in the block is described by the following Finite State M
 
 When the block is created, each byte is unallocated.
 
-The code can locally allocate bytes from the block.
-A contiguous sequence of bytes allocated from a block is called a fragment.
+A node can have multiple blocks, organized into pools.
+A pool is represented by the `Pool` class.
 
-Bytes that have been allocated can be consumed. The byte value used to encrypt or authenticate
-a key share. The byte in the block is zeroed out.
+A node may need to allocate some bytes from a pool for the purpose of allocating an encryption
+key to encrypt an outgoing message to a signing key to sign an outgoing message.
+Such an allocation of bytes is represented by the `Allocation` class.
 
-It is also possible to consume bytes that have not been _locally_ allocated from a block.
-This happens when the bytes have been _remotely_ allocated by the peer node, and the allocated
-fragment is communicated through the DSKE protocol.
+When allocation is created, one or more blocks are selected to allocate the bytes from.
+A contiguous sequence of bytes within a block that is assigned to an allocation is called
+a fragment and represented by the `Fragment` class.
+An allocation may span multiple blocks and hence consist of multiple fragments.
 
-Under circumstances the code can return an allocated byte to the block without consuming it.
-This is called deallocating the byte. Once a byte has been consumed, it can no longer be deallocated.
+Allocating bytes from a block is a two step process.
+
+First the bytes are _allocated_ which means that they are assigned to an allocation.
+
+Then the allocated bytes are _consumed_ which means that the allocated bytes are taken out of
+the block and erased in the block.
+
+A byte which has been allocated but not yet consumed can be deallocated.
+
+TODO: CONTINUE FROM HERE
 
 ### Class `Fragment`
 
@@ -234,8 +238,6 @@ The `Fragment` class has the following attributes:
 | consumed | bool | True if the bytes in the fragment has been consumed. False if the bytes in the fragment have only been allocated and not yet consumed. |
 
 The relationship between a block and its fragments in shown in the following figure:
-
-![Relation between block and fragments](figures/block-and-fragments.png)
 
 ### The concept of block ownership
 
