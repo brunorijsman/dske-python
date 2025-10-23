@@ -208,7 +208,7 @@ class Manager:
         print(f"Stopping {node.type} {node.name} on port {node.port}")
         url = f"{node.base_url}/mgmt/v1/stop"
         self.http_request(
-            "POST", url, f"Management stop {node.type} {node.name}", quiet_success=True
+            "POST", url, f"stop {node.type} {node.name}", quiet_success=True
         )
 
     def selected_nodes_description(self):
