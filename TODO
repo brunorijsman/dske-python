@@ -75,3 +75,5 @@ TODO: Add site map to Google Search Console
 
 TODO: Consistently use httpx for client side (not requests for synchronous calls)
 
+TODO: Add test case: start hub later than client (registration retry logic in client)
+
