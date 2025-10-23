@@ -1,12 +1,16 @@
 TODO: (Re)start get PSRD task when pool runs low
 
-TODO: Remove fully consumed blocks
+TODO: Add test cases for replenishing pools
+
+TODO: Do we really need the allocated / consumed distinction? Can't we simply return the fragment
+      to the block if an error occurs?
 
 TODO: Add pool thresholds to configuration (and document this)
 
+TODO: Remove fully consumed blocks
+
 TODO: Make dske.yaml the default configuration file, and add a --config option to change it
 
-TODO: Add test cases for replenishing pools
 
 TODO: Add ETSI QKD get-status to system test
 
@@ -74,5 +78,3 @@ TODO: Add site map to Google Search Console
 
 TODO: Consistently use httpx for client side (not requests for synchronous calls)
 
-TODO: Do we really need the allocated / consumed distinction? Can't we simply return the fragment
-      to the block if an error occurs?
