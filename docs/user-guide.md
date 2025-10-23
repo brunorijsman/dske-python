@@ -490,6 +490,53 @@ Status for client celia on port 8106
 }
 </pre>
 
+A useful trick is to use the `tail -n +2` command to skip the first line of output, and to pipe
+the remaining output (which is JSON) through the `jq` command to colorize the JSON output:
+
+<pre>
+$ <b>./manager.py topology.yaml --client carol status | tail -n +2 | jq</b>
+{
+  "name": "carol",
+  "peer_hubs": [
+    {
+      "hub_name": "hank",
+      "registered": true,
+      "local_pool": {
+        "blocks": [
+          {
+            "uuid": "266458ba-b183-42e9-9f5d-1c1113170d07",
+            "size": 2000,
+            "data": "ehqm+BghWSm0+A==...",
+            "allocated": 0,
+            "consumed": 0
+          }
+        ],
+        "owner": "Owner.LOCAL"
+      },
+      ...
+</pre>
+
+Even better, you can use the `pq` command with a query to look for specific fields in the JSON
+output.
+In the following example we display the information about the local pool for peer-hub hank
+on client carol:
+
+<pre>
+$ <b>./manager.py topology.yaml --client carol status | tail -n +2 | jq '(.peer_hubs[] | select(.hub_name == "hank") .local_pool)</b>
+{
+  "blocks": [
+    {
+      "uuid": "266458ba-b183-42e9-9f5d-1c1113170d07",
+      "size": 2000,
+      "data": "ehqm+BghWSm0+A==...",
+      "allocated": 0,
+      "consumed": 0
+    }
+  ],
+  "owner": "Owner.LOCAL"
+}
+</pre>
+
 ## Log files
 
 Each node produces an `.out` log file for debugging purposes.
