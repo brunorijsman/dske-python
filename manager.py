@@ -90,8 +90,8 @@ class Manager:
         etsi_qkd_subparsers = etsi_qkd_parser.add_subparsers(dest="etsi_qkd_command")
         etsi_qkd_subparsers.required = True
         _etsi_status_parser = etsi_qkd_subparsers.add_parser(
-            "status",
-            help="Invoke ETSI QKD Status API",
+            "get-status",
+            help="Invoke ETSI QKD Get status API",
         )
         _etsi_get_key_parser = etsi_qkd_subparsers.add_parser(
             "get-key",
@@ -297,8 +297,8 @@ class Manager:
         master_node = self.find_kme_node_for_sae(self._args.master_sae_id)
         slave_node = self.find_kme_node_for_sae(self._args.slave_sae_id)
         match self._args.etsi_qkd_command:
-            case "status":
-                self.etsi_qkd_status(master_node, slave_node)
+            case "get-status":
+                self.etsi_qkd_get_status(master_node, slave_node)
             case "get-key":
                 self.etsi_qkd_get_key(master_node, slave_node)
             case "get-key-with-key-ids":
@@ -319,7 +319,7 @@ class Manager:
                 return node
         self.fatal_error(f"Could not find KME client node for SAE ID {sae_id}")
 
-    def etsi_qkd_status(self, master_node: Node, slave_node: Node):
+    def etsi_qkd_get_status(self, master_node: Node, slave_node: Node):
         """
         Invoke the ETSI QKD Status API.
         """
@@ -327,7 +327,7 @@ class Manager:
             f"Invoke ETSI QKD Status API for client {master_node.name} on port {master_node.port}"
         )
         url = f"{master_node.base_url}/etsi/api/v1/keys/{slave_node.name}/status"
-        self.http_request("GET", url, "get status")
+        self.http_request("GET", url, "Get status")
 
     def etsi_qkd_get_key(self, master_node: Node, slave_node: Node) -> None | dict:
         """
@@ -337,7 +337,7 @@ class Manager:
             f"Invoke ETSI QKD Get Key API for client {master_node.name} on port {master_node.port}"
         )
         url = f"{master_node.base_url}/etsi/api/v1/keys/{slave_node.name}/enc_keys"
-        response = self.http_request("GET", url, "get key")
+        response = self.http_request("GET", url, "Get key")
         if response is None:
             return None
         return response.json()
@@ -353,7 +353,7 @@ class Manager:
             f"on port {slave_node.port}"
         )
         url = f"{slave_node.base_url}/etsi/api/v1/keys/{master_node.name}/dec_keys?key_ID={key_id}"
-        response = self.http_request("GET", url, "get key with key IDs")
+        response = self.http_request("GET", url, "Get key with key IDs")
         if response is None:
             return None
         return response.json()

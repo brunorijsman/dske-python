@@ -215,6 +215,27 @@ def extract_key_id(output) -> None | str:
     return None
 
 
+def get_status(
+    master_client: str,
+    slave_client: str,
+    expected_status_code: int = 200,
+    expected_output_lines: None | List[str] = None,
+) -> None | str:
+    """
+    Get key from a pair of DSKE clients using the ETSI QKD API.
+    Returns the key ID as a string on success or None on failure.
+    """
+    args = [
+        configuration.DEFAULT_CONFIGURATION_FILE,
+        "etsi-qkd",
+        master_client,
+        slave_client,
+        "get-status",
+    ]
+    output = _run_manager(args)
+    check_output(output, expected_status_code, expected_output_lines)
+
+
 def get_key(
     master_client: str,
     slave_client: str,

@@ -77,13 +77,13 @@ You can also use the `--help` option to see the command line parameters for a sp
 
 <pre>
 $ <b>./manager.py topology.yaml etsi-qkd --help</b>
-usage: manager.py configfile etsi-qkd [-h] master_sae_id slave_sae_id {status,get-key,get-key-with-key-ids,get-key-pair} ...
+usage: manager.py configfile etsi-qkd [-h] master_sae_id slave_sae_id {get-status,get-key,get-key-with-key-ids,get-key-pair} ...
 
 positional arguments:
   master_sae_id         Master SAE ID
   slave_sae_id          Slave SAE ID
   {status,get-key,get-key-with-key-ids,get-key-pair}
-    status              Invoke ETSI QKD Status API
+    get-status          Invoke ETSI QKD Get status API
     get-key             Invoke ETSI QKD Get Key API
     get-key-with-key-ids
                         Invoke ETSI QKD Get Key with Key IDs API
@@ -378,7 +378,7 @@ Key values match
 And, finally, there is a `status` subcommand to invoke the "Status" ETSI QKD 014 API:
 
 <pre>
-$ <b<>./manager.py topology.yaml etsi-qkd carol celia status</b>
+$ <b<>./manager.py topology.yaml etsi-qkd carol celia get-status</b>
 Invoke ETSI QKD Status API for client carol on port 8105
 master_sae_id='carol' slave_sae_id='celia'
 {
