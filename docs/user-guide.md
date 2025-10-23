@@ -306,11 +306,24 @@ This is why the `manager.py` script exists;
 it collects all the necessary information from the topology file and starts all the nodes with
 the correct (long) command-line arguments.
 
-## Get encryption keys
+## ETSI QKD 014 Get key
 
 Use the manager `get-key` sub-command under the `etsi-qkd` command to invoke the ETSI QKD 014
 "Get Key" API to retrieve a key for a pair of SAEs on the master SAE.
-In the following example we as master SAE "carol" for a key which is shared with slave SAE "celia":
+
+The `get-key` sub-command has the following command-line options:
+
+<pre>
+$ <b>./manager.py topology.yaml etsi-qkd carol curtis get-key --help</b>
+usage: manager.py configfile etsi-qkd master_sae_id slave_sae_id get-key [-h] [--size SIZE]
+
+options:
+  -h, --help   show this help message and exit
+  --size SIZE  Key size in bits
+</pre>
+
+
+In the following example we ask master SAE Carol for a key which is shared with slave SAE Celia:
 
 <pre>
  $ <b>./manager.py topology.yaml etsi-qkd carol celia get-key</b>
@@ -332,8 +345,26 @@ version 2.
 Note: At this point, the code assumes that there is exactly one SAE per client, and that the SAE-ID
 of the SAE is the same as the name of the client.
 
+## ETSI QKD 014 Get key with key IDs
+
 Use the manager `get-key-with-key-ids` sub-command under the `etsi-qkd` command to invoke the 
 ETSI QKD 014 "Get Key" API to retrieve a key for a pair of SAEs on the slave SAE.
+
+The `get-key` sub-command has the following command-line options:
+
+<pre>
+$ <b>./manager.py topology.yaml etsi-qkd carol curtis get-key-with-key-ids --help</b>
+usage: manager.py configfile etsi-qkd master_sae_id slave_sae_id get-key-with-key-ids [-h] key_id
+
+positional arguments:
+  key_id      Key ID
+
+options:
+  -h, --help  show this help message and exit
+</pre>
+
+In the following example we ask slave SAE Curtis for the key with key ID 
+f47f23d7-be01-41d3-a5bc-106b2335e652 which was established with master SAE Carol:
 
 <pre>
 $ <b>./manager.py topology.yaml etsi-qkd carol celia get-key-with-key-ids f47f23d7-be01-41d3-a5bc-106b2335e652</b>
@@ -349,8 +380,23 @@ slave_client_name='celia' master_sae_id='carol' f47f23d7-be01-41d3-a5bc-106b2335
 }
 </pre>
 
+## ETSI QKD 014 Get key pair
+
 As a matter of convenience, there is also a `get-key-pair` sub-command to combine both the
-"Get Key" and the "Get Key with Key IDs" calls:
+"Get key" and the "Get key with key IDs" calls.
+
+The `get-key-pair` sub-command has the following command-line options:
+
+<pre>
+$ <b>./manager.py topology.yaml etsi-qkd carol curtis get-key-pair --help</b>
+usage: manager.py configfile etsi-qkd master_sae_id slave_sae_id get-key-pair [-h] [--size SIZE]
+
+options:
+  -h, --help   show this help message and exit
+  --size SIZE  Key size in bits
+</pre>
+
+In the following example, we ask for a key pair between master SAE Carol and slave SAE Celia:
 
 <pre>
 $ <b>./manager.py topology.yaml etsi-qkd carol celia get-key-pair</b>
