@@ -7,17 +7,17 @@ It describes how to use the `manager.py` script to start and stop topologies and
 keys.
 
 For an overview of what Distributed Symmetric Key Establishment (DSKE) is and what problem it solves
-see the [introduction](/docs/what-is-dske-and-what-problem-does-it-solve.md).
+see the [introduction](what-is-dske-and-what-problem-does-it-solve.md).
 
 If you just want hands-on instructions on how to get started running the code and generating keys
 with a minimum of background information see the
-[getting started guide](/docs/getting-started-guide.md).
+[getting started guide](getting-started-guide.md).
 
 For a detailed description of the DSKE protocol, see the
-[protocol guide](/docs/protocol-guide.md).
+[protocol guide](protocol-guide.md).
 
 If you are a software developer and would like more details about the implementation, see the
-[developer guide](/docs/developer-guide.md).
+[developer guide](developer-guide.md).
 
 ## Topology file
 

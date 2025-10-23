@@ -7,7 +7,7 @@ implemented in this repository.
 
 If you are not yet familiar with the concepts of quantum-safe security, Post Quantum Cryptography
 (PQC) or Quantum Key Distribution (QKD), it is helpful to first read the introduction:
-[what is DSKE and what problem does it solve?](/what-is-dske-and-what-problem-does-it-solve.md).
+[what is DSKE and what problem does it solve?](what-is-dske-and-what-problem-does-it-solve.md).
 
 ## High-level overview
 

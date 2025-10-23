@@ -6,16 +6,16 @@ This page is intended for software developers;
 it contains a high-level overview of the implementation.
 
 For an overview of what Distributed Symmetric Key Establishment (DSKE) is and what problem it solves
-see the [introduction](/docs/what-is-dske-and-what-problem-does-it-solve.md).
+see the [introduction](what-is-dske-and-what-problem-does-it-solve.md).
 
 For a detailed description of the DSKE protocol, see the
-[protocol guide](/docs/protocol-guide.md).
+[protocol guide](protocol-guide.md).
 
 If you just want hands-on instructions on how to get started running the code and generating keys
 with a minimum of background information see the
-[getting started guide](/docs/getting-started-guide.md).
+[getting started guide](getting-started-guide.md).
 Or, for more details see the
-[user guide](/docs/user-guide.md).
+[user guide](user-guide.md).
 
 ## Technology stack
 
@@ -44,7 +44,7 @@ IETF draft
 [draft-mwag-dske-02](https://datatracker.ietf.org/doc/draft-mwag-dske/02/).
 It has been developed completely independently of the authors of the draft, based only on the public
 information in the draft.
-See [the DSKE protocol page](/docs/dske-protocol.md) for more details.
+See [the DSKE protocol page](dske-protocol.md) for more details.
 
 ## Proof of concept
 
@@ -161,7 +161,7 @@ The clients provides the following API endpoints:
 
 Only the in-band DSKE protocol API endpoints (`.../dske/api/...`) are authenticated
 using the authentication mechanism described in the
-[protocol guide](/docs/protocol-guide.md)
+[protocol guide](protocol-guide.md)
 
 The out-of-band DSKE protocol API endpoints (`.../dske/oob/...`) are not authenticated.
 They only exist to simulate actions that would be some secure out-of-band physical distribution
