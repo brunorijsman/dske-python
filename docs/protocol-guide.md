@@ -1047,8 +1047,8 @@ been made including:
  * Each KMS (client node) can only have one local SAE (encryptor) and it is assumed that the
    SAE ID is equal to the client node name.
 
- * The `GET` method for the `Get key` interface does not support the query parameters `number` or
-   `size`. Only one key of the default size can be retrieved.
+ * The `GET` method for the `Get key` interface does not support the query parameter `number`.
+   Only one key can be retrieved per API call.
 
  * The `POST` method for the `Get key` interface is not supported.
 
