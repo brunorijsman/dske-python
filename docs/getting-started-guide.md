@@ -8,16 +8,16 @@ We walk you through the steps for installing the code and producing some keys
 using the Distributed Symmetric Key Establishment (DSKE) protocol.
 
 For an overview of what DSKE is and what problem it solves see the
-[introduction](/docs/what-is-dske-and-what-problem-does-it-solve.md).
+[introduction](what-is-dske-and-what-problem-does-it-solve.md).
 
 For a detailed description of the DSKE protocol, see the
-[protocol guide](/docs/protocol-guide.md).
+[protocol guide](protocol-guide.md).
 
 For full reference documentation for the commands used in these steps, see the
-[user guide](/docs/user-guide.md).
+[user guide](user-guide.md).
 
 If you are a software developer and would like more details about the implementation, see the
-[developer guide](/docs/developer-guide.md).
+[developer guide](developer-guide.md).
 
 ## Installation
 
@@ -186,7 +186,7 @@ Key values match
 ## Explore the protocol messages in WireShark
 
 You can explore the protocol messages in WireShark:
-The protocol is explained in the [protocol guide](/docs/protocol-guide.md).
+The protocol is explained in the [protocol guide](protocol-guide.md).
 
 ![Wireshark trace)](figures/wireshark-trace.png)
 
