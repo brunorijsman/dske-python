@@ -77,3 +77,9 @@ TODO: Consistently use httpx for client side (not requests for synchronous calls
 
 TODO: Add test case: start hub later than client (registration retry logic in client)
 
+TODO: Forbid extra query parameters for API calls
+      For example foobar in:
+      curl 'http://127.0.0.1:8105/client/carol/etsi/api/v1/keys/curtis/enc_keys?foobar=256'
+      See https://fastapi.tiangolo.com/tutorial/query-param-models/#forbid-extra-query-parameters
+
+TODO: Fix crash in shamir code when key size 8 is used (don't allow too small keys)

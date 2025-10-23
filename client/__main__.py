@@ -73,11 +73,11 @@ async def get_etsi_status(slave_sae_id: str):
 
 
 @_APP.get(f"/client/{_CLIENT.name}/etsi/api/v1/keys/{{slave_sae_id}}/enc_keys")
-async def get_etsi_get_key(slave_sae_id: str):
+async def get_etsi_get_key(slave_sae_id: str, size: int | None = None):
     """
     ETSI QKD 014 API: Get Key.
     """
-    return await _CLIENT.etsi_get_key(slave_sae_id)
+    return await _CLIENT.etsi_get_key(slave_sae_id, size=size)
 
 
 @_APP.get(f"/client/{_CLIENT.name}/etsi/api/v1/keys/{{master_sae_id}}/dec_keys")

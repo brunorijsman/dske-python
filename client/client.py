@@ -69,7 +69,7 @@ class Client:
             "max_sae_id_count": 0,
         }
 
-    async def etsi_get_key(self, _slave_sae_id: str):
+    async def etsi_get_key(self, _slave_sae_id: str, size: int | None = None):
         """
         ETSI QKD 014 V1.1.1 Get key API.
         """
@@ -78,10 +78,16 @@ class Client:
         # TODO: Store the _slave_sae_id somewhere. It should be used to determine who is allowed
         #       to retrieve the key on the other side by calling Get Key with Key IDs.
         #       Perhaps also store the master_sae_id to keep track of who the initiator/master is.
-        assert self._default_key_size_in_bits % 8 == 0
-        size_in_bytes = self._default_key_size_in_bits // 8
+        if size is None:
+            size = self._default_key_size_in_bits
+        if size % 8 != 0:
+            raise exceptions.KeySizeIsNotMultipleOfEightBitsError(size)
+        if size < self._min_key_size_in_bits or size > self._max_key_size_in_bits:
+            raise exceptions.KeySizeOutOfRangeError(
+                size, self._min_key_size_in_bits, self._max_key_size_in_bits
+            )
+        size_in_bytes = size // 8
         key = UserKey.create_random_key(size_in_bytes)
-        # TODO: Error handling; this the sharing amongst peer hubs could fail.
         await self.scatter_key_amongst_peer_hubs(key)
         return {
             "keys": {

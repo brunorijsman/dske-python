@@ -93,18 +93,22 @@ class Manager:
             "get-status",
             help="Invoke ETSI QKD Get status API",
         )
-        _etsi_get_key_parser = etsi_qkd_subparsers.add_parser(
+        etsi_get_key_parser = etsi_qkd_subparsers.add_parser(
             "get-key",
             help="Invoke ETSI QKD Get Key API",
         )
+        etsi_get_key_parser.add_argument("--size", help="Key size in bits", type=int)
         etsi_get_key_with_id_parser = etsi_qkd_subparsers.add_parser(
             "get-key-with-key-ids",
             help="Invoke ETSI QKD Get Key with Key IDs API",
         )
         etsi_get_key_with_id_parser.add_argument("key_id", help="Key ID")
-        _etsi_get_key_pair_parser = etsi_qkd_subparsers.add_parser(
+        etsi_get_key_pair_parser = etsi_qkd_subparsers.add_parser(
             "get-key-pair",
             help="Invoke ETSI QKD Get Key and Get Key with Key IDs APIs",
+        )
+        etsi_get_key_pair_parser.add_argument(
+            "--size", help="Key size in bits", type=int
         )
         self._args = parser.parse_args()
 
@@ -204,7 +208,7 @@ class Manager:
         print(f"Stopping {node.type} {node.name} on port {node.port}")
         url = f"{node.base_url}/mgmt/v1/stop"
         self.http_request(
-            "POST", url, f"stop {node.type} {node.name}", quiet_success=True
+            "POST", url, f"Management stop {node.type} {node.name}", quiet_success=True
         )
 
     def selected_nodes_description(self):
@@ -288,7 +292,7 @@ class Manager:
         """
         print(f"Status for {node.type} {node.name} on port {node.port}")
         url = f"{node.base_url}/mgmt/v1/status"
-        self.http_request("GET", url, "get status")
+        self.http_request("GET", url, "Management get status")
 
     def etsi_qkd(self):
         """
@@ -300,12 +304,14 @@ class Manager:
             case "get-status":
                 self.etsi_qkd_get_status(master_node, slave_node)
             case "get-key":
-                self.etsi_qkd_get_key(master_node, slave_node)
+                size = self._args.size
+                self.etsi_qkd_get_key(master_node, slave_node, size)
             case "get-key-with-key-ids":
                 key_id = self._args.key_id
                 self.etsi_qkd_get_key_with_key_ids(master_node, slave_node, key_id)
             case "get-key-pair":
-                self.etsi_qkd_get_key_pair(master_node, slave_node)
+                size = self._args.size
+                self.etsi_qkd_get_key_pair(master_node, slave_node, size)
 
     def find_kme_node_for_sae(self, sae_id: str) -> Node:
         """
@@ -327,9 +333,14 @@ class Manager:
             f"Invoke ETSI QKD Status API for client {master_node.name} on port {master_node.port}"
         )
         url = f"{master_node.base_url}/etsi/api/v1/keys/{slave_node.name}/status"
-        self.http_request("GET", url, "Get status")
+        self.http_request("GET", url, "ETSI QKD Get status")
 
-    def etsi_qkd_get_key(self, master_node: Node, slave_node: Node) -> None | dict:
+    def etsi_qkd_get_key(
+        self,
+        master_node: Node,
+        slave_node: Node,
+        size: int | None,
+    ) -> None | dict:
         """
         Invoke the ETSI QKD Get Key API.
         """
@@ -337,10 +348,11 @@ class Manager:
             f"Invoke ETSI QKD Get Key API for client {master_node.name} on port {master_node.port}"
         )
         url = f"{master_node.base_url}/etsi/api/v1/keys/{slave_node.name}/enc_keys"
-        response = self.http_request("GET", url, "Get key")
-        if response is None:
-            return None
-        return response.json()
+        params = {}
+        if size is not None:
+            params["size"] = size
+        response = self.http_request("GET", url, "ETSI QKD Get key", params=params)
+        return response
 
     def etsi_qkd_get_key_with_key_ids(
         self, master_node: Node, slave_node: Node, key_id: str
@@ -352,17 +364,30 @@ class Manager:
             f"Invoke ETSI QKD Get Key with Key IDs API for client {slave_node.name} "
             f"on port {slave_node.port}"
         )
-        url = f"{slave_node.base_url}/etsi/api/v1/keys/{master_node.name}/dec_keys?key_ID={key_id}"
-        response = self.http_request("GET", url, "Get key with key IDs")
+        url = f"{slave_node.base_url}/etsi/api/v1/keys/{master_node.name}/dec_keys"
+        params = {"key_ID": key_id}
+        response = self.http_request(
+            "GET", url, "ETSI QKD Get key with key IDs", params=params
+        )
         if response is None:
             return None
         return response.json()
 
-    def etsi_qkd_get_key_pair(self, master_node: Node, slave_node: Node):
+    def etsi_qkd_get_key_pair(
+        self,
+        master_node: Node,
+        slave_node: Node,
+        size: int | None,
+    ):
         """
         Invoke the ETSI QKD Get Key API on master, followed by Get Key with Key IDs API on slave.
         """
-        master_response_json = self.etsi_qkd_get_key(master_node, slave_node)
+        response = self.etsi_qkd_get_key(master_node, slave_node, size)
+        if response is None:
+            return
+        if response.status_code != 200:
+            return
+        master_response_json = response.json()
         key_id = master_response_json["keys"]["key_ID"]
         slave_response_json = self.etsi_qkd_get_key_with_key_ids(
             master_node, slave_node, key_id
@@ -375,13 +400,18 @@ class Manager:
             print("Key values do not match")
 
     def http_request(
-        self, method: str, url: str, action: str | None, quiet_success=False
+        self,
+        method: str,
+        url: str,
+        action: str | None,
+        params: dict | None = None,
+        quiet_success: bool = False,
     ) -> httpx.Response:
         """
         Make an HTTP request.
         """
         try:
-            response = httpx.request(method, url, timeout=1.0)
+            response = httpx.request(method=method, url=url, params=params, timeout=1.0)
         except httpx.HTTPError as exc:
             if action is not None:
                 print(f"Failed to {action}: {method} {url} raised exception {exc}")

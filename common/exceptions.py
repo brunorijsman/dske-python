@@ -96,6 +96,33 @@ class InvalidKeyIDError(DSKEException):
         )
 
 
+class KeySizeIsNotMultipleOfEightBitsError(DSKEException):
+    """
+    Exception raised when a key size is not a multiple of eight bits.
+    """
+
+    def __init__(self, size: int):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            # This exact message is required by ETSI QKD 014 (we capitalized the S though).
+            message="Size shall be a multiple of 8",
+            details={"size": size},
+        )
+
+
+class KeySizeOutOfRangeError(DSKEException):
+    """
+    Exception raised when a key size is out of the allowed range.
+    """
+
+    def __init__(self, size: int, min_size: int, max_size: int):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Key size is out of range",
+            details={"size": size, "min_size": min_size, "max_size": max_size},
+        )
+
+
 class UnknownKeyIDError(DSKEException):
     """
     Exception raised when an unknown key ID is provided.
