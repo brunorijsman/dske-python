@@ -68,8 +68,9 @@ class PeerHub:
         self._startup_task = None
         self._request_psrd_task = None
         self._registered = False
-        self._local_pool = Pool(Pool.Owner.LOCAL)
-        self._peer_pool = Pool(Pool.Owner.PEER)
+        hub_name = base_url.split("/")[-1]
+        self._local_pool = Pool(hub_name, Pool.Owner.LOCAL)
+        self._peer_pool = Pool(hub_name, Pool.Owner.PEER)
         self._hub_name = None
         self._http_client = HttpClient(self._local_pool, self._peer_pool)
 

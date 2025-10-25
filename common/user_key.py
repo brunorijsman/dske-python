@@ -9,10 +9,8 @@ messages (see class InternalKeys).
 
 import os
 from uuid import UUID, uuid4
-from .shamir import (
-    split_binary_secret_into_shares,
-    # reconstruct_binary_secret_from_shares,
-)
+from .exceptions import ShamirSplitError
+from .shamir import split_binary_secret_into_shares
 from .share import Share
 
 
@@ -68,29 +66,14 @@ class UserKey:
         The shares do *not* yet have an encryption key or a signature key allocated. This is done
         later when each share is associated with a peer node.
         """
-        share_indexes_and_values = split_binary_secret_into_shares(
-            self._value, nr_shares, min_nr_shares
-        )
+        try:
+            share_indexes_and_values = split_binary_secret_into_shares(
+                self._value, nr_shares, min_nr_shares
+            )
+        except ValueError as exc:
+            raise ShamirSplitError(self._key_id, str(exc)) from exc
         shares = []
         for share_index, share_value in share_indexes_and_values:
-            # TODO: Error handling?
             share = Share(self._key_id, share_index, value=share_value)
             shares.append(share)
         return shares
-
-    # TODO: This is currently not used; should it?
-    # @classmethod
-    # def reconstruct_from_shares(
-    #     cls,
-    #     key_id: UUID,
-    #     shares: list[Share],
-    # ) -> "Key":
-    #     """
-    #     Reconstruct a key from a list of key shares.
-    #     """
-    #     share_indexes_and_values = [
-    #         (share.share_index, share.value) for share in shares
-    #     ]
-    #     binary_secret = reconstruct_binary_secret_from_shares(share_indexes_and_values)
-    #     key = Key(key_id, binary_secret)
-    #     return key

@@ -30,7 +30,7 @@ class EncryptionKey:
         """
         Allocate a new EncryptionKey from the given pool.
         """
-        allocation = pool.allocate(key_size)
+        allocation = pool.allocate(key_size, "share-encryption-key")
         return EncryptionKey(allocation)
 
     @classmethod

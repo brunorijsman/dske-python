@@ -85,3 +85,14 @@ TODO: Forbid extra query parameters for API calls
       See https://fastapi.tiangolo.com/tutorial/query-param-models/#forbid-extra-query-parameters
 
 TODO: Fix crash in shamir code when key size 8 is used (don't allow too small keys)
+
+TODO: Time-out shares on hubs and remove them if they have not been retrieved after the time-out
+
+TODO: When I ask for a 20,000 bytes key, it fails (as expected). But the attempted allocation for
+      the encryption key of each share is only 2,500 bytes which seems wrong:
+      5 hubs x 2,500 bytes per share = 12,500 bytes (I expected at least 20,000)
+
+TODO: Have an option to use PSRD data as the key instead of a random number generator.
+      Explain pros and cons of each approach (forward secrecy if PSRD is compromised) in docs.
+
+TODO: nr_required_shares -> required_nr_shares or min_nr_shares

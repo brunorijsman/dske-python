@@ -2,6 +2,7 @@
 Exceptions.
 """
 
+from typing import List
 from uuid import UUID
 from fastapi import status
 
@@ -142,16 +143,23 @@ class CouldNotScatterEnoughSharesError(DSKEException):
     """
 
     def __init__(
-        self, key_id: UUID, nr_successful_shares: int, nr_required_shares: int
+        self,
+        key_id: UUID,
+        nr_successful_shares: int,
+        nr_required_shares: int,
+        causes=List[str],
     ):
+        details = {
+            "key_id": str(key_id),
+            "nr_successful_shares": nr_successful_shares,
+            "nr_required_shares": nr_required_shares,
+        }
+        if causes:
+            details["causes"] = causes
         super().__init__(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             message="Could not scatter enough shares for key.",
-            details={
-                "key_id": str(key_id),
-                "nr_successful_shares": nr_successful_shares,
-                "nr_required_shares": nr_required_shares,
-            },
+            details=details,
         )
 
 
@@ -161,14 +169,71 @@ class CouldNotGatherEnoughSharesError(DSKEException):
     """
 
     def __init__(
-        self, key_id: UUID, nr_successful_shares: int, nr_required_shares: int
+        self,
+        key_id: UUID,
+        nr_successful_shares: int,
+        nr_required_shares: int,
+        causes=List[str],
     ):
+        details = {
+            "key_id": str(key_id),
+            "nr_successful_shares": nr_successful_shares,
+            "nr_required_shares": nr_required_shares,
+        }
+        if causes:
+            details["causes"] = causes
         super().__init__(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             message="Could not gather enough shares for key.",
+            details=details,
+        )
+
+
+class ShamirSplitError(DSKEException):
+    """
+    Exception raised when splitting a secret using Shamir's Secret Sharing fails.
+    """
+
+    def __init__(self, key_id: UUID, reason: str):
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Failed to split secret using Shamir's Secret Sharing.",
+            details={"key_id": str(key_id), "reason": reason},
+        )
+
+
+class ShamirReconstructError(DSKEException):
+    """
+    Exception raised when reconstructing a secret using Shamir's Secret Sharing fails.
+    """
+
+    def __init__(self, key_id: UUID, reason: str):
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Failed to reconstruct secret using Shamir's Secret Sharing.",
+            details={"key_id": str(key_id), "reason": reason},
+        )
+
+
+class OutOfPreSharedRandomDataError(DSKEException):
+    """
+    Out of Pre-Shared Random Data (PSRD). We tried to allocated some pre-shared random data from
+    a pool, but the pool did not contain enough free data to fulfill the allocation request.
+    """
+
+    def __init__(
+        self,
+        pool_descr: str,
+        purpose: str,
+        allocation_size,
+        pool_available_bytes: int,
+    ):
+        super().__init__(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            message=f"Pool {pool_descr} out of Pre-Shared Random Data (PSRD).",
             details={
-                "key_id": str(key_id),
-                "nr_successful_shares": nr_successful_shares,
-                "nr_required_shares": nr_required_shares,
+                "purpose": purpose,
+                "allocation_size": allocation_size,
+                "pool_available_bytes": pool_available_bytes,
             },
         )

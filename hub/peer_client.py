@@ -22,8 +22,8 @@ class PeerClient:
 
     def __init__(self, client_name: str):
         self._client_name = client_name
-        self._local_pool = Pool(Pool.Owner.LOCAL)
-        self._peer_pool = Pool(Pool.Owner.PEER)
+        self._local_pool = Pool(client_name, Pool.Owner.LOCAL)
+        self._peer_pool = Pool(client_name, Pool.Owner.PEER)
         self._shares = {}
 
     @property

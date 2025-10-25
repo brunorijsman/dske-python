@@ -12,6 +12,7 @@ from common.user_key import UserKey
 from .peer_hub import PeerHub
 
 # TODO: Make this configurable
+# TODO: The Shamir code also has a max (is that really needed?)
 _MIN_NR_SHARES = 3  # The minimum number of key shares required to reconstruct the key.
 
 
@@ -20,8 +21,8 @@ class Client:
     A DSKE client, or just client for short.
     """
 
-    _min_key_size_in_bits = 1
-    _max_key_size_in_bits = 100_000  # TODO: Pick a value
+    _min_key_size_in_bits = 32  # Shamir secret sharing needs at least 4 bytes.
+    _max_key_size_in_bits = 16_777_216  # TODO: Pick a value (make it a power of 2)
     _default_key_size_in_bits = 128
     _max_stored_key_count = 1000  # TODO: What is a sensible value?
     _max_keys_per_request = 1  # TODO: Allow more than one
@@ -152,8 +153,11 @@ class Client:
         )
         self.delete_fully_consumed_blocks()
         if nr_shares_successfully_scattered < _MIN_NR_SHARES:
+            causes = [
+                str(result) for result in results if isinstance(result, Exception)
+            ]
             raise exceptions.CouldNotScatterEnoughSharesError(
-                key.key_id, nr_shares_successfully_scattered, _MIN_NR_SHARES
+                key.key_id, nr_shares_successfully_scattered, _MIN_NR_SHARES, causes
             )
 
     async def gather_key_from_peer_hubs(self, key_id: UUID) -> UserKey:
@@ -173,14 +177,19 @@ class Client:
         )
         self.delete_fully_consumed_blocks()
         if nr_shares_successfully_gathered < _MIN_NR_SHARES:
+            causes = [
+                str(result) for result in results if isinstance(result, Exception)
+            ]
             raise exceptions.CouldNotGatherEnoughSharesError(
-                key_id, nr_shares_successfully_gathered, _MIN_NR_SHARES
+                key_id, nr_shares_successfully_gathered, _MIN_NR_SHARES, causes
             )
         shamir_input = [(share.share_index, share.value) for share in shares]
-        # TODO: handle exception raised by reconstruct_binary_secret_from_shares
-        key_value = shamir.reconstruct_binary_secret_from_shares(
-            _MIN_NR_SHARES, shamir_input
-        )
+        try:
+            key_value = shamir.reconstruct_binary_secret_from_shares(
+                _MIN_NR_SHARES, shamir_input
+            )
+        except ValueError as exc:
+            raise exceptions.ShamirReconstructError(key_id, str(exc)) from exc
         key = UserKey(key_id, key_value)
         return key
 

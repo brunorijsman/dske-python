@@ -38,7 +38,7 @@ class SigningKey:
         """
         Allocate a new EncryptionKey from the given pool.
         """
-        allocation = pool.allocate(_SIGNING_KEY_SIZE)
+        allocation = pool.allocate(_SIGNING_KEY_SIZE, "message-signing-key")
         return SigningKey(allocation)
 
     def to_enc_str(self) -> str:

@@ -7,16 +7,11 @@ from uuid import UUID
 from pydantic import PositiveInt
 from .allocation import Allocation
 from .block import Block
+from .logging import LOGGER
+from .exceptions import OutOfPreSharedRandomDataError
 
 
 # TODO: Unit tests for newly added _owner attribute.
-
-
-class OutOfPreSharedRandomDataError(Exception):
-    """
-    Out of Pre-Shared Random Data (PSRD). We tried to allocated some pre-shared random data from
-    a pool, but the pool did not contain enough free data to fulfill the allocation request.
-    """
 
 
 class Pool:
@@ -34,10 +29,15 @@ class Pool:
         LOCAL = 1
         PEER = 2
 
+        def __str__(self):
+            return self.name.lower()
+
+    _name: str
     _blocks: list[Block]
     _owner: Owner
 
-    def __init__(self, owner: Owner):
+    def __init__(self, name: str, owner: Owner):
+        self._name = name
         self._blocks = []
         self._owner = owner
 
@@ -80,13 +80,21 @@ class Pool:
         # TODO: Better exception type
         raise ValueError(f"Block with UUID {block_uuid} not found")
 
-    def allocate(self, size: PositiveInt) -> Allocation:
+    def allocate(self, size: PositiveInt, purpose: str) -> Allocation:
         """
         Allocate an allocation from the pool. An allocation consists of one or more fragments.
         This either returns an Allocation object for the full requested `size` or None if there is
         not enough unallocated data left in the pool.
         """
-        # Collect fragments until we have what we need or until we have exhausted all blocks.
+        available = self.bytes_available
+        if available < size:
+            LOGGER.error(
+                f"PSRD allocation failed: pool={self._name} owner={self._owner} purpose={purpose} "
+                f"size={size} available={available}"
+            )
+            raise OutOfPreSharedRandomDataError(
+                f"{self._name} {self._owner}", purpose, size, available
+            )
         fragments = []
         remaining_size = size
         for block in self._blocks:
@@ -100,11 +108,7 @@ class Pool:
             if remaining_size == 0:
                 # We have allocated the full desired size; don't need to look at any more blocks.
                 break
-        if remaining_size > 0:
-            # We didn't allocate the full desired size, deallocate the fragments we did allocate.
-            for fragment in fragments:
-                fragment.block.deallocate_fragment(fragment)
-            raise OutOfPreSharedRandomDataError()
+        assert remaining_size == 0  # We checked availability before
         return Allocation(fragments)
 
     def mark_allocation_allocated(self, allocation: Allocation):
