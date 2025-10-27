@@ -13,7 +13,7 @@ from .utils import bytes_to_str, str_to_bytes
 HEADER_NAME = "DSKE-Signing-Key"
 LOWER_HEADER_NAME = HEADER_NAME.lower()
 
-_SIGNING_KEY_SIZE = 32  # bytes
+SIGNING_KEY_SIZE = 32  # bytes
 _ENCODING_SEPARATOR = ";"
 
 
@@ -38,7 +38,7 @@ class SigningKey:
         """
         Allocate a new EncryptionKey from the given pool.
         """
-        allocation = pool.allocate(_SIGNING_KEY_SIZE, "message-signing-key")
+        allocation = pool.allocate(SIGNING_KEY_SIZE, "message-signing-key")
         return SigningKey(allocation)
 
     def to_enc_str(self) -> str:

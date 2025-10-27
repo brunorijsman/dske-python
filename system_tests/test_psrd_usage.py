@@ -3,12 +3,12 @@ System test for usage of PSRD.
 """
 
 import pytest
+from common.signing_key import SIGNING_KEY_SIZE
 from . import system_test_common
 
 
 _CLIENTS = ["carol", "celia", "cindy", "connie", "curtis"]
 _HUBS = ["hank", "helen", "hilary", "holly", "hugo"]
-_SIGNING_KEY_SIZE_IN_BYTES = 32
 
 
 @pytest.fixture(autouse=True)
@@ -97,8 +97,8 @@ def test_psrd_usage_one_small_key():
     system_test_common.get_key_pair("carol", "cindy", size=key_size_in_bits)
 
     # Check PSRD consumption on master client Carol
-    sign_size = _SIGNING_KEY_SIZE_IN_BYTES
-    sign_and_encrypt_size = _SIGNING_KEY_SIZE_IN_BYTES + key_size_in_bytes
+    sign_size = SIGNING_KEY_SIZE
+    sign_and_encrypt_size = SIGNING_KEY_SIZE + key_size_in_bytes
     _check_client_psrd_consumption("carol", "*", "local", sign_and_encrypt_size)
     _check_client_psrd_consumption("carol", "*", "peer", sign_size)
 
