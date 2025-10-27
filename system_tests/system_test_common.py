@@ -164,20 +164,22 @@ def status_topology():
     Get status for a topology.
     """
     status = {}
-    status["clients"] = {}
     config = configuration.parse_configuration_file()
     for node in config.nodes:
-        status_node(node)
+        node_type = str(node.type)
+        node_name = node.name
+        status[(node_type, node_name)] = status_node(node_type, node_name)
+    return status
 
 
-def status_node(node):
+def status_node(node_type, node_name):
     """
-    Get status for a client.
+    Get status for a node.
     """
     args = [
         configuration.DEFAULT_CONFIGURATION_FILE,
-        f"--{node.type}",
-        node.name,
+        f"--{node_type}",
+        node_name,
         "status",
     ]
     output = _run_manager(args)
