@@ -52,7 +52,7 @@ class PeerHub:
     _client: "Client"  # type: ignore
     _http_client: HttpClient
     _base_url: str
-    _startup_task: asyncio.Task | None = None
+    _register_task: asyncio.Task | None = None
     _request_psrd_task: asyncio.Task | None = None
     _registered: bool
     _local_pool: Pool
@@ -65,7 +65,7 @@ class PeerHub:
         self._base_url = base_url
         if self._base_url.endswith("/"):
             self._base_url = self._base_url[:-1]
-        self._startup_task = None
+        self._register_task = None
         self._request_psrd_task = None
         self._registered = False
         hub_name = base_url.split("/")[-1]
@@ -99,31 +99,29 @@ class PeerHub:
             "peer_pool": self._peer_pool.to_mgmt(),
         }
 
-    def start(self) -> None:
+    def start_register_task(self) -> None:
         """
-        Create a start task for the peer hub which runs in the background.
+        Create a register task, running in the background, for the peer hub.
         """
-        assert self._startup_task is None
-        self._startup_task = asyncio.create_task(self.start_task())
+        assert self._register_task is None
+        self._register_task = asyncio.create_task(self.register_task())
 
-    async def start_task(self) -> None:
+    async def register_task(self) -> None:
         """
-        Task for starting the peer hub:
-        - Register this client with the hub (periodically retrying if it fails).
-        - Request the initial block of Pre-Shared Random Data (PSRD) from the hub (also periodically
-          retrying if it fails).
+        Task to register this client with the hub (periodically retrying if it fails). Once
+        registered, it starts the request PSRD task.
         """
-        LOGGER.info(f"Begin start task for peer hub at {self._base_url}")
+        LOGGER.info(f"Begin register task for peer hub at {self._base_url}")
         try:
             while not await self.attempt_registration():
                 await asyncio.sleep(_GET_PSRD_RETRY_DELAY)
         except asyncio.CancelledError:
-            self._startup_task = None
-            LOGGER.info(f"Cancel start task for peer hub at {self._base_url}")
+            self._register_task = None
+            LOGGER.info(f"Cancel register task for peer hub at {self._base_url}")
             return
         self.start_request_psrd_task_if_needed()
-        self._startup_task = None
-        LOGGER.info(f"Finish start task for peer hub at {self._base_url}")
+        self._register_task = None
+        LOGGER.info(f"Finish register task for peer hub at {self._base_url}")
 
     async def attempt_registration(self) -> bool:
         """
@@ -236,54 +234,61 @@ class PeerHub:
         """
         Post a key share to the peer hub.
         """
-        url = f"{self._base_url}/dske/api/v1/key-share"
-        encryption_key = EncryptionKey.from_pool(self._local_pool, share.size)
-        request = APIPostShareRequest(
-            client_name=self._client.name,
-            user_key_id=str(share.user_key_id),
-            share_index=share.share_index,
-            encryption_key_allocation=encryption_key.allocation.to_api(),
-            encrypted_share_value=bytes_to_str(encryption_key.encrypt(share.value)),
-        )
-        await self._http_client.post(
-            url=url,
-            api_request_obj=request,
-            api_response_class=None,
-            authentication=True,
-        )
+        try:
+            url = f"{self._base_url}/dske/api/v1/key-share"
+            encryption_key = EncryptionKey.from_pool(self._local_pool, share.size)
+            request = APIPostShareRequest(
+                client_name=self._client.name,
+                user_key_id=str(share.user_key_id),
+                share_index=share.share_index,
+                encryption_key_allocation=encryption_key.allocation.to_api(),
+                encrypted_share_value=bytes_to_str(encryption_key.encrypt(share.value)),
+            )
+            await self._http_client.post(
+                url=url,
+                api_request_obj=request,
+                api_response_class=None,
+                authentication=True,
+            )
+        finally:
+            self.delete_fully_consumed_blocks()
+            self.start_request_psrd_task_if_needed()
 
     async def get_share(self, key_id: UUID) -> Share:
         """
         Get a key share from the peer hub.
         """
-        url = f"{self._base_url}/dske/api/v1/key-share"
-        params = {
-            "client_name": self._client.name,
-            "key_id": str(key_id),
-        }
-        response = await self._http_client.get(
-            url=url,
-            params=params,
-            api_response_class=APIGetShareResponse,
-            authentication=True,
-        )
-        encryption_key_allocation = Allocation.from_api(
-            response.encryption_key_allocation, self._peer_pool
-        )
-        encryption_key = EncryptionKey.from_allocation(encryption_key_allocation)
-        encrypted_share_value = str_to_bytes(response.encrypted_share_value)
-        share_value = encryption_key.decrypt(encrypted_share_value)
-        share = Share(
-            user_key_id=response, share_index=response.share_index, value=share_value
-        )
-        return share
+        try:
+            url = f"{self._base_url}/dske/api/v1/key-share"
+            params = {
+                "client_name": self._client.name,
+                "key_id": str(key_id),
+            }
+            response = await self._http_client.get(
+                url=url,
+                params=params,
+                api_response_class=APIGetShareResponse,
+                authentication=True,
+            )
+            encryption_key_allocation = Allocation.from_api(
+                response.encryption_key_allocation, self._peer_pool
+            )
+            encryption_key = EncryptionKey.from_allocation(encryption_key_allocation)
+            encrypted_share_value = str_to_bytes(response.encrypted_share_value)
+            share_value = encryption_key.decrypt(encrypted_share_value)
+            share = Share(
+                user_key_id=response,
+                share_index=response.share_index,
+                value=share_value,
+            )
+            return share
+        finally:
+            self.delete_fully_consumed_blocks()
+            self.start_request_psrd_task_if_needed()
 
     def delete_fully_consumed_blocks(self) -> None:
         """
-        Delete fully consumed PSRD blocks from the pool.
+        Delete fully consumed PSRD blocks from the pools.
         """
-        # TODO: Call this more often, not just after scattering a key. Other things can exhaust
-        #       blocks too, e.g. decryption keys and signature keys.
-        #       Also call it on the hub side for the peer_clients.
         for pool in (self._local_pool, self._peer_pool):
             pool.delete_fully_consumed_blocks()

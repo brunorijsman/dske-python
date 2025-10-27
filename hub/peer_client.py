@@ -52,7 +52,7 @@ class PeerClient:
 
     def create_random_block(self, pool_owner: Pool.Owner, size: int) -> Block:
         """
-        Allocate a block from the specified pool, and fill it with random data.
+        Create a block filled ith random data and add it to the specified pool.
         """
         block = Block.create_random_block(size)
         match pool_owner:
@@ -67,7 +67,6 @@ class PeerClient:
 
     def add_dske_signing_key_header_to_response(self, response: fastapi.Response):
         """
-        TODO: better name
         Add a DSKE-Signing-Key header to a FastAPI response. This header contains the allocation
         and the key value for the authentication key. The signing cannot be done here because we
         need to know the encoded content of the response.
@@ -92,3 +91,10 @@ class PeerClient:
         if not signature_ok:
             # TODO: Better exception, that causes a 403 forbidden response
             raise ValueError("Invalid signature")
+
+    def delete_fully_consumed_blocks(self) -> None:
+        """
+        Delete fully consumed PSRD blocks from the pools.
+        """
+        for pool in (self._local_pool, self._peer_pool):
+            pool.delete_fully_consumed_blocks()

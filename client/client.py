@@ -122,7 +122,7 @@ class Client:
         Start all peer hubs.
         """
         for peer_hub in self._peer_hubs:
-            peer_hub.start()
+            peer_hub.start_register_task()
 
     async def unregister_from_all_peer_hubs(self) -> None:
         """
@@ -151,7 +151,6 @@ class Client:
             f"Successfully scattered {nr_shares_successfully_scattered} out of {nr_shares} shares "
             f"for key ID {key.key_id}"
         )
-        self.delete_fully_consumed_blocks()
         if nr_shares_successfully_scattered < _MIN_NR_SHARES:
             causes = [
                 str(result) for result in results if isinstance(result, Exception)
@@ -175,7 +174,6 @@ class Client:
             f"out of {nr_shares_attempted_to_gather} attempted "
             f"for key ID {key_id}"
         )
-        self.delete_fully_consumed_blocks()
         if nr_shares_successfully_gathered < _MIN_NR_SHARES:
             causes = [
                 str(result) for result in results if isinstance(result, Exception)
@@ -192,11 +190,3 @@ class Client:
             raise exceptions.ShamirReconstructError(key_id, str(exc)) from exc
         key = UserKey(key_id, key_value)
         return key
-
-    def delete_fully_consumed_blocks(self) -> None:
-        """
-        Delete fully consumed blocks from all peer hubs.
-        """
-        # TODO: Do have this logic on hubs as well? If not, add it.
-        for peer_hub in self._peer_hubs:
-            peer_hub.delete_fully_consumed_blocks()

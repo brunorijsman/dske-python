@@ -139,7 +139,6 @@ async def get_key_share(
     return headers_temp_response
 
 
-# TODO: Add -> return type, here and everywhere
 @_APP.get(f"/hub/{_HUB.name}/mgmt/v1/status")
 async def get_mgmt_status():
     """
