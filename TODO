@@ -101,3 +101,6 @@ TODO: Testcase for invalid signature
       - Bad allocation string
       - Signature is incorrect
       - Make sure bytes taken from pool are returned (to defend against DOS attack)
+
+TODO: Do we need the owner field in class Block? We known the owner by virtue of which pool
+      it is in.
