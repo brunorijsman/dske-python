@@ -237,3 +237,15 @@ class OutOfPreSharedRandomDataError(DSKEException):
                 "pool_available_bytes": pool_available_bytes,
             },
         )
+
+
+class InvalidSignatureError(DSKEException):
+    """
+    Exception raised when a signature is invalid.
+    """
+
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            message="Invalid signature.",
+        )

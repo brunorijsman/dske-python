@@ -6,6 +6,7 @@ import typing
 import fastapi
 from common.allocation import Allocation
 from common.block import Block
+from common.exceptions import InvalidSignatureError
 from common.pool import Pool
 from common.signature import Signature
 from common.signing_key import SigningKey
@@ -89,8 +90,7 @@ class PeerClient:
         computed_signature = signing_key.sign([query, body])
         signature_ok = received_signature.same_as(computed_signature)
         if not signature_ok:
-            # TODO: Better exception, that causes a 403 forbidden response
-            raise ValueError("Invalid signature")
+            raise InvalidSignatureError()
 
     def delete_fully_consumed_blocks(self) -> None:
         """

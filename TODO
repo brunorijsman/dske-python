@@ -92,3 +92,10 @@ TODO: Have an option to use PSRD data as the key instead of a random number gene
       Explain pros and cons of each approach (forward secrecy if PSRD is compromised) in docs.
 
 TODO: nr_required_shares -> required_nr_shares or min_nr_shares
+
+TODO: I noticed that the response to a POST key-share is the string null; that's not right
+
+TODO: Testcase for invalid signature
+      - Bad allocation string
+      - Signature is incorrect
+      - Make sure bytes taken from pool are returned (to defend against DOS attack)

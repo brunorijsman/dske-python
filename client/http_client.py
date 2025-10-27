@@ -6,6 +6,7 @@ import httpx
 import pydantic
 from common import exceptions
 from common.allocation import Allocation
+from common.exceptions import InvalidSignatureError
 from common.logging import LOGGER
 from common.signature import Signature
 from common.signing_key import SigningKey
@@ -50,10 +51,7 @@ class HttpClient:
             computed_signature = signing_key.sign([content])
             signature_ok = received_signature.same_as(computed_signature)
             if not signature_ok:
-                # TODO: Better exception, that causes a 403 forbidden response
-                raise ValueError("Invalid signature")
-            # TODO: I noticed that the response to a POST key-share is the string null; that's not
-            #       right
+                raise InvalidSignatureError()
 
     def __init__(self, local_pool: Pool, peer_pool: Pool):
         super().__init__()
