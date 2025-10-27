@@ -29,6 +29,7 @@
         "ETSI",
         "FIPS",
         "Forti",
+        "fstring",
         "getpid",
         "HMAC",
         "htmlcov",
