@@ -16,7 +16,7 @@ class APIFragment(pydantic.BaseModel):
     """
 
     block_uuid: str
-    start_byte: int
+    start: int
     size: int
 
 
@@ -76,7 +76,7 @@ class Fragment:
             return None
         return Fragment(
             block=block,
-            start_in_block=result.start,
+            start=result.start,
             size=result.size,
             data=result.data,
         )
@@ -104,7 +104,7 @@ class Fragment:
         """
         return APIFragment(
             block_uuid=str(self._block.uuid),
-            start_byte=self._start,
+            start=self._start,
             size=self._size,
         )
 
@@ -121,10 +121,10 @@ class Fragment:
         except ValueError as exc:
             raise InvalidBlockUUIDError(block_uuid=api_fragment.block_uuid) from exc
         block = pool.get_block(block_uuid)
-        data = block.take_data(api_fragment.start_byte, api_fragment.size)
+        data = block.take_data(api_fragment.start, api_fragment.size)
         return Fragment(
             block=block,
-            start_in_block=api_fragment.start_byte,
+            start=api_fragment.start,
             size=api_fragment.size,
             data=data,
         )
@@ -157,4 +157,4 @@ class Fragment:
         start_byte = int(start_byte_str)
         size = int(size_str)
         data = block.take_data(start_byte, size)
-        return Fragment(block=block, start_in_block=start_byte, size=size, data=data)
+        return Fragment(block=block, start=start_byte, size=size, data=data)
