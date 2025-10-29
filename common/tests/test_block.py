@@ -3,9 +3,8 @@ Unit tests for the Block class.
 """
 
 from uuid import uuid4
-
 import pytest
-from common import utils
+from common.utils import bytes_to_str
 from common.block import APIBlock, Block
 from common.exceptions import (
     InvalidBlockUUIDError,
@@ -54,7 +53,7 @@ def test_block_to_mgmt():
     assert management_json == {
         "uuid": str(uuid),
         "size": 20,
-        "data": utils.bytes_to_str(data, truncate=True),
+        "data": bytes_to_str(data, truncate=True),
         "nr_used_bytes": 0,
         "nr_unused_bytes": size,
     }
@@ -239,7 +238,7 @@ def test_from_api_success():
     """
     uuid = uuid4()
     data = _bytes_test_pattern(10)
-    api_block = APIBlock(block_uuid=str(uuid), data=utils.bytes_to_str(data))
+    api_block = APIBlock(block_uuid=str(uuid), data=bytes_to_str(data))
     block = Block.from_api(api_block)
     assert block.uuid == uuid
     assert block.nr_unused_bytes == 10
@@ -250,7 +249,7 @@ def test_from_api_bad_uuid():
     Create a Block from a valid APIBlock.
     """
     data = _bytes_test_pattern(10)
-    api_block = APIBlock(block_uuid="bad-uuid", data=utils.bytes_to_str(data))
+    api_block = APIBlock(block_uuid="bad-uuid", data=bytes_to_str(data))
     with pytest.raises(InvalidBlockUUIDError):
         _block = Block.from_api(api_block)
 
@@ -272,4 +271,4 @@ def test_to_api():
     block = _create_test_block(10)
     api_block = block.to_api()
     assert api_block.block_uuid == str(block.uuid)
-    assert api_block.data == utils.bytes_to_str(_bytes_test_pattern(10))
+    assert api_block.data == bytes_to_str(_bytes_test_pattern(10))

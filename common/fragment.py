@@ -2,8 +2,10 @@
 A Pre-Shared Random Data (PSRD) fragment.
 """
 
+from typing import Union
 from uuid import UUID
 import pydantic
+from common.block import Block
 from common.exceptions import InvalidBlockUUIDError
 from . import utils
 
@@ -23,14 +25,14 @@ class Fragment:
     A PSRD fragment: a contiguous range of bytes within one PSRD block.
     """
 
-    _block: "Block"  # type: ignore
-    _start_in_block: int
+    _block: Block
+    _start: int
     _size: int
     _data: bytes | None  # None means the fragment has been returned to the block
 
     def __init__(self, block, start_in_block, size, data):
         self._block = block
-        self._start_in_block = start_in_block
+        self._start = start_in_block
         self._size = size
         self._data = data
 
@@ -42,11 +44,11 @@ class Fragment:
         return self._block
 
     @property
-    def start_in_block(self):
+    def start(self):
         """
         The starting byte with the block the fragment was taken from.
         """
-        return self._start_in_block
+        return self._start
 
     @property
     def size(self):
@@ -62,13 +64,29 @@ class Fragment:
         """
         return self._data
 
+    @staticmethod
+    def allocate(block: Block, desired_size: int) -> Union[None, "Fragment"]:
+        """
+        Allocate a fragment from a block. If there is some but not sufficient space, a smaller
+        fragment than the size asked for is returned. If there is no space left, None is returned.
+        """
+        result = block.allocate_data(desired_size)
+        if result is None:
+            return None
+        return Fragment(
+            block=block,
+            start_in_block=result.start,
+            size=result.size,
+            data=result.data,
+        )
+
     def to_mgmt(self) -> dict:
         """
         Get the management status.
         """
         return {
             "block_uuid": str(self._block.uuid),
-            "start_in_block": self._start_in_block,
+            "start": self._start,
             "size": self._size,
             "data": utils.bytes_to_str(self._data, truncate=True),
         }
@@ -79,16 +97,18 @@ class Fragment:
         """
         self._data = None
 
-    @property
-    def is_returned_to_block(self) -> bool:
+    def to_api(self) -> APIFragment:
         """
-        Has the fragment been returned to the block?
+        Create an APIFragment from a Fragment.
         """
-        return self._data is None
+        return APIFragment(
+            block_uuid=str(self._block.uuid),
+            start_byte=self._start,
+            size=self._size,
+        )
 
-    @classmethod
+    @staticmethod
     def from_api(
-        cls,
         api_fragment: APIFragment,
         pool: "Pool",  # type: ignore
     ) -> "Fragment":
@@ -108,9 +128,16 @@ class Fragment:
             data=data,
         )
 
-    @classmethod
+    def to_enc_str(self) -> str:
+        """
+        Get a string representation of the fragment that can be used in HTTP headers or URL
+        parameters.
+        The format of the string is: <block_uuid>:<start_byte>:<size>
+        """
+        return f"{self._block.uuid}:{self._start}:{self._size}"
+
+    @staticmethod
     def from_enc_str(
-        cls,
         enc_str: str,
         pool: "Pool",  # type: ignore
     ) -> "Fragment":
@@ -130,21 +157,3 @@ class Fragment:
         size = int(size_str)
         data = block.take_data(start_byte, size)
         return Fragment(block=block, start_in_block=start_byte, size=size, data=data)
-
-    def to_api(self) -> APIFragment:
-        """
-        Create an APIFragment from a Fragment.
-        """
-        return APIFragment(
-            block_uuid=str(self._block.uuid),
-            start_byte=self._start_in_block,
-            size=self._size,
-        )
-
-    def to_enc_str(self) -> str:
-        """
-        Get a string representation of the fragment that can be used in HTTP headers or URL
-        parameters.
-        The format of the string is: <block_uuid>:<start_byte>:<size>
-        """
-        return f"{self._block.uuid}:{self._start_in_block}:{self._size}"

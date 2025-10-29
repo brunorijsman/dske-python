@@ -3,12 +3,12 @@ A Pre-Shared Random Data (PSRD) block.
 """
 
 from uuid import UUID, uuid4
-import os
+from os import urandom
 from typing import Tuple
 import pydantic
 from bitarray import bitarray
-from . import utils
-from .exceptions import (
+from common.utils import bytes_to_str, str_to_bytes
+from common.exceptions import (
     InvalidBlockUUIDError,
     InvalidPSRDDataError,
     InvalidPSRDIndex,
@@ -69,7 +69,7 @@ class Block:
         return {
             "uuid": str(self._block_uuid),
             "size": self._size,
-            "data": utils.bytes_to_str(self._data, truncate=True),
+            "data": bytes_to_str(self._data, truncate=True),
             "nr_used_bytes": self.nr_used_bytes,
             "nr_unused_bytes": self.nr_unused_bytes,
         }
@@ -81,7 +81,7 @@ class Block:
         """
         assert size > 0
         uuid = uuid4()
-        data = os.urandom(size)
+        data = urandom(size)
         return Block(uuid, data)
 
     def allocate_data(
@@ -156,7 +156,7 @@ class Block:
         except ValueError as exc:
             raise InvalidBlockUUIDError(api_block.block_uuid) from exc
         try:
-            data = utils.str_to_bytes(api_block.data)
+            data = str_to_bytes(api_block.data)
         except Exception as exc:
             raise InvalidPSRDDataError from exc
         return Block(block_uuid, data)
@@ -167,5 +167,5 @@ class Block:
         """
         return APIBlock(
             block_uuid=str(self._block_uuid),
-            data=utils.bytes_to_str(self._data),
+            data=bytes_to_str(self._data),
         )
