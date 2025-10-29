@@ -74,11 +74,12 @@ class Fragment:
         result = block.allocate_data(desired_size)
         if result is None:
             return None
+        (start, size, data) = result
         return Fragment(
             block=block,
-            start=result.start,
-            size=result.size,
-            data=result.data,
+            start=start,
+            size=size,
+            data=data,
         )
 
     def to_mgmt(self) -> dict:

@@ -29,3 +29,48 @@ def test_fragment_init():
         size=10,
         data=bytes.fromhex("00010203040506070809"),
     )
+
+
+def test_fragment_properties():
+    """
+    Test Fragment properties.
+    """
+    pass
+
+
+def test_fragment_allocate_full():
+    """
+    Test Fragment allocation: requested bytes are fully available.
+    (This also covers all the @property methods.)
+    """
+    block = _create_test_block(100)
+    fragment = Fragment.allocate(block, 10)
+    assert fragment.block == block
+    assert fragment.start == 0
+    assert fragment.size == 10
+    assert fragment.data == bytes.fromhex("00010203040506070809")
+
+
+def test_fragment_allocate_partial():
+    """
+    Test Fragment allocation: requested bytes are partially available.
+    """
+    block = _create_test_block(5)
+    fragment = Fragment.allocate(block, 10)
+    assert fragment.block == block
+    assert fragment.start == 0
+    assert fragment.size == 5
+    assert fragment.data == bytes.fromhex("0001020304")
+
+
+def test_fragment_allocate_none():
+    """
+    Test Fragment allocation: requested bytes are not available.
+    """
+    block = _create_test_block(5)
+    fragment = Fragment.allocate(block, 5)
+    assert fragment.block == block
+    assert fragment.start == 0
+    assert fragment.size == 5
+    assert fragment.data == bytes.fromhex("0001020304")
+    assert Fragment.allocate(block, 5) is None
