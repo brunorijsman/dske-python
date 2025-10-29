@@ -7,6 +7,14 @@ from common.signing_key import SIGNING_KEY_SIZE
 from . import system_test_common
 
 
+# The test cases here assume the following parameters defined in client/peer_hub.py. If these
+# values are changed there, the test cases here must be updated accordingly.
+#
+# _START_REQUEST_PSRD_THRESHOLD = 500
+# _STOP_REQUEST_PSRD_THRESHOLD = 2000
+# _GET_PSRD_BLOCK_SIZE = 2000
+
+
 _CLIENTS = ["carol", "celia", "cindy", "connie", "curtis"]
 _HUBS = ["hank", "helen", "hilary", "holly", "hugo"]
 
@@ -85,7 +93,7 @@ def _check_hub_psrd_consumption(
 
 def test_psrd_usage_one_small_key():
     """
-    Test PSRD usage when establishing one small key.
+    Test PSRD usage when establishing one small key (small enough to fit in one block).
     """
     # Check no PSRD consumed at start (out-of-band messages are not signed nor encrypted)
     _check_client_psrd_consumption("*", "*", "*", 0)
@@ -99,6 +107,44 @@ def test_psrd_usage_one_small_key():
     # Check PSRD consumption on master client Carol
     sign_size = SIGNING_KEY_SIZE
     sign_and_encrypt_size = SIGNING_KEY_SIZE + key_size_in_bytes
+    _check_client_psrd_consumption("carol", "*", "local", sign_and_encrypt_size)
+    _check_client_psrd_consumption("carol", "*", "peer", sign_size)
+
+    # Check PSRD consumption on slave client Cindy
+    _check_client_psrd_consumption("cindy", "*", "local", sign_size)
+    _check_client_psrd_consumption("cindy", "*", "peer", sign_and_encrypt_size)
+
+    # Check PSRD consumption on each hub
+    for client in ["celia", "connie", "curtis"]:
+        _check_hub_psrd_consumption("*", client, "*", 0)
+    _check_hub_psrd_consumption("*", "carol", "local", sign_size)
+    _check_hub_psrd_consumption("*", "carol", "peer", sign_and_encrypt_size)
+    _check_hub_psrd_consumption("*", "cindy", "local", sign_and_encrypt_size)
+    _check_hub_psrd_consumption("*", "cindy", "peer", sign_size)
+
+
+def test_psrd_usage_two_small_keys():
+    """
+    Test PSRD usage when establishing two small keys (small enough for both keys to fit in one
+    block).
+    """
+    # Check no PSRD consumed at start (out-of-band messages are not signed nor encrypted)
+    _check_client_psrd_consumption("*", "*", "*", 0)
+    _check_hub_psrd_consumption("*", "*", "*", 0)
+
+    # Get two small key (consume only PSRD from first block)
+    key_1_size_in_bytes = 10
+    key_1_size_in_bits = key_1_size_in_bytes * 8
+    system_test_common.get_key_pair("carol", "cindy", size=key_1_size_in_bits)
+    key_2_size_in_bytes = 15
+    key_2_size_in_bits = key_2_size_in_bytes * 8
+    system_test_common.get_key_pair("carol", "cindy", size=key_2_size_in_bits)
+
+    # Check PSRD consumption on master client Carol
+    sign_size = 2 * SIGNING_KEY_SIZE
+    sign_and_encrypt_size = (
+        2 * SIGNING_KEY_SIZE + key_1_size_in_bytes + key_2_size_in_bytes
+    )
     _check_client_psrd_consumption("carol", "*", "local", sign_and_encrypt_size)
     _check_client_psrd_consumption("carol", "*", "peer", sign_size)
 

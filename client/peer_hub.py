@@ -21,6 +21,9 @@ from .http_client import HttpClient
 
 # TODO: Make the following configurable.
 
+# In real life, the thresholds and the block size defined below would be much larger, perhaps
+# gigabytes. For testing purposes, we use much smaller values.
+
 _START_REQUEST_PSRD_THRESHOLD = 500
 """
 Start requesting more PSRD blocks from the hub when the amount of PSRD in the pool falls below this
