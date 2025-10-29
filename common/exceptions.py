@@ -249,3 +249,46 @@ class InvalidSignatureError(DSKEException):
             status_code=status.HTTP_403_FORBIDDEN,
             message="Invalid signature.",
         )
+
+
+class InvalidBlockUUIDError(DSKEException):
+    """
+    Exception raised when a PSRD block UUID is invalid.
+    """
+
+    def __init__(self, block_uuid: str | UUID):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Invalid PSRD block UUID.",
+            details={"block_uuid": str(block_uuid)},
+        )
+
+
+class InvalidPSRDIndex(DSKEException):
+    """
+    Exception raised when the byte index into PSRD data is invalid.
+    """
+
+    def __init__(self, block_uuid: UUID, index: str | int):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Invalid byte index into PSRD block.",
+            details={"block_uuid": str(block_uuid), "index": index},
+        )
+
+
+class PSRDDataAlreadyUsedError(DSKEException):
+    """
+    Exception raised when an attempt is made to use PSRD data more than once.
+    """
+
+    def __init__(self, block_uuid: UUID, start: int, size: int):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Attempt to use PSRD data more than once.",
+            details={
+                "block_uuid": str(block_uuid),
+                "start": start,
+                "size": size,
+            },
+        )

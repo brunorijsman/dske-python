@@ -16,7 +16,6 @@ class EncryptionKey:
         Should only be called from class methods from_xxx.
         """
         self._allocation = allocation
-        self._allocation.consume()
 
     @property
     def allocation(self) -> Allocation:

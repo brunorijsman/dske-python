@@ -4,11 +4,11 @@ A Pre-Shared Random Data (PSRD) block.
 
 from uuid import UUID, uuid4
 import os
+from typing import Tuple
 import pydantic
 from bitarray import bitarray
-from pydantic import PositiveInt
 from . import utils
-from .fragment import Fragment
+from .exceptions import PSRDDataAlreadyUsedError, InvalidPSRDIndex
 
 
 class APIBlock(pydantic.BaseModel):
@@ -28,15 +28,13 @@ class Block:
     _block_uuid: UUID
     _size: int  # In bytes
     _data: bytes
-    _allocated: bitarray
-    _consumed: bitarray
+    _used: bitarray
 
     def __init__(self, block_uuid: UUID, data: bytes):
         self._block_uuid = block_uuid
         self._size = len(data)
         self._data = data
-        self._allocated = bitarray(self._size)
-        self._consumed = bitarray(self._size)
+        self._used = bitarray(self._size)
 
     @property
     def uuid(self):
@@ -46,11 +44,18 @@ class Block:
         return self._block_uuid
 
     @property
-    def bytes_available_for_allocation(self):
+    def nr_used_bytes(self):
         """
-        Return the number of bytes available for allocation in the block.
+        Return the number of used bytes.
         """
-        return self._size - self._allocated.count()
+        return self._used.count()
+
+    @property
+    def nr_unused_bytes(self):
+        """
+        Return the number of unused bytes.
+        """
+        return self._size - self.nr_used_bytes
 
     def to_mgmt(self):
         """
@@ -60,79 +65,79 @@ class Block:
             "uuid": str(self._block_uuid),
             "size": self._size,
             "data": utils.bytes_to_str(self._data, truncate=True),
-            "allocated": self._allocated.count(),
-            "consumed": self._consumed.count(),
+            "nr_used_bytes": self.nr_used_bytes,
+            "nr_unused_bytes": self.nr_unused_bytes,
         }
 
     @classmethod
-    def create_random_block(cls, size: PositiveInt):
+    def new_with_random_data(cls, size: int) -> "Block":
         """
         Create a block, containing `size` random bytes.
         """
+        assert size > 0
         uuid = uuid4()
         data = os.urandom(size)
         return Block(uuid, data)
 
-    def allocate_fragment(self, desired_size: PositiveInt) -> Fragment | None:
+    def allocate_data(
+        self, desired_size: int
+    ) -> None | Tuple[int, int, int]:  # (start, size, data)
         """
-        Allocate a fragment from the block. We try to allocate `desired_size` bytes from the
-        block, but we accept a smaller fragment if there is not enough data left in the block. We a
-        fragment for the first unallocated set of bytes in the block (i.e. we don't try to search
-        further for a larger gap).
+        Allocate data from the block. We try to take `desired_size` bytes from the
+        block, but we accept a smaller number of bytes if there is not enough data left in the
+        block. We use the first gap of unused bytes in the block (i.e. we don't try look for best
+        fit or anything like that). If there is no unused data left in the block, we return None.
         """
         try:
-            found_start = self._allocated.index(False)
+            start = self._used.index(False)
         except ValueError:
             return None
         try:
-            found_end = self._allocated.index(True, found_start)
+            end = self._used.index(True, start)
         except ValueError:
-            found_end = self._size
-        found_size = found_end - found_start
-        if found_size > desired_size:
-            found_end = found_start + desired_size
-            found_size = desired_size
-        self._allocated[found_start:found_end] = True
-        fragment = Fragment(self, found_start, found_size)
-        return fragment
-
-    def deallocate_fragment(self, fragment: Fragment):
-        """
-        Deallocate a fragment from the block.
-        """
-        end_byte = fragment.start_byte + fragment.size
-        self._allocated[fragment.start_byte : end_byte] = False
-
-    def mark_fragment_allocated(self, fragment: Fragment):
-        """
-        Mark the bits in the block corresponding to the fragment as allocated.
-        """
-        assert fragment.start_byte is not None
-        assert fragment.size is not None
-        start = fragment.start_byte
-        end = start + fragment.size
-        assert not self._allocated[start:end].any()
-        self._allocated[start:end] = True
-
-    def consume_fragment(self, fragment: Fragment):
-        """
-        Consume a fragment from the block.
-        """
-        start = fragment.start_byte
-        end = start + fragment.size
-        assert self._allocated[start:end].all()
-        assert not self._consumed[start:end].any()
-        self._consumed[start:end] = True
-        consumed_data = self._data[start:end]
+            end = self._size
+        size = end - start
+        if size > desired_size:
+            end = start + desired_size
+            size = desired_size
+        data = self._data[start:end]
+        self._used[start:end] = True
         # Zero out allocated bytes in block
-        self._data = self._data[:start] + b"\x00" * fragment.size + self._data[end:]
-        return consumed_data
+        self._data = self._data[:start] + b"\x00" * size + self._data[end:]
+        return (start, size, data)
 
-    def is_fully_consumed(self):
+    def take_data(self, start: int, size: int) -> bytes:
         """
-        Check if all bytes in the block have been consumed.
+        Take data from the block at the specified start byte and size.
         """
-        return self._consumed.all()
+        end = start + size
+        if start < 0 or end > self._size:
+            raise InvalidPSRDIndex(self._block_uuid, start)
+        if self._used[start:end].any():
+            raise PSRDDataAlreadyUsedError(self._block_uuid, start, size)
+        self._used[start:end] = True
+        data = self._data[start:end]
+        # Zero out allocated bytes in block
+        self._data = self._data[:start] + b"\x00" * size + self._data[end:]
+        return data
+
+    def return_data(self, start: int, data: bytes):
+        """
+        Return previously taken data to the block.
+        """
+        size = len(data)
+        assert size > 0
+        assert size <= self._size
+        end = start + size
+        assert self._used[start:end].all()
+        self._used[start:end] = False
+        self._data = self._data[:start] + data + self._data[end:]
+
+    def is_fully_used(self):
+        """
+        Check if all bytes in the block have been used.
+        """
+        return self._used.all()
 
     @classmethod
     def from_api(cls, api_block: APIBlock) -> "Block":

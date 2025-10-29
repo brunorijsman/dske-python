@@ -239,7 +239,7 @@ class PeerHub:
                 authentication=True,
             )
         finally:
-            self.delete_fully_consumed_blocks()
+            self.delete_fully_used_blocks()
             self.start_request_psrd_task_if_needed()
 
     async def get_share(self, key_id: UUID) -> Share:
@@ -271,12 +271,12 @@ class PeerHub:
             )
             return share
         finally:
-            self.delete_fully_consumed_blocks()
+            self.delete_fully_used_blocks()
             self.start_request_psrd_task_if_needed()
 
-    def delete_fully_consumed_blocks(self) -> None:
+    def delete_fully_used_blocks(self) -> None:
         """
-        Delete fully consumed PSRD blocks from the pools.
+        Delete fully used PSRD blocks from the pools.
         """
         for pool in (self._local_pool, self._peer_pool):
-            pool.delete_fully_consumed_blocks()
+            pool.delete_fully_used_blocks()

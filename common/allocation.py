@@ -3,7 +3,6 @@ A PSRD allocation.
 """
 
 import pydantic
-from . import utils
 from .fragment import APIFragment, Fragment
 
 
@@ -24,22 +23,24 @@ class Allocation:
 
     def __init__(self, fragments: list[Fragment]):
         self._fragments = fragments
-        self._value = None
-        self._consumed = False
 
     @property
-    def fragments(self) -> list[Fragment]:
+    def fragments(self) -> list[Fragment] | None:
         """
         Get the fragments.
         """
         return self._fragments
 
     @property
-    def value(self) -> None | bytes:
+    def data(self) -> bytes:
         """
-        Get the value.
+        Get the data.
         """
-        return self._value
+        data = b""
+        for fragment in self._fragments:
+            assert not fragment.is_returned_to_block
+            data += fragment.data
+        return data
 
     def to_mgmt(self) -> dict:
         """
@@ -47,42 +48,14 @@ class Allocation:
         """
         return {
             "fragments": [fragment.to_mgmt() for fragment in self._fragments],
-            "value": utils.bytes_to_str(self._value, truncate=True),
-            "consumed": self._consumed,
         }
 
-    def mark_allocated(self) -> None:
+    def return_to_pool(self) -> None:
         """
-        Mark the allocation as allocated.
+        Return the allocation to the pool.
         """
         for fragment in self._fragments:
-            fragment.mark_allocated()
-
-    def consume(self) -> bytes:
-        """
-        Consume the PSRD allocation. This requires that the allocation was previously allocated.
-        Since the allocation was successful, consuming the data cannot fail. Once the data has
-        consumed, it cannot be un-consumed.
-        """
-        assert not self._consumed
-        assert self._value is None
-        self._value = b""
-        for fragment in self._fragments:
-            self._value += fragment.consume()
-        self._consumed = True
-        return self._value
-
-    def deallocate(self) -> None:
-        """
-        Deallocate the allocation, i.e. return the allocated bytes back to the pool. This is needed
-        when we try to allocate multiple allocations. If a latter allocation fails, the previous
-        allocations must be deallocated. It is not allowed to deallocate an allocation after it has
-        been consumed.
-        """
-        assert not self._consumed
-        assert self._value is None
-        for fragment in self._fragments:
-            fragment.block.deallocate_fragment(fragment)
+            fragment.return_to_block()
         self._fragments = []
 
     @classmethod
@@ -94,12 +67,16 @@ class Allocation:
         """
         Create an Allocation from an APIAllocation.
         """
-        return Allocation(
-            fragments=[
-                Fragment.from_api(api_fragment, pool)
-                for api_fragment in api_allocation.fragments
-            ]
-        )
+        try:
+            fragments = []
+            for api_fragment in api_allocation.fragments:
+                fragment = Fragment.from_api(api_fragment, pool)
+                fragments.append(fragment)
+        except Exception as exc:
+            for fragment in fragments:
+                fragment.return_to_block()
+            raise exc
+        return Allocation(fragments=fragments)
 
     @classmethod
     def from_enc_str(
@@ -111,11 +88,16 @@ class Allocation:
         Create an Allocation from an encoded string as used in an HTTP header or URL parameter.
         The format of the string is a comma-separated list of fragment encoded strings.
         """
-        fragments = [
-            Fragment.from_enc_str(fragment_str, pool)
-            for fragment_str in enc_str.split(",")
-        ]
-        return Allocation(fragments)
+        try:
+            fragments = []
+            for fragment_str in enc_str.split(","):
+                fragment = Fragment.from_enc_str(fragment_str, pool)
+                fragments.append(fragment)
+        except Exception as exc:
+            for fragment in fragments:
+                fragment.return_to_block()
+            raise exc
+        return Allocation(fragments=fragments)
 
     def to_api(self) -> APIAllocation:
         """

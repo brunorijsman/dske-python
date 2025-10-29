@@ -31,7 +31,6 @@ class SigningKey:
         Create a SigningKey from an Allocation that was previously allocated from a Pool.
         """
         self._allocation = allocation
-        self._allocation.consume()
 
     @classmethod
     def from_pool(cls, pool: Pool):
