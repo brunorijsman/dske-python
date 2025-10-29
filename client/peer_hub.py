@@ -24,19 +24,19 @@ from .http_client import HttpClient
 # In real life, the thresholds and the block size defined below would be much larger, perhaps
 # gigabytes. For testing purposes, we use much smaller values.
 
-_START_REQUEST_PSRD_THRESHOLD = 500
+START_REQUEST_PSRD_THRESHOLD = 500
 """
 Start requesting more PSRD blocks from the hub when the amount of PSRD in the pool falls below this
 threshold.
 """
 
-_STOP_REQUEST_PSRD_THRESHOLD = 2000
+STOP_REQUEST_PSRD_THRESHOLD = 2000
 """
 Stop requesting more PSRD blocks from the hub when the amount of PSRD in the pool rises above or
 equal to this threshold.
 """
 
-_GET_PSRD_BLOCK_SIZE = 2000
+GET_PSRD_BLOCK_SIZE = 2000
 """
 When requesting more PSRD blocks from the hub, request blocks of this size.
 """
@@ -55,25 +55,26 @@ class PeerHub:
     _client: "Client"  # type: ignore
     _http_client: HttpClient
     _base_url: str
-    _register_task: asyncio.Task | None = None
-    _request_psrd_task: asyncio.Task | None = None
     _registered: bool
     _local_pool: Pool
     _peer_pool: Pool
-    # The following attributes are set after registration
-    _hub_name: None | str
+    _register_task: asyncio.Task | None = None
+    _local_pool_request_psrd_task: asyncio.Task | None = None
+    _peer_pool_request_psrd_task: asyncio.Task | None = None
+    _hub_name: None | str  # Set after registration
 
     def __init__(self, client, base_url):
         self._client = client
         self._base_url = base_url
         if self._base_url.endswith("/"):
             self._base_url = self._base_url[:-1]
-        self._register_task = None
-        self._request_psrd_task = None
         self._registered = False
         hub_name = base_url.split("/")[-1]
         self._local_pool = Pool(hub_name, Pool.Owner.LOCAL)
         self._peer_pool = Pool(hub_name, Pool.Owner.PEER)
+        self._register_task = None
+        self._local_pool_request_psrd_task = None
+        self._peer_pool_request_psrd_task = None
         self._hub_name = None
         self._http_client = HttpClient(self._local_pool, self._peer_pool)
 
@@ -153,74 +154,56 @@ class PeerHub:
 
     def start_request_psrd_task_if_needed(self) -> None:
         """
-        Start the request PSRD task if needed.
+        Start request PSRD task(s) if needed.
         """
-        if self._request_psrd_task is None:
-            if self.at_least_one_pool_below_start_threshold():
-                self._request_psrd_task = asyncio.create_task(self.request_psrd_task())
+        if self._local_pool_request_psrd_task is None:
+            if self._local_pool.bytes_available < START_REQUEST_PSRD_THRESHOLD:
+                self._local_pool_request_psrd_task = asyncio.create_task(
+                    self.request_psrd_task(self._local_pool)
+                )
+        if self._peer_pool_request_psrd_task is None:
+            if self._peer_pool.bytes_available < START_REQUEST_PSRD_THRESHOLD:
+                self._peer_pool_request_psrd_task = asyncio.create_task(
+                    self.request_psrd_task(self._peer_pool)
+                )
 
-    def at_least_one_pool_below_start_threshold(self) -> bool:
+    async def request_psrd_task(self, pool: Pool) -> None:
         """
-        Check if the number of bytes available at least one of the pools is below the threshold
-        for starting to get more PSRD from the hub.
+        Task for requesting Pre-Shared Random Data (PSRD) from the peer hub for a specific pool.
         """
-        return (
-            self._local_pool.bytes_available < _START_REQUEST_PSRD_THRESHOLD
-            or self._peer_pool.bytes_available < _START_REQUEST_PSRD_THRESHOLD
-        )
-
-    def all_pools_above_stop_threshold(self) -> bool:
-        """
-        Check if the number of bytes available in all of the pools is above the threshold for
-        stopping to get more PSRD from the hub.
-        """
-        return (
-            self._local_pool.bytes_available >= _STOP_REQUEST_PSRD_THRESHOLD
-            and self._peer_pool.bytes_available >= _STOP_REQUEST_PSRD_THRESHOLD
-        )
-
-    async def request_psrd_task(self) -> None:
-        """
-        Task for requesting Pre-Shared Random Data (PSRD) from the peer hub. This tasks runs as long
-        as the local pool or the peer pool need more PSRD.
-        """
-        LOGGER.info(f"Begin request PSRD task for peer hub {self._hub_name}")
+        task_name = f"request PSRD task for peer hub {self._hub_name} and pool owner {pool.owner}"
+        LOGGER.info(f"Begin {task_name}")
         try:
-            while not self.all_pools_above_stop_threshold():
-                need_delay = False
-                if self._local_pool.bytes_available < _STOP_REQUEST_PSRD_THRESHOLD:
-                    if not await self.attempt_request_psrd(Pool.Owner.LOCAL):
-                        need_delay = True
-                if self._peer_pool.bytes_available < _STOP_REQUEST_PSRD_THRESHOLD:
-                    if not await self.attempt_request_psrd(Pool.Owner.PEER):
-                        need_delay = True
-                if need_delay:
+            while pool.bytes_available < STOP_REQUEST_PSRD_THRESHOLD:
+                if not await self.attempt_request_psrd(pool):
                     await asyncio.sleep(_GET_PSRD_RETRY_DELAY)
         except asyncio.CancelledError:
-            self._request_psrd_task = None
-            LOGGER.info(f"Cancel request PSRD task for peer hub {self._hub_name}")
-            return
-        self._request_psrd_task = None
-        LOGGER.info(f"Finish request PSRD task for peer hub {self._hub_name}")
+            LOGGER.info(f"Cancel {task_name}")
+        else:
+            LOGGER.info(f"Finish {task_name}")
+        finally:
+            match pool.owner:
+                case Pool.Owner.LOCAL:
+                    self._local_pool_request_psrd_task = None
+                case Pool.Owner.PEER:
+                    self._peer_pool_request_psrd_task = None
 
-    async def attempt_request_psrd(self, owner: Pool.Owner) -> bool:
+    async def attempt_request_psrd(self, pool: Pool) -> bool:
         """
         Attempt to request a block of Pre-Shared Random Data (PSRD) from the peer hub. Returns true
         if successful.
         """
         assert self._registered
         url = f"{self._base_url}/dske/oob/v1/psrd"
-        match owner:
+        match pool.owner:
             case Pool.Owner.LOCAL:
-                pool = self._local_pool
                 pool_owner_str = "client"
             case Pool.Owner.PEER:
-                pool = self._peer_pool
                 pool_owner_str = "hub"
         params = {
             "client_name": self._client.name,
             "pool_owner": pool_owner_str,
-            "size": _GET_PSRD_BLOCK_SIZE,
+            "size": GET_PSRD_BLOCK_SIZE,
         }
         try:
             api_block = await self._http_client.get(url, params, APIBlock)
