@@ -6,8 +6,13 @@ from uuid import uuid4
 
 import pytest
 from common import utils
-from common.block import Block
-from common.exceptions import InvalidPSRDIndex, PSRDDataAlreadyUsedError
+from common.block import APIBlock, Block
+from common.exceptions import (
+    InvalidBlockUUIDError,
+    InvalidPSRDDataError,
+    InvalidPSRDIndex,
+    PSRDDataAlreadyUsedError,
+)
 
 
 # pylint: disable=missing-function-docstring
@@ -86,13 +91,13 @@ def test_allocate_data_bytes_zeroed():
     """
     Allocate data from block: bytes in the block are zeroed after allocation.
     """
+    # pylint: disable=protected-access
     block = _create_test_block(5)
     assert block._data == bytes.fromhex("0001020304")
     (start, size, data) = block.allocate_data(3)
     assert start == 0
     assert size == 3
     assert data == bytes.fromhex("000102")
-    # pylint: disable=protected-access
     assert block._data == bytes.fromhex("0000000304")
 
 
@@ -177,3 +182,94 @@ def test_take_data_already_in_use():
     # Partial overlap
     with pytest.raises(PSRDDataAlreadyUsedError):
         _data = block.take_data(2, 1)
+
+
+def test_return_data():
+    """
+    Return taken data back to block.
+    """
+    # pylint: disable=protected-access
+    # Create a block
+    block = _create_test_block(10)
+    assert block._data == bytes.fromhex("00010203040506070809")
+    assert block.nr_used_bytes == 0
+    # Allocate 3 bytes
+    (start, size, data) = block.allocate_data(3)
+    assert start == 0
+    assert size == 3
+    assert data == bytes.fromhex("000102")
+    assert block._data == bytes.fromhex("00000003040506070809")
+    assert block.nr_used_bytes == 3
+    # Allocate 3 more
+    (start, size, data) = block.allocate_data(3)
+    assert start == 3
+    assert size == 3
+    assert data == bytes.fromhex("030405")
+    assert block._data == bytes.fromhex("00000000000006070809")
+    assert block.nr_used_bytes == 6
+    # Allocate 3 more yet again
+    (start, size, data) = block.allocate_data(3)
+    assert start == 6
+    assert size == 3
+    assert data == bytes.fromhex("060708")
+    assert block._data == bytes.fromhex("00000000000000000009")
+    assert block.nr_used_bytes == 9
+    # Return the middle 3 bytes
+    block.return_data(3, bytes.fromhex("030405"))
+    assert block._data == bytes.fromhex("00000003040500000009")
+    assert block.nr_used_bytes == 6
+
+
+def test_is_fully_used():
+    """
+    Check if all bytes in the block have been used.
+    """
+    block = _create_test_block(10)
+    assert not block.is_fully_used()
+    (start, size, data) = block.allocate_data(10)
+    assert start == 0
+    assert size == 10
+    assert data == bytes.fromhex("00010203040506070809")
+    assert block.is_fully_used()
+
+
+def test_from_api_success():
+    """
+    Create a Block from a valid APIBlock.
+    """
+    uuid = uuid4()
+    data = _bytes_test_pattern(10)
+    api_block = APIBlock(block_uuid=str(uuid), data=utils.bytes_to_str(data))
+    block = Block.from_api(api_block)
+    assert block.uuid == uuid
+    assert block.nr_unused_bytes == 10
+
+
+def test_from_api_bad_uuid():
+    """
+    Create a Block from a valid APIBlock.
+    """
+    data = _bytes_test_pattern(10)
+    api_block = APIBlock(block_uuid="bad-uuid", data=utils.bytes_to_str(data))
+    with pytest.raises(InvalidBlockUUIDError):
+        _block = Block.from_api(api_block)
+
+
+def test_from_api_bad_data():
+    """
+    Create a Block from a valid APIBlock.
+    """
+    uuid = uuid4()
+    api_block = APIBlock(block_uuid=str(uuid), data="bad-data")
+    with pytest.raises(InvalidPSRDDataError):
+        _block = Block.from_api(api_block)
+
+
+def test_to_api():
+    """
+    Create a Block from a valid APIBlock.
+    """
+    block = _create_test_block(10)
+    api_block = block.to_api()
+    assert api_block.block_uuid == str(block.uuid)
+    assert api_block.data == utils.bytes_to_str(_bytes_test_pattern(10))

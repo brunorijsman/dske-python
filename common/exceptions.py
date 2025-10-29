@@ -292,3 +292,15 @@ class PSRDDataAlreadyUsedError(DSKEException):
                 "size": size,
             },
         )
+
+
+class InvalidPSRDDataError(DSKEException):
+    """
+    Exception raised when the PSRD data received from a hub is invalid.
+    """
+
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="PSRD data is invalid.",
+        )

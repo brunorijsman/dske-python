@@ -8,7 +8,12 @@ from typing import Tuple
 import pydantic
 from bitarray import bitarray
 from . import utils
-from .exceptions import PSRDDataAlreadyUsedError, InvalidPSRDIndex
+from .exceptions import (
+    InvalidBlockUUIDError,
+    InvalidPSRDDataError,
+    InvalidPSRDIndex,
+    PSRDDataAlreadyUsedError,
+)
 
 
 class APIBlock(pydantic.BaseModel):
@@ -125,6 +130,8 @@ class Block:
         """
         Return previously taken data to the block.
         """
+        # Returning data is only used internally; the parameters are decided by the outside world.
+        # Thus, if there is a problem with the parameters it is a bug: we assert rather than raise.
         size = len(data)
         assert size > 0
         assert size <= self._size
@@ -144,7 +151,15 @@ class Block:
         """
         Create a Block from an APIBlock.
         """
-        return Block(UUID(api_block.block_uuid), utils.str_to_bytes(api_block.data))
+        try:
+            block_uuid = UUID(api_block.block_uuid)
+        except ValueError as exc:
+            raise InvalidBlockUUIDError(api_block.block_uuid) from exc
+        try:
+            data = utils.str_to_bytes(api_block.data)
+        except Exception as exc:
+            raise InvalidPSRDDataError from exc
+        return Block(block_uuid, data)
 
     def to_api(self) -> APIBlock:
         """
