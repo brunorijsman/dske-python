@@ -30,9 +30,10 @@ class Fragment:
     _size: int
     _data: bytes | None  # None means the fragment has been returned to the block
 
-    def __init__(self, block, start_in_block, size, data):
+    def __init__(self, block, start, size, data):
+        # Don't call this directly. Instead use allocate, from_api, or from_enc_str.
         self._block = block
-        self._start = start_in_block
+        self._start = start
         self._size = size
         self._data = data
 
