@@ -1,5 +1,3 @@
-TODO: Add test cases for replenishing pools
-
 TODO: Do we really need the allocated / consumed distinction? Can't we simply return the fragment
       to the block if an error occurs?
 
