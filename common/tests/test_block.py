@@ -3,8 +3,11 @@ Unit tests for the Block class.
 """
 
 from uuid import uuid4
+
+import pytest
 from common import utils
 from common.block import Block
+from common.exceptions import InvalidPSRDIndex, PSRDDataAlreadyUsedError
 
 
 # pylint: disable=missing-function-docstring
@@ -57,117 +60,120 @@ def test_create_random_block():
     _block = Block.new_with_random_data(size)
 
 
-def test_allocate_data_from_fresh_block_full():
+def test_allocate_data_full():
     """
-    Allocate data from a block that has not had any bytes allocated yet (full data available)
+    Allocate data from block: full requested allocation is fully available.
     """
-    block_size = 100
-    desired_size = 10
-    block = _create_test_block(block_size)
-    (start, size, data) = block.allocate_data(desired_size)
+    block = _create_test_block(100)
+    (start, size, data) = block.allocate_data(10)
     assert start == 0
-    assert size == desired_size
+    assert size == 10
     assert data == bytes.fromhex("00010203040506070809")
 
 
-def test_allocate_data_from_fresh_block_partial():
+def test_allocate_data_partial():
     """
-    Allocate data from a block that has not had any bytes allocated yet (partial data available)
+    Allocate data from block: full requested allocation is partially available.
     """
-    block_size = 9
-    desired_size = 90
-    block = _create_test_block(block_size)
-    (start, size, data) = block.allocate_data(desired_size)
+    block = _create_test_block(9)
+    (start, size, data) = block.allocate_data(90)
     assert start == 0
-    assert size == block_size
+    assert size == 9
     assert data == bytes.fromhex("000102030405060708")
 
 
-# def test_allocate_multiple_fragments_from_fresh_block():
-#     """
-#     Allocate multiple fragments from a block that has not had any bytes allocated yet.
-#     """
-#     block_size = 100
-#     nr_fragments = 3
-#     fragment_size = 10
-#     block = _create_test_block(block_size)
-#     for fragment_nr in range(nr_fragments):
-#         fragment = block.take_fragment(fragment_size)
-#         assert fragment.start_byte == fragment_nr * fragment_size
-#         assert fragment.size == fragment_size
-#         assert fragment.consumed is False
+def test_allocate_data_bytes_zeroed():
+    """
+    Allocate data from block: bytes in the block are zeroed after allocation.
+    """
+    block = _create_test_block(5)
+    assert block._data == bytes.fromhex("0001020304")
+    (start, size, data) = block.allocate_data(3)
+    assert start == 0
+    assert size == 3
+    assert data == bytes.fromhex("000102")
+    # pylint: disable=protected-access
+    assert block._data == bytes.fromhex("0000000304")
 
 
-# def test_try_allocate_fragment_from_empty_block():
-#     """
-#     Try to allocate a fragment from a block that has no bytes left.
-#     """
-#     block_size = 100
-#     block = _create_test_block(block_size)
-#     additional_fragment_size = 1
-#     # Allocate a fragment that allocates all bytes in the block.
-#     fragment_a = block.take_fragment(block_size)
-#     assert fragment_a.start_byte == 0
-#     assert fragment_a.size == block_size
-#     assert fragment_a.consumed is False
-#     # Try to allocate another fragment, but there are no bytes left.
-#     fragment_b = block.take_fragment(additional_fragment_size)
-#     assert fragment_b is None
+def test_allocate_data_full_full():
+    """
+    Allocate data twice from a block: first requested allocation is fully available, second
+    requested allocation is also fully available.
+    """
+    block = _create_test_block(100)
+    (start, size, data) = block.allocate_data(10)
+    assert start == 0
+    assert size == 10
+    assert data == bytes.fromhex("00010203040506070809")
+    (start, size, data) = block.allocate_data(5)
+    assert start == 10
+    assert size == 5
+    assert data == bytes.fromhex("0a0b0c0d0e")
 
 
-# def test_try_allocate_fragment_from_block_with_insufficient_space():
-#     """
-#     Try to allocate a fragment from a block that has insufficient space.
-#     """
-#     block_size = 100
-#     block = _create_test_block(block_size)
-#     fragment_a_size = 90
-#     fragment_b_size = 20
-#     # Allocate a fragment that allocates all bytes in the block.
-#     fragment_a = block.take_fragment(fragment_a_size)
-#     assert fragment_a.start_byte == 0
-#     assert fragment_a.size == fragment_a_size
-#     assert fragment_a.consumed is False
-#     # Try to allocate another fragment, but we have fewer bytes left than asked for.
-#     # We should still get a fragment, just with fewer bytes.
-#     fragment_b = block.take_fragment(fragment_b_size)
-#     assert fragment_b.start_byte == fragment_a_size
-#     assert fragment_b.size == block_size - fragment_a_size
-#     assert fragment_b.consumed is False
+def test_allocate_data_full_partial():
+    """
+    Allocate data twice from a block: first requested allocation is fully available, second
+    requested allocation is also fully available.
+    """
+    block = _create_test_block(12)
+    (start, size, data) = block.allocate_data(10)
+    assert start == 0
+    assert size == 10
+    assert data == bytes.fromhex("00010203040506070809")
+    (start, size, data) = block.allocate_data(5)
+    assert start == 10
+    assert size == 2
+    assert data == bytes.fromhex("0a0b")
 
 
-# def test_deallocate_fragment():
-#     """
-#     Deallocate a fragment from a block. Test re-allocating from a gap in a block.
-#     """
-#     block_size = 100
-#     fragment_a_size = 10
-#     fragment_b_size = 20
-#     fragment_c_size = 30
-#     # Some conditions to make the test case work as intended
-#     assert fragment_a_size + fragment_b_size <= block_size
-#     assert fragment_c_size > fragment_a_size
-#     # The sequence of actions is:
-#     # 1. Allocate fragment a.
-#     # 2. Allocate fragment b.
-#     # 3. Deallocate fragment a.
-#     # 4. Allocate fragment c. Note that it does *not* fit in the gap left by fragment a.
-#     #    So we get less than we asked for.
-#     block = _create_test_block(block_size)
-#     # Allocate fragment a
-#     fragment_a = block.take_fragment(fragment_a_size)
-#     assert fragment_a.start_byte == 0
-#     assert fragment_a.size == fragment_a_size
-#     assert fragment_a.consumed is False
-#     # Allocate fragment b
-#     fragment_b = block.take_fragment(fragment_b_size)
-#     assert fragment_b.start_byte == fragment_a_size
-#     assert fragment_b.size == fragment_b_size
-#     assert fragment_b.consumed is False
-#     # Deallocate fragment a
-#     block.return_fragment(fragment_a)
-#     # Attempt to allocate fragment c; we get less than we asked for
-#     fragment_c = block.take_fragment(fragment_c_size)
-#     assert fragment_c.start_byte == 0
-#     assert fragment_c.size == fragment_a_size
-#     assert fragment_c.consumed is False
+def test_allocate_data_full_none():
+    """
+    Allocate data twice from a block: first requested allocation is fully available, second
+    requested allocation is also fully available.
+    """
+    block = _create_test_block(10)
+    (start, size, data) = block.allocate_data(10)
+    assert start == 0
+    assert size == 10
+    assert data == bytes.fromhex("00010203040506070809")
+    assert block.allocate_data(5) is None
+
+
+def test_take_data_all_free():
+    """
+    Take data from block: all requested data is free.
+    """
+    block = _create_test_block(10)
+    data = block.take_data(2, 5)
+    assert data == bytes.fromhex("0203040506")
+    assert block.nr_unused_bytes == 5
+
+
+def test_take_data_invalid_start_index():
+    """
+    Take data from block: invalid start index.
+    """
+    block = _create_test_block(10)
+    with pytest.raises(InvalidPSRDIndex):
+        _data = block.take_data(-1, 5)
+    with pytest.raises(InvalidPSRDIndex):
+        _data = block.take_data(10, 5)
+
+
+def test_take_data_already_in_use():
+    """
+    Take data from block: already in use.
+    """
+    block = _create_test_block(10)
+    (start, size, data) = block.allocate_data(5)
+    assert start == 0
+    assert size == 5
+    assert data == bytes.fromhex("0001020304")
+    # Full overlap
+    with pytest.raises(PSRDDataAlreadyUsedError):
+        _data = block.take_data(0, 5)
+    # Partial overlap
+    with pytest.raises(PSRDDataAlreadyUsedError):
+        _data = block.take_data(2, 1)
