@@ -3,8 +3,6 @@ TODO: Do we really need the allocated / consumed distinction? Can't we simply re
 
 TODO: Add pool thresholds to configuration (and document this)
 
-TODO: Remove fully consumed blocks
-
 TODO: Make dske.yaml the default configuration file, and add a --config option to change it
 
 TODO: Cleanup Shamir's Secret Sharing (SSS) code (no back-and-forth conversion to RawShare)
