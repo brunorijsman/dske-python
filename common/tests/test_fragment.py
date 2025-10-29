@@ -5,6 +5,10 @@ Unit tests for the Fragment class.
 from uuid import uuid4
 from common.block import Block
 from common.fragment import Fragment
+from common.utils import bytes_to_str
+
+
+# pylint: disable=missing-function-docstring
 
 
 def _bytes_test_pattern(size):
@@ -19,9 +23,6 @@ def _create_test_block(size):
 
 
 def test_fragment_init():
-    """
-    Test initialization of a Fragment.
-    """
     block = _create_test_block(100)
     _fragment = Fragment(
         block=block,
@@ -31,18 +32,7 @@ def test_fragment_init():
     )
 
 
-def test_fragment_properties():
-    """
-    Test Fragment properties.
-    """
-    pass
-
-
 def test_fragment_allocate_full():
-    """
-    Test Fragment allocation: requested bytes are fully available.
-    (This also covers all the @property methods.)
-    """
     block = _create_test_block(100)
     fragment = Fragment.allocate(block, 10)
     assert fragment.block == block
@@ -52,9 +42,6 @@ def test_fragment_allocate_full():
 
 
 def test_fragment_allocate_partial():
-    """
-    Test Fragment allocation: requested bytes are partially available.
-    """
     block = _create_test_block(5)
     fragment = Fragment.allocate(block, 10)
     assert fragment.block == block
@@ -64,9 +51,6 @@ def test_fragment_allocate_partial():
 
 
 def test_fragment_allocate_none():
-    """
-    Test Fragment allocation: requested bytes are not available.
-    """
     block = _create_test_block(5)
     fragment = Fragment.allocate(block, 5)
     assert fragment.block == block
@@ -74,3 +58,15 @@ def test_fragment_allocate_none():
     assert fragment.size == 5
     assert fragment.data == bytes.fromhex("0001020304")
     assert Fragment.allocate(block, 5) is None
+
+
+def test_fragment_to_mgmt():
+    block = _create_test_block(5)
+    fragment = Fragment.allocate(block, 5)
+    fragment_mgmt = fragment.to_mgmt()
+    assert fragment_mgmt == {
+        "block_uuid": str(block.uuid),
+        "start": 0,
+        "size": 5,
+        "data": bytes_to_str(bytes.fromhex("0001020304")),
+    }

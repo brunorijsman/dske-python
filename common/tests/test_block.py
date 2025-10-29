@@ -49,8 +49,8 @@ def test_block_to_mgmt():
     uuid = uuid4()
     data = _bytes_test_pattern(size)
     block = Block(uuid, data)
-    management_json = block.to_mgmt()
-    assert management_json == {
+    block_mgmt = block.to_mgmt()
+    assert block_mgmt == {
         "uuid": str(uuid),
         "size": 20,
         "data": bytes_to_str(data, truncate=True),
