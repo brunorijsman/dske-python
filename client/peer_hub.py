@@ -115,17 +115,19 @@ class PeerHub:
         Task to register this client with the hub (periodically retrying if it fails). Once
         registered, it starts the request PSRD task.
         """
-        LOGGER.info(f"Begin register task for peer hub at {self._base_url}")
+        task_name = f"register task for peer hub {self._hub_name}"
+        LOGGER.info(f"Begin {task_name}")
         try:
             while not await self.attempt_registration():
                 await asyncio.sleep(_GET_PSRD_RETRY_DELAY)
         except asyncio.CancelledError:
             self._register_task = None
-            LOGGER.info(f"Cancel register task for peer hub at {self._base_url}")
-            return
-        self.start_request_psrd_task_if_needed()
-        self._register_task = None
-        LOGGER.info(f"Finish register task for peer hub at {self._base_url}")
+            LOGGER.info(f"Cancel {task_name}")
+        else:
+            LOGGER.info(f"Finish {task_name}")
+            self.start_request_psrd_task_if_needed()
+        finally:
+            self._register_task = None
 
     async def attempt_registration(self) -> bool:
         """
