@@ -22,6 +22,10 @@ class Allocation:
     _fragments: list[Fragment]
 
     def __init__(self, fragments: list[Fragment]):
+        # Don't call this directly. Instead use one of the following:
+        #   Pool.allocate
+        #   Allocation.from_api
+        #   Allocation.from_enc_str
         self._fragments = fragments
 
     @property

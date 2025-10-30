@@ -30,7 +30,7 @@ class Fragment:
 
     def __init__(self, block, start, size, data):
         # Don't call this directly. Instead use one of the following:
-        #   Block.allocate
+        #   Block.allocate_fragment
         #   Fragment.from_api
         #   Fragment.from_enc_str
         self._block = block
