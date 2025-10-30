@@ -304,3 +304,16 @@ class InvalidPSRDDataError(DSKEException):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             message="PSRD data is invalid.",
         )
+
+
+class InvalidEncodedFragment(DSKEException):
+    """
+    Exception raised when trying to parse an encoded fragment string that is invalid.
+    """
+
+    def __init__(self, encoded_fragment: str):
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Invalid encoded fragment.",
+            details={"encoded_fragment": encoded_fragment},
+        )

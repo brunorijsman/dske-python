@@ -153,12 +153,61 @@ def test_from_api_success():
     assert block._data == bytes.fromhex("00000000000506070809")
 
 
-def test_from_api_bad_uuid():
+def test_from_api_bad_block_uuid():
     """
     Attempt to create a Fragment from a bad APIFragment (invalid block UUID).
     """
     # pylint: disable=protected-access
-    (pool, block) = _create_test_pool_and_block(10)
+    (pool, _block) = _create_test_pool_and_block(10)
+    # UUID string is not correctly formatted
     api_fragment = APIFragment(block_uuid="not-a-uuid", start=0, size=5)
     with pytest.raises(InvalidBlockUUIDError):
-        fragment = Fragment.from_api(api_fragment, pool)
+        _fragment = Fragment.from_api(api_fragment, pool)
+    # UUID string is correctly formatted, but not the UUID of any block in the pool
+    uuid = uuid4()
+    api_fragment = APIFragment(block_uuid=str(uuid), start=0, size=5)
+    with pytest.raises(InvalidBlockUUIDError):
+        _fragment = Fragment.from_api(api_fragment, pool)
+
+
+def test_to_enc_str():
+    """
+    Create an APIFragment for an encoded string.
+    """
+    block = _create_test_block(10)
+    fragment = Fragment.allocate(block, 5)
+    enc_str = fragment.to_enc_str()
+    assert enc_str == f"{block.uuid}:0:5"
+
+
+def test_from_enc_str_success():
+    """
+    Create a Fragment from a valid encoded string.
+    """
+    # pylint: disable=protected-access
+    (pool, block) = _create_test_pool_and_block(10)
+    enc_str = f"{block.uuid}:0:5"
+    fragment = Fragment.from_enc_str(enc_str, pool)
+    assert fragment.block == block
+    assert fragment.start == 0
+    assert fragment.size == 5
+    assert fragment.data == bytes.fromhex("0001020304")
+    assert block.nr_used_bytes == 5
+    assert block._data == bytes.fromhex("00000000000506070809")
+
+
+def test_from_enc_str_bad_block_uuid():
+    """
+    Attempt to create a Fragment from a bad encoded string (invalid block UUID).
+    """
+    # pylint: disable=protected-access
+    (pool, _block) = _create_test_pool_and_block(10)
+    # UUID string is not correctly formatted
+    enc_str = "not-a-uuid:0:5"
+    with pytest.raises(InvalidBlockUUIDError):
+        _fragment = Fragment.from_enc_str(enc_str, pool)
+    # UUID string is correctly formatted, but not the UUID of any block in the pool
+    uuid = uuid4()
+    enc_str = f"{uuid}:0:5"
+    with pytest.raises(InvalidBlockUUIDError):
+        _fragment = Fragment.from_enc_str(enc_str, pool)

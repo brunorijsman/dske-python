@@ -6,7 +6,7 @@ from typing import Union
 from uuid import UUID
 import pydantic
 from common.block import Block
-from common.exceptions import InvalidBlockUUIDError
+from common.exceptions import InvalidBlockUUIDError, InvalidEncodedFragment
 from . import utils
 
 
@@ -152,11 +152,13 @@ class Fragment:
         # TODO: Add expected_max_size parameter to avoid insane large sizes.
         parts = enc_str.split(":")
         if len(parts) != 3:
-            raise ValueError(f"Invalid fragment parameter string: {enc_str}")
+            raise InvalidEncodedFragment(encoded_fragment=enc_str)
         block_uuid_str, start_byte_str, size_str = parts
-        block = pool.get_block(UUID(block_uuid_str))
-        if block is None:
-            raise ValueError(f"Block not found: {block_uuid_str}")
+        try:
+            block_uuid = UUID(block_uuid_str)
+        except ValueError as exc:
+            raise InvalidBlockUUIDError(block_uuid=block_uuid_str) from exc
+        block = pool.get_block(block_uuid)
         start_byte = int(start_byte_str)
         size = int(size_str)
         data = block.take_data(start_byte, size)
