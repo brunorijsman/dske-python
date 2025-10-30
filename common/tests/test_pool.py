@@ -3,6 +3,7 @@ Unit tests for the Fragment class.
 """
 
 from uuid import uuid4
+from typing import List
 from common.pool import Pool
 from common.block import Block
 
@@ -18,7 +19,7 @@ def _create_test_block(size):
     return block
 
 
-def _create_test_pool_and_block(block_sizes: [int]):
+def _create_test_pool_and_block(block_sizes: List[int]):
     pool = Pool(name="test_pool", owner=Pool.Owner.LOCAL)
     blocks = []
     for block_size in block_sizes:
