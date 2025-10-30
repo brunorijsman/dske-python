@@ -238,6 +238,16 @@ def test_is_fully_used():
     assert block.is_fully_used()
 
 
+def test_to_api():
+    """
+    Create an APIBlock for a Block.
+    """
+    block = _create_test_block(10)
+    api_block = block.to_api()
+    assert api_block.block_uuid == str(block.uuid)
+    assert api_block.data == bytes_to_str(_bytes_test_pattern(10))
+
+
 def test_from_api_success():
     """
     Create a Block from a valid APIBlock.
@@ -252,7 +262,7 @@ def test_from_api_success():
 
 def test_from_api_bad_uuid():
     """
-    Create a Block from a valid APIBlock.
+    Attempt to create a Block from a bad APIBlock (invalid block UUID).
     """
     data = _bytes_test_pattern(10)
     api_block = APIBlock(block_uuid="bad-uuid", data=bytes_to_str(data))
@@ -262,19 +272,9 @@ def test_from_api_bad_uuid():
 
 def test_from_api_bad_data():
     """
-    Create a Block from a valid APIBlock.
+    Attempt to create a Block from a bad APIBlock (invalid data).
     """
     uuid = uuid4()
     api_block = APIBlock(block_uuid=str(uuid), data="bad-data")
     with pytest.raises(InvalidPSRDDataError):
         _block = Block.from_api(api_block)
-
-
-def test_to_api():
-    """
-    Create a Block from a valid APIBlock.
-    """
-    block = _create_test_block(10)
-    api_block = block.to_api()
-    assert api_block.block_uuid == str(block.uuid)
-    assert api_block.data == bytes_to_str(_bytes_test_pattern(10))

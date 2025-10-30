@@ -3,8 +3,11 @@ Unit tests for the Fragment class.
 """
 
 from uuid import uuid4
+import pytest
 from common.block import Block
-from common.fragment import Fragment
+from common.exceptions import InvalidBlockUUIDError
+from common.fragment import APIFragment, Fragment
+from common.pool import Pool
 from common.utils import bytes_to_str
 
 
@@ -17,6 +20,13 @@ def _create_test_block(size):
     data = _bytes_test_pattern(size)
     block = Block(uuid, data)
     return block
+
+
+def _create_test_pool_and_block(block_size):
+    pool = Pool(name="test_pool", owner=Pool.Owner.LOCAL)
+    block = _create_test_block(block_size)
+    pool.add_block(block)
+    return (pool, block)
 
 
 def test_fragment_init():
@@ -113,3 +123,42 @@ def test_fragment_to_mgmt():
         "size": 5,
         "data": bytes_to_str(bytes.fromhex("0001020304")),
     }
+
+
+def test_to_api():
+    """
+    Create an APIFragment for a Fragment.
+    """
+    block = _create_test_block(10)
+    fragment = Fragment.allocate(block, 5)
+    api_fragment = fragment.to_api()
+    assert api_fragment.block_uuid == str(block.uuid)
+    assert api_fragment.start == 0
+    assert api_fragment.size == 5
+
+
+def test_from_api_success():
+    """
+    Create a Fragment from a valid APIFragment.
+    """
+    # pylint: disable=protected-access
+    (pool, block) = _create_test_pool_and_block(10)
+    api_fragment = APIFragment(block_uuid=str(block.uuid), start=0, size=5)
+    fragment = Fragment.from_api(api_fragment, pool)
+    assert fragment.block == block
+    assert fragment.start == 0
+    assert fragment.size == 5
+    assert fragment.data == bytes.fromhex("0001020304")
+    assert block.nr_used_bytes == 5
+    assert block._data == bytes.fromhex("00000000000506070809")
+
+
+def test_from_api_bad_uuid():
+    """
+    Attempt to create a Fragment from a bad APIFragment (invalid block UUID).
+    """
+    # pylint: disable=protected-access
+    (pool, block) = _create_test_pool_and_block(10)
+    api_fragment = APIFragment(block_uuid="not-a-uuid", start=0, size=5)
+    with pytest.raises(InvalidBlockUUIDError):
+        fragment = Fragment.from_api(api_fragment, pool)
