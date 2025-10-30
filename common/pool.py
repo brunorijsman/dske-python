@@ -116,23 +116,17 @@ class Pool:
                 remaining_size == 0
             )  # We checked availability at the top of the method.
             return Allocation(fragments)
-        except Exception as exc:
+        # As far as we know because of the check at the top, there is currently no way to reach
+        # this. This is just defensive programming.
+        except Exception as exc:  # pragma: no cover
             # Allocation failed halfway; give back any fragments that were taken.
             for fragment in fragments:
                 fragment.give_back()
             raise exc
 
-    def mark_allocation_used(self, allocation: Allocation):
-        """
-        Mark an allocation as used in the pool. This is needed when the allocation was received
-        from the other side instead of being allocated locally.
-        """
-        # TODO: $$$ Is this the right way?
-        for fragment in allocation.fragments:
-            fragment.block.mark_fragment_used(fragment)
-
     def delete_fully_used_blocks(self):
         """
         Delete fully used PSRD blocks from the pool.
         """
-        self._blocks = [block for block in self._blocks if not block.is_fully_used()]
+        new_blocks = [block for block in self._blocks if not block.is_fully_used()]
+        self._blocks = new_blocks

@@ -100,7 +100,7 @@ def test_get_block_unknown_uuid():
         pool.get_block(uuid)
 
 
-def test_allocate_success_empty_pool_first_block():
+def test_allocate_success_empty_pool_first_block_full():
     """
     Allocate an allocation from a pool. The pool is empty. The allocation fits in the first block.
     """
@@ -111,7 +111,7 @@ def test_allocate_success_empty_pool_first_block():
     assert pool.nr_used_bytes == 10
 
 
-def test_allocate_success_empty_pool_two_blocks():
+def test_allocate_success_empty_pool_first_block_full_second_block_partial():
     """
     Allocate an allocation from a pool. The pool is empty. The allocation is spread over two blocks.
     """
@@ -122,6 +122,20 @@ def test_allocate_success_empty_pool_two_blocks():
     assert pool.nr_used_bytes == 8
 
 
+def test_allocate_success_empty_pool_first_block_full_second_block_full():
+    """
+    Allocate an allocation from a pool. The pool is empty. The allocation is spread over two blocks.
+    """
+    pool, _blocks = _create_test_pool_and_block([5, 4])
+    allocation = pool.allocate(9, purpose="test")
+    assert allocation is not None
+    assert allocation.data == bytes.fromhex("000102030400010203")
+    assert pool.nr_used_bytes == 9
+
+
+# TODO: Also test re-allocation after giving back
+
+
 def test_allocate_failure_insufficient_space():
     """
     Attempt to allocate an allocation from a pool. There is not enough unused data in the pool.
@@ -130,3 +144,17 @@ def test_allocate_failure_insufficient_space():
     with pytest.raises(OutOfPreSharedRandomDataError):
         pool.allocate(20, purpose="test")
     assert pool.nr_used_bytes == 0
+
+
+def test_delete_fully_used_blocks():
+    """
+    Delete fully used PSRD blocks from the pool.
+    """
+    pool, _blocks = _create_test_pool_and_block([10, 11])
+    # Allocate all of the first block and part of the second block.
+    _allocation = pool.allocate(15, purpose="test1")
+    assert pool.nr_used_bytes == 15
+    assert pool.nr_unused_bytes == 6
+    pool.delete_fully_used_blocks()
+    assert pool.nr_used_bytes == 5
+    assert pool.nr_unused_bytes == 6
