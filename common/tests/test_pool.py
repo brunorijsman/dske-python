@@ -6,6 +6,7 @@ from uuid import uuid4
 from typing import List
 from common.pool import Pool
 from common.block import Block
+from common.utils import bytes_to_str
 
 
 def _bytes_test_pattern(size):
@@ -52,3 +53,24 @@ def test_nr_unused_bytes():
     assert pool.nr_unused_bytes == 60
     _allocation = pool.allocate(10, purpose="test")
     assert pool.nr_unused_bytes == 50
+
+
+def test_to_mgmt():
+    """
+    Get the management status.
+    """
+    pool, blocks = _create_test_pool_and_block([10, 20])
+    pool_mgmt = pool.to_mgmt()
+    assert pool_mgmt == {
+        "blocks": [
+            {
+                "uuid": str(block.uuid),
+                "size": block.size,
+                "data": bytes_to_str(block.data, truncate=True),
+                "nr_used_bytes": block.nr_used_bytes,
+                "nr_unused_bytes": block.nr_unused_bytes,
+            }
+            for block in blocks
+        ],
+        "owner": str(pool.owner),
+    }

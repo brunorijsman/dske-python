@@ -50,6 +50,20 @@ class Block:
         return self._block_uuid
 
     @property
+    def size(self):
+        """
+        The size of the block in bytes.
+        """
+        return self._size
+
+    @property
+    def data(self):
+        """
+        The data of the block.
+        """
+        return self._data
+
+    @property
     def nr_used_bytes(self):
         """
         Return the number of used bytes.

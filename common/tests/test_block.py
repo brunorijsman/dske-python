@@ -44,6 +44,8 @@ def test_properties():
     data = _bytes_test_pattern(size)
     block = Block(uuid, data)
     assert block.uuid == uuid
+    assert block.size == size
+    assert block.data == data
     assert block.nr_unused_bytes == size
 
 
