@@ -38,7 +38,6 @@ class Allocation:
         """
         data = b""
         for fragment in self._fragments:
-            assert not fragment.is_returned_to_block
             data += fragment.data
         return data
 

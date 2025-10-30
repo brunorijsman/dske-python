@@ -4,8 +4,10 @@ Unit tests for the Fragment class.
 
 from uuid import uuid4
 from typing import List
+import pytest
 from common.pool import Pool
 from common.block import Block
+from common.exceptions import InvalidBlockUUIDError
 from common.utils import bytes_to_str
 
 
@@ -45,13 +47,15 @@ def test_properties():
     assert pool.owner == Pool.Owner.LOCAL
 
 
-def test_nr_unused_bytes():
+def test_nr_used_and_unused_bytes():
     """
     Number of unused bytes in the pool.
     """
     pool, _blocks = _create_test_pool_and_block([10, 20, 30])
+    assert pool.nr_used_bytes == 0
     assert pool.nr_unused_bytes == 60
     _allocation = pool.allocate(10, purpose="test")
+    assert pool.nr_used_bytes == 10
     assert pool.nr_unused_bytes == 50
 
 
@@ -74,3 +78,34 @@ def test_to_mgmt():
         ],
         "owner": str(pool.owner),
     }
+
+
+def test_get_block_success():
+    """
+    Get a block by UUID (block exists).
+    """
+    pool, blocks = _create_test_pool_and_block([10, 20])
+    for block in blocks:
+        retrieved_block = pool.get_block(block.uuid)
+        assert retrieved_block == block
+
+
+def test_get_block_unknown_uuid():
+    """
+    Get a block by UUID (no block with the given UUID).
+    """
+    pool, _blocks = _create_test_pool_and_block([10, 20])
+    uuid = uuid4()
+    with pytest.raises(InvalidBlockUUIDError):
+        pool.get_block(uuid)
+
+
+def test_allocate_success_empty_pool_first_block():
+    """
+    Allocate an allocation from a pool. The pool is empty. The allocation fits in the first block.
+    """
+    pool, _blocks = _create_test_pool_and_block([10, 20])
+    allocation = pool.allocate(10, purpose="test")
+    assert allocation is not None
+    assert allocation.data == bytes.fromhex("00010203040506070809")
+    assert pool.nr_used_bytes == 10

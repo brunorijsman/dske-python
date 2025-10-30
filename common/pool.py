@@ -46,6 +46,13 @@ class Pool:
         return self._owner
 
     @property
+    def nr_used_bytes(self):
+        """
+        Return the total number of used bytes in the pool.
+        """
+        return sum(block.nr_used_bytes for block in self._blocks)
+
+    @property
     def nr_unused_bytes(self):
         """
         Return the total number of unused bytes in the pool.
@@ -79,8 +86,8 @@ class Pool:
     def allocate(self, size: PositiveInt, purpose: str) -> Allocation:
         """
         Allocate an allocation from the pool. An allocation consists of one or more fragments.
-        This either returns an Allocation object for the full requested `size` or None if there is
-        not enough unallocated data left in the pool.
+        This either returns an Allocation object for the full requested `size`. Raises exception
+        OutOfPreSharedRandomDataError if not enough unused bytes are available in the pool.
         """
         available = self.nr_unused_bytes
         if available < size:
