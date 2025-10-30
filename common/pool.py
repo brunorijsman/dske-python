@@ -11,9 +11,6 @@ from .logging import LOGGER
 from .exceptions import OutOfPreSharedRandomDataError, InvalidBlockUUIDError
 
 
-# TODO: Unit tests for newly added _owner attribute.
-
-
 class Pool:
     """
     A pool of blocks.
@@ -49,9 +46,9 @@ class Pool:
         return self._owner
 
     @property
-    def bytes_available(self):
+    def nr_unused_bytes(self):
         """
-        Return the number of bytes available for allocation in the pool.
+        Return the total number of unused bytes in the pool.
         """
         return sum(block.nr_unused_bytes for block in self._blocks)
 
@@ -85,7 +82,7 @@ class Pool:
         This either returns an Allocation object for the full requested `size` or None if there is
         not enough unallocated data left in the pool.
         """
-        available = self.bytes_available
+        available = self.nr_unused_bytes
         if available < size:
             LOGGER.error(
                 f"PSRD allocation failed: pool={self._name} owner={self._owner} purpose={purpose} "

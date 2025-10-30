@@ -29,7 +29,7 @@ def _create_test_pool_and_block(block_size):
     return (pool, block)
 
 
-def test_fragment_init():
+def test_init():
     """
     Initialize a fragment.
     """
@@ -73,7 +73,7 @@ def test_give_back_success():
     assert block._data == bytes.fromhex("000102030400000008090a0b0c0d0e0f")
 
 
-def test_fragment_to_mgmt():
+def test_to_mgmt():
     """
     Get the management status of a fragment.
     """

@@ -25,7 +25,7 @@ def _create_test_block(size):
     return block
 
 
-def test_block_init():
+def test_init():
     """
     Initialize a block.
     """
@@ -35,7 +35,7 @@ def test_block_init():
     _block = Block(uuid, data)
 
 
-def test_block_properties():
+def test_properties():
     """ "
     Test the properties of a block.
     """
@@ -47,7 +47,7 @@ def test_block_properties():
     assert block.nr_unused_bytes == size
 
 
-def test_block_to_mgmt():
+def test_to_mgmt():
     """
     Get the management status.
     """

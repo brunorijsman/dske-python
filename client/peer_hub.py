@@ -159,12 +159,12 @@ class PeerHub:
         Start request PSRD task(s) if needed.
         """
         if self._local_pool_request_psrd_task is None:
-            if self._local_pool.bytes_available < START_REQUEST_PSRD_THRESHOLD:
+            if self._local_pool.nr_unused_bytes < START_REQUEST_PSRD_THRESHOLD:
                 self._local_pool_request_psrd_task = asyncio.create_task(
                     self.request_psrd_task(self._local_pool)
                 )
         if self._peer_pool_request_psrd_task is None:
-            if self._peer_pool.bytes_available < START_REQUEST_PSRD_THRESHOLD:
+            if self._peer_pool.nr_unused_bytes < START_REQUEST_PSRD_THRESHOLD:
                 self._peer_pool_request_psrd_task = asyncio.create_task(
                     self.request_psrd_task(self._peer_pool)
                 )
@@ -176,7 +176,7 @@ class PeerHub:
         task_name = f"request PSRD task for peer hub {self._hub_name} and pool owner {pool.owner}"
         LOGGER.info(f"Begin {task_name}")
         try:
-            while pool.bytes_available < STOP_REQUEST_PSRD_THRESHOLD:
+            while pool.nr_unused_bytes < STOP_REQUEST_PSRD_THRESHOLD:
                 if not await self.attempt_request_psrd(pool):
                     await asyncio.sleep(_GET_PSRD_RETRY_DELAY)
         except asyncio.CancelledError:
