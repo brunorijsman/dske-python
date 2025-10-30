@@ -159,7 +159,13 @@ class Fragment:
         except ValueError as exc:
             raise InvalidBlockUUIDError(block_uuid=block_uuid_str) from exc
         block = pool.get_block(block_uuid)
-        start_byte = int(start_byte_str)
-        size = int(size_str)
-        data = block.take_data(start_byte, size)
-        return Fragment(block=block, start=start_byte, size=size, data=data)
+        try:
+            start = int(start_byte_str)
+        except ValueError as exc:
+            raise InvalidEncodedFragment(encoded_fragment=enc_str) from exc
+        try:
+            size = int(size_str)
+        except ValueError as exc:
+            raise InvalidEncodedFragment(encoded_fragment=enc_str) from exc
+        data = block.take_data(start, size)
+        return Fragment(block=block, start=start, size=size, data=data)

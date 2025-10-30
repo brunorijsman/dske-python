@@ -5,7 +5,7 @@ Unit tests for the Fragment class.
 from uuid import uuid4
 import pytest
 from common.block import Block
-from common.exceptions import InvalidBlockUUIDError
+from common.exceptions import InvalidBlockUUIDError, InvalidEncodedFragment
 from common.fragment import APIFragment, Fragment
 from common.pool import Pool
 from common.utils import bytes_to_str
@@ -194,6 +194,26 @@ def test_from_enc_str_success():
     assert fragment.data == bytes.fromhex("0001020304")
     assert block.nr_used_bytes == 5
     assert block._data == bytes.fromhex("00000000000506070809")
+
+
+def test_from_enc_str_bad_str():
+    """
+    Attempt to create a Fragment from a bad encoded string (invalid encoded string format).
+    """
+    # pylint: disable=protected-access
+    (pool, block) = _create_test_pool_and_block(10)
+    # No colons
+    with pytest.raises(InvalidEncodedFragment):
+        _fragment = Fragment.from_enc_str("not-an-encoded-str", pool)
+    # Only one colon
+    with pytest.raises(InvalidEncodedFragment):
+        _fragment = Fragment.from_enc_str(f"{block.uuid}:only-one-colon", pool)
+    # Start is not a number
+    with pytest.raises(InvalidEncodedFragment):
+        _fragment = Fragment.from_enc_str(f"{block.uuid}:not-a-number:5", pool)
+    # Size is not a number
+    with pytest.raises(InvalidEncodedFragment):
+        _fragment = Fragment.from_enc_str(f"{block.uuid}:0:not-a-number", pool)
 
 
 def test_from_enc_str_bad_block_uuid():
