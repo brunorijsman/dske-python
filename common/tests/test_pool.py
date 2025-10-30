@@ -7,7 +7,7 @@ from typing import List
 import pytest
 from common.pool import Pool
 from common.block import Block
-from common.exceptions import InvalidBlockUUIDError
+from common.exceptions import InvalidBlockUUIDError, OutOfPreSharedRandomDataError
 from common.utils import bytes_to_str
 
 
@@ -120,3 +120,13 @@ def test_allocate_success_empty_pool_two_blocks():
     assert allocation is not None
     assert allocation.data == bytes.fromhex("0001020304000102")
     assert pool.nr_used_bytes == 8
+
+
+def test_allocate_failure_insufficient_space():
+    """
+    Attempt to allocate an allocation from a pool. There is not enough unused data in the pool.
+    """
+    pool, _blocks = _create_test_pool_and_block([5, 5])
+    with pytest.raises(OutOfPreSharedRandomDataError):
+        pool.allocate(20, purpose="test")
+    assert pool.nr_used_bytes == 0
