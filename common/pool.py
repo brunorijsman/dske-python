@@ -92,20 +92,28 @@ class Pool:
                 f"{self._name} {self._owner}", purpose, size, available
             )
         fragments = []
-        remaining_size = size
-        for block in self._blocks:
-            while remaining_size > 0:
-                fragment = block.take_fragment(remaining_size)
-                if fragment is None:
-                    # The current block is exhausted, move on to the next block, if any.
+        try:
+            remaining_size = size
+            for block in self._blocks:
+                while remaining_size > 0:
+                    fragment = block.allocate_fragment(remaining_size)
+                    if fragment is None:
+                        # The current block is exhausted, move on to the next block, if any.
+                        break
+                    fragments.append(fragment)
+                    remaining_size -= fragment.size
+                if remaining_size == 0:
+                    # We have allocated the full desired size; don't need to look at any more blocks.
                     break
-                fragments.append(fragment)
-                remaining_size -= fragment.size
-            if remaining_size == 0:
-                # We have allocated the full desired size; don't need to look at any more blocks.
-                break
-        assert remaining_size == 0  # We checked availability at the top of the method.
-        return Allocation(fragments)
+            assert (
+                remaining_size == 0
+            )  # We checked availability at the top of the method.
+            return Allocation(fragments)
+        except Exception as exc:
+            # Allocation failed halfway; give back any fragments that were taken.
+            for fragment in fragments:
+                fragment.give_back()
+            raise exc
 
     def mark_allocation_used(self, allocation: Allocation):
         """
