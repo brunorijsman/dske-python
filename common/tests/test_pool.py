@@ -109,3 +109,14 @@ def test_allocate_success_empty_pool_first_block():
     assert allocation is not None
     assert allocation.data == bytes.fromhex("00010203040506070809")
     assert pool.nr_used_bytes == 10
+
+
+def test_allocate_success_empty_pool_two_blocks():
+    """
+    Allocate an allocation from a pool. The pool is empty. The allocation is spread over two blocks.
+    """
+    pool, _blocks = _create_test_pool_and_block([5, 5])
+    allocation = pool.allocate(8, purpose="test")
+    assert allocation is not None
+    assert allocation.data == bytes.fromhex("0001020304000102")
+    assert pool.nr_used_bytes == 8
