@@ -36,6 +36,9 @@ def test_block_init():
 
 
 def test_block_properties():
+    """ "
+    Test the properties of a block.
+    """
     size = 1000
     uuid = uuid4()
     data = _bytes_test_pattern(size)
@@ -223,6 +226,43 @@ def test_return_data():
     block.give_back_data(3, bytes.fromhex("030405"))
     assert block._data == bytes.fromhex("00000003040500000009")
     assert block.nr_used_bytes == 6
+
+
+def test_allocate_fragment_full():
+    """
+    Allocate a fragment. Requested allocation is fully available.
+    """
+    block = _create_test_block(100)
+    fragment = block.allocate_fragment(10)
+    assert fragment.block == block
+    assert fragment.start == 0
+    assert fragment.size == 10
+    assert fragment.data == bytes.fromhex("00010203040506070809")
+
+
+def test_allocate_fragment_partial():
+    """
+    Allocate a fragment. Requested allocation is partially available.
+    """
+    block = _create_test_block(5)
+    fragment = block.allocate_fragment(10)
+    assert fragment.block == block
+    assert fragment.start == 0
+    assert fragment.size == 5
+    assert fragment.data == bytes.fromhex("0001020304")
+
+
+def test_allocate_fragment_none():
+    """
+    Allocate a fragment. No allocation is available.
+    """
+    block = _create_test_block(5)
+    fragment = block.allocate_fragment(5)
+    assert fragment.block == block
+    assert fragment.start == 0
+    assert fragment.size == 5
+    assert fragment.data == bytes.fromhex("0001020304")
+    assert block.allocate_fragment(5) is None
 
 
 def test_is_fully_used():

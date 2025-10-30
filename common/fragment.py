@@ -2,10 +2,8 @@
 A Pre-Shared Random Data (PSRD) fragment.
 """
 
-from typing import Union
 from uuid import UUID
 import pydantic
-from common.block import Block
 from common.exceptions import InvalidBlockUUIDError, InvalidEncodedFragment
 from . import utils
 
@@ -25,13 +23,16 @@ class Fragment:
     A PSRD fragment: a contiguous range of bytes within one PSRD block.
     """
 
-    _block: Block
+    _block: "Block"  # type: ignore
     _start: int
     _size: int
     _data: bytes | None  # None means the fragment has been returned to the block
 
     def __init__(self, block, start, size, data):
-        # Don't call this directly. Instead use allocate, from_api, or from_enc_str.
+        # Don't call this directly. Instead use one of the following:
+        #   Block.allocate
+        #   Fragment.from_api
+        #   Fragment.from_enc_str
         self._block = block
         self._start = start
         self._size = size
@@ -64,23 +65,6 @@ class Fragment:
         The data in the fragment.
         """
         return self._data
-
-    @staticmethod
-    def allocate(block: Block, desired_size: int) -> Union[None, "Fragment"]:
-        """
-        Allocate a fragment from a block. If there is some but not sufficient space, a smaller
-        fragment than the size asked for is returned. If there is no space left, None is returned.
-        """
-        result = block.allocate_data(desired_size)
-        if result is None:
-            return None
-        (start, size, data) = result
-        return Fragment(
-            block=block,
-            start=start,
-            size=size,
-            data=data,
-        )
 
     def give_back(self):
         """

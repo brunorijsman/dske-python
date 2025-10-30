@@ -7,6 +7,7 @@ from os import urandom
 from typing import Tuple
 import pydantic
 from bitarray import bitarray
+from common.fragment import Fragment
 from common.utils import bytes_to_str, str_to_bytes
 from common.exceptions import (
     InvalidBlockUUIDError,
@@ -83,6 +84,22 @@ class Block:
         uuid = uuid4()
         data = urandom(size)
         return Block(uuid, data)
+
+    def allocate_fragment(self, desired_size: int) -> Fragment | None:
+        """
+        Allocate a fragment from this block. If there is some but not sufficient space, a smaller
+        fragment than the size asked for is returned. If there is no space left, None is returned.
+        """
+        result = self.allocate_data(desired_size)
+        if result is None:
+            return None
+        (start, size, data) = result
+        return Fragment(
+            block=self,
+            start=start,
+            size=size,
+            data=data,
+        )
 
     def allocate_data(
         self, desired_size: int

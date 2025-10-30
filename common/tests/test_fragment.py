@@ -42,43 +42,6 @@ def test_fragment_init():
     )
 
 
-def test_allocate_full():
-    """
-    Allocate a fragment. Requested allocation is fully available.
-    """
-    block = _create_test_block(100)
-    fragment = Fragment.allocate(block, 10)
-    assert fragment.block == block
-    assert fragment.start == 0
-    assert fragment.size == 10
-    assert fragment.data == bytes.fromhex("00010203040506070809")
-
-
-def test_allocate_partial():
-    """
-    Allocate a fragment. Requested allocation is partially available.
-    """
-    block = _create_test_block(5)
-    fragment = Fragment.allocate(block, 10)
-    assert fragment.block == block
-    assert fragment.start == 0
-    assert fragment.size == 5
-    assert fragment.data == bytes.fromhex("0001020304")
-
-
-def test_allocate_none():
-    """
-    Allocate a fragment. No allocation is available.
-    """
-    block = _create_test_block(5)
-    fragment = Fragment.allocate(block, 5)
-    assert fragment.block == block
-    assert fragment.start == 0
-    assert fragment.size == 5
-    assert fragment.data == bytes.fromhex("0001020304")
-    assert Fragment.allocate(block, 5) is None
-
-
 def test_give_back_success():
     """
     Give a fragment back to the block.
@@ -88,7 +51,7 @@ def test_give_back_success():
     assert block.nr_used_bytes == 0
     # Allocate 5 bytes for fragment A
     assert block._data == bytes.fromhex("000102030405060708090a0b0c0d0e0f")
-    fragment_a = Fragment.allocate(block, 5)
+    fragment_a = block.allocate_fragment(5)
     assert fragment_a.block == block
     assert fragment_a.start == 0
     assert fragment_a.size == 5
@@ -96,7 +59,7 @@ def test_give_back_success():
     assert block.nr_used_bytes == 5
     assert block._data == bytes.fromhex("000000000005060708090a0b0c0d0e0f")
     # Allocate 3 bytes for fragment B
-    fragment_b = Fragment.allocate(block, 3)
+    fragment_b = block.allocate_fragment(3)
     assert fragment_b.block == block
     assert fragment_b.start == 5
     assert fragment_b.size == 3
@@ -115,7 +78,7 @@ def test_fragment_to_mgmt():
     Get the management status of a fragment.
     """
     block = _create_test_block(5)
-    fragment = Fragment.allocate(block, 5)
+    fragment = block.allocate_fragment(5)
     fragment_mgmt = fragment.to_mgmt()
     assert fragment_mgmt == {
         "block_uuid": str(block.uuid),
@@ -130,7 +93,7 @@ def test_to_api():
     Create an APIFragment for a Fragment.
     """
     block = _create_test_block(10)
-    fragment = Fragment.allocate(block, 5)
+    fragment = block.allocate_fragment(5)
     api_fragment = fragment.to_api()
     assert api_fragment.block_uuid == str(block.uuid)
     assert api_fragment.start == 0
@@ -175,7 +138,7 @@ def test_to_enc_str():
     Create an APIFragment for an encoded string.
     """
     block = _create_test_block(10)
-    fragment = Fragment.allocate(block, 5)
+    fragment = block.allocate_fragment(5)
     enc_str = fragment.to_enc_str()
     assert enc_str == f"{block.uuid}:0:5"
 
