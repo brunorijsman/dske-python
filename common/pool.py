@@ -103,7 +103,7 @@ class Pool:
                     fragments.append(fragment)
                     remaining_size -= fragment.size
                 if remaining_size == 0:
-                    # We have allocated the full desired size; don't need to look at any more blocks.
+                    # We have allocated the full desired size; no need to look at any more blocks.
                     break
             assert (
                 remaining_size == 0
