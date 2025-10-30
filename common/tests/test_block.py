@@ -14,9 +14,6 @@ from common.exceptions import (
 )
 
 
-# pylint: disable=missing-function-docstring
-
-
 def _bytes_test_pattern(size):
     return bytes([i % 255 for i in range(size)])
 
@@ -29,6 +26,9 @@ def _create_test_block(size):
 
 
 def test_block_init():
+    """
+    Initialize a block.
+    """
     size = 1000
     uuid = uuid4()
     data = _bytes_test_pattern(size)
@@ -45,6 +45,9 @@ def test_block_properties():
 
 
 def test_block_to_mgmt():
+    """
+    Get the management status.
+    """
     size = 20
     uuid = uuid4()
     data = _bytes_test_pattern(size)
@@ -60,6 +63,9 @@ def test_block_to_mgmt():
 
 
 def test_create_random_block():
+    """
+    Create a block with random data.
+    """
     size = 100
     _block = Block.new_with_random_data(size)
 
@@ -214,7 +220,7 @@ def test_return_data():
     assert block._data == bytes.fromhex("00000000000000000009")
     assert block.nr_used_bytes == 9
     # Return the middle 3 bytes
-    block.return_data(3, bytes.fromhex("030405"))
+    block.give_back_data(3, bytes.fromhex("030405"))
     assert block._data == bytes.fromhex("00000003040500000009")
     assert block.nr_used_bytes == 6
 

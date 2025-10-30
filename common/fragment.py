@@ -82,6 +82,14 @@ class Fragment:
             data=data,
         )
 
+    def give_back(self):
+        """
+        Return the fragment to the block it was taken from.
+        """
+        assert self._data is not None, "Attempt to return fragment twice"
+        self._block.give_back_data(self._start, self._data)
+        self._data = None
+
     def to_mgmt(self) -> dict:
         """
         Get the management status.
@@ -92,12 +100,6 @@ class Fragment:
             "size": self._size,
             "data": utils.bytes_to_str(self._data, truncate=True),
         }
-
-    def mark_as_returned_to_block(self):
-        """
-        Mark the fragment as returned to the pool.
-        """
-        self._data = None
 
     def to_api(self) -> APIFragment:
         """

@@ -126,11 +126,11 @@ class Block:
         self._data = self._data[:start] + b"\x00" * size + self._data[end:]
         return data
 
-    def return_data(self, start: int, data: bytes):
+    def give_back_data(self, start: int, data: bytes):
         """
-        Return previously taken data to the block.
+        Give back previously taken data to the block.
         """
-        # Returning data is only used internally; the parameters are decided by the outside world.
+        # Giving back data is only used internally; the parameters are decided by the outside world.
         # Thus, if there is a problem with the parameters it is a bug: we assert rather than raise.
         size = len(data)
         assert size > 0
