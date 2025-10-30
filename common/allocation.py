@@ -45,6 +45,14 @@ class Allocation:
             data += fragment.data
         return data
 
+    def give_back(self) -> None:
+        """
+        Give the allocation back to the pool it was taken from.
+        """
+        for fragment in self._fragments:
+            fragment.give_back()
+        self._fragments = []
+
     def to_mgmt(self) -> dict:
         """
         Get the management status.
@@ -52,14 +60,6 @@ class Allocation:
         return {
             "fragments": [fragment.to_mgmt() for fragment in self._fragments],
         }
-
-    def return_to_pool(self) -> None:
-        """
-        Return the allocation to the pool.
-        """
-        for fragment in self._fragments:
-            fragment.return_to_block()
-        self._fragments = []
 
     @classmethod
     def from_api(

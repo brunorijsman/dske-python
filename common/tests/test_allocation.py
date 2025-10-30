@@ -2,32 +2,42 @@
 Unit tests for the Allocation class.
 """
 
-from uuid import uuid4
 from common.allocation import Allocation
-from common.block import Block
 from common.fragment import Fragment
+from .unit_test_common import create_test_block, create_test_pool_and_blocks
 
 
-def _bytes_test_pattern(size):
-    return bytes([i % 255 for i in range(size)])
-
-
-def _create_test_block(size):
-    uuid = uuid4()
-    data = _bytes_test_pattern(size)
-    block = Block(uuid, data)
-    return block
-
-
-def test_init():
+def test_init_and_properties():
     """
     Initialize an allocation.
     """
-    block = _create_test_block(100)
+    block = create_test_block(100)
     fragment = Fragment(
         block=block,
         start=0,
         size=10,
         data=bytes.fromhex("00010203040506070809"),
     )
-    _allocation = Allocation(fragments=[fragment])
+    allocation = Allocation(fragments=[fragment])
+    assert allocation.fragments == [fragment]
+    assert allocation.data == bytes.fromhex("00010203040506070809")
+
+
+def test_give_back():
+    """
+    Give back an allocation.
+    """
+    # pylint: disable=protected-access
+    pool, blocks = create_test_pool_and_blocks([10, 6])
+    assert blocks[0]._data == bytes.fromhex("00010203040506070809")
+    assert blocks[1]._data == bytes.fromhex("000102030405")
+    allocation = pool.allocate(5, purpose="test")
+    assert allocation is not None
+    assert allocation.data == bytes.fromhex("0001020304")
+    assert pool.nr_used_bytes == 5
+    assert blocks[0]._data == bytes.fromhex("00000000000506070809")
+    assert blocks[1]._data == bytes.fromhex("000102030405")
+    allocation.give_back()
+    assert pool.nr_used_bytes == 0
+    assert blocks[0]._data == bytes.fromhex("00010203040506070809")
+    assert blocks[1]._data == bytes.fromhex("000102030405")

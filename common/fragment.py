@@ -68,7 +68,7 @@ class Fragment:
 
     def give_back(self):
         """
-        Return the fragment to the block it was taken from.
+        Give the fragment back to the block it was taken from.
         """
         assert self._data is not None, "Attempt to return fragment twice"
         self._block.give_back_data(self._start, self._data)

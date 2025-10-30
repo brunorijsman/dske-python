@@ -12,17 +12,7 @@ from common.exceptions import (
     InvalidPSRDIndex,
     PSRDDataAlreadyUsedError,
 )
-
-
-def _bytes_test_pattern(size):
-    return bytes([i % 255 for i in range(size)])
-
-
-def _create_test_block(size):
-    uuid = uuid4()
-    data = _bytes_test_pattern(size)
-    block = Block(uuid, data)
-    return block
+from .unit_test_common import bytes_test_pattern, create_test_block
 
 
 def test_init():
@@ -31,7 +21,7 @@ def test_init():
     """
     size = 1000
     uuid = uuid4()
-    data = _bytes_test_pattern(size)
+    data = bytes_test_pattern(size)
     _block = Block(uuid, data)
 
 
@@ -41,7 +31,7 @@ def test_properties():
     """
     size = 1000
     uuid = uuid4()
-    data = _bytes_test_pattern(size)
+    data = bytes_test_pattern(size)
     block = Block(uuid, data)
     assert block.uuid == uuid
     assert block.size == size
@@ -55,7 +45,7 @@ def test_to_mgmt():
     """
     size = 20
     uuid = uuid4()
-    data = _bytes_test_pattern(size)
+    data = bytes_test_pattern(size)
     block = Block(uuid, data)
     block_mgmt = block.to_mgmt()
     assert block_mgmt == {
@@ -79,7 +69,7 @@ def test_allocate_data_full():
     """
     Allocate data from block: full requested allocation is fully available.
     """
-    block = _create_test_block(100)
+    block = create_test_block(100)
     (start, size, data) = block.allocate_data(10)
     assert start == 0
     assert size == 10
@@ -90,7 +80,7 @@ def test_allocate_data_partial():
     """
     Allocate data from block: full requested allocation is partially available.
     """
-    block = _create_test_block(9)
+    block = create_test_block(9)
     (start, size, data) = block.allocate_data(90)
     assert start == 0
     assert size == 9
@@ -102,7 +92,7 @@ def test_allocate_data_bytes_zeroed():
     Allocate data from block: bytes in the block are zeroed after allocation.
     """
     # pylint: disable=protected-access
-    block = _create_test_block(5)
+    block = create_test_block(5)
     assert block._data == bytes.fromhex("0001020304")
     (start, size, data) = block.allocate_data(3)
     assert start == 0
@@ -116,7 +106,7 @@ def test_allocate_data_full_full():
     Allocate data twice from a block: first requested allocation is fully available, second
     requested allocation is also fully available.
     """
-    block = _create_test_block(100)
+    block = create_test_block(100)
     (start, size, data) = block.allocate_data(10)
     assert start == 0
     assert size == 10
@@ -132,7 +122,7 @@ def test_allocate_data_full_partial():
     Allocate data twice from a block: first requested allocation is fully available, second
     requested allocation is also fully available.
     """
-    block = _create_test_block(12)
+    block = create_test_block(12)
     (start, size, data) = block.allocate_data(10)
     assert start == 0
     assert size == 10
@@ -148,7 +138,7 @@ def test_allocate_data_full_none():
     Allocate data twice from a block: first requested allocation is fully available, second
     requested allocation is also fully available.
     """
-    block = _create_test_block(10)
+    block = create_test_block(10)
     (start, size, data) = block.allocate_data(10)
     assert start == 0
     assert size == 10
@@ -160,7 +150,7 @@ def test_take_data_all_free():
     """
     Take data from block: all requested data is free.
     """
-    block = _create_test_block(10)
+    block = create_test_block(10)
     data = block.take_data(2, 5)
     assert data == bytes.fromhex("0203040506")
     assert block.nr_unused_bytes == 5
@@ -170,7 +160,7 @@ def test_take_data_invalid_start_index():
     """
     Take data from block: invalid start index.
     """
-    block = _create_test_block(10)
+    block = create_test_block(10)
     with pytest.raises(InvalidPSRDIndex):
         _data = block.take_data(-1, 5)
     with pytest.raises(InvalidPSRDIndex):
@@ -181,7 +171,7 @@ def test_take_data_already_in_use():
     """
     Take data from block: already in use.
     """
-    block = _create_test_block(10)
+    block = create_test_block(10)
     (start, size, data) = block.allocate_data(5)
     assert start == 0
     assert size == 5
@@ -200,7 +190,7 @@ def test_return_data():
     """
     # pylint: disable=protected-access
     # Create a block
-    block = _create_test_block(10)
+    block = create_test_block(10)
     assert block._data == bytes.fromhex("00010203040506070809")
     assert block.nr_used_bytes == 0
     # Allocate 3 bytes
@@ -234,7 +224,7 @@ def test_allocate_fragment_full():
     """
     Allocate a fragment. Requested allocation is fully available.
     """
-    block = _create_test_block(100)
+    block = create_test_block(100)
     fragment = block.allocate_fragment(10)
     assert fragment.block == block
     assert fragment.start == 0
@@ -246,7 +236,7 @@ def test_allocate_fragment_partial():
     """
     Allocate a fragment. Requested allocation is partially available.
     """
-    block = _create_test_block(5)
+    block = create_test_block(5)
     fragment = block.allocate_fragment(10)
     assert fragment.block == block
     assert fragment.start == 0
@@ -258,7 +248,7 @@ def test_allocate_fragment_none():
     """
     Allocate a fragment. No allocation is available.
     """
-    block = _create_test_block(5)
+    block = create_test_block(5)
     fragment = block.allocate_fragment(5)
     assert fragment.block == block
     assert fragment.start == 0
@@ -271,7 +261,7 @@ def test_is_fully_used():
     """
     Check if all bytes in the block have been used.
     """
-    block = _create_test_block(10)
+    block = create_test_block(10)
     assert not block.is_fully_used()
     (start, size, data) = block.allocate_data(10)
     assert start == 0
@@ -284,10 +274,10 @@ def test_to_api():
     """
     Create an APIBlock for a Block.
     """
-    block = _create_test_block(10)
+    block = create_test_block(10)
     api_block = block.to_api()
     assert api_block.block_uuid == str(block.uuid)
-    assert api_block.data == bytes_to_str(_bytes_test_pattern(10))
+    assert api_block.data == bytes_to_str(bytes_test_pattern(10))
 
 
 def test_from_api_success():
@@ -295,7 +285,7 @@ def test_from_api_success():
     Create a Block from a valid APIBlock.
     """
     uuid = uuid4()
-    data = _bytes_test_pattern(10)
+    data = bytes_test_pattern(10)
     api_block = APIBlock(block_uuid=str(uuid), data=bytes_to_str(data))
     block = Block.from_api(api_block)
     assert block.uuid == uuid
@@ -306,7 +296,7 @@ def test_from_api_bad_uuid():
     """
     Attempt to create a Block from a bad APIBlock (invalid block UUID).
     """
-    data = _bytes_test_pattern(10)
+    data = bytes_test_pattern(10)
     api_block = APIBlock(block_uuid="bad-uuid", data=bytes_to_str(data))
     with pytest.raises(InvalidBlockUUIDError):
         _block = Block.from_api(api_block)
