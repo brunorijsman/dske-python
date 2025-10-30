@@ -61,6 +61,14 @@ class Allocation:
             "fragments": [fragment.to_mgmt() for fragment in self._fragments],
         }
 
+    def to_api(self) -> APIAllocation:
+        """
+        Create an APIAllocation from an Allocation.
+        """
+        return APIAllocation(
+            fragments=[fragment.to_api() for fragment in self._fragments]
+        )
+
     @classmethod
     def from_api(
         cls,
@@ -80,6 +88,13 @@ class Allocation:
                 fragment.return_to_block()
             raise exc
         return Allocation(fragments=fragments)
+
+    def to_enc_str(self) -> str:
+        """
+        Encode the Allocation as a string that can be used in HTTP headers or URL parameters.
+        The format of the string is a comma-separated list of fragment encoded strings.
+        """
+        return ",".join([fragment.to_enc_str() for fragment in self._fragments])
 
     @classmethod
     def from_enc_str(
@@ -101,18 +116,3 @@ class Allocation:
                 fragment.return_to_block()
             raise exc
         return Allocation(fragments=fragments)
-
-    def to_api(self) -> APIAllocation:
-        """
-        Create an APIAllocation from an Allocation.
-        """
-        return APIAllocation(
-            fragments=[fragment.to_api() for fragment in self._fragments]
-        )
-
-    def to_enc_str(self) -> str:
-        """
-        Encode the Allocation as a string that can be used in HTTP headers or URL parameters.
-        The format of the string is a comma-separated list of fragment encoded strings.
-        """
-        return ",".join([fragment.to_enc_str() for fragment in self._fragments])
