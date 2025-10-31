@@ -4,7 +4,11 @@ Unit tests for the Allocation class.
 
 import pytest
 from common.allocation import Allocation, APIAllocation
-from common.exceptions import InvalidBlockUUIDError, InvalidPSRDIndex
+from common.exceptions import (
+    InvalidBlockUUIDError,
+    InvalidEncodedFragment,
+    InvalidPSRDIndex,
+)
 from common.fragment import APIFragment, Fragment
 from .unit_test_common import create_test_block, create_test_pool_and_blocks
 
@@ -183,3 +187,12 @@ def test_from_enc_str_success_two_fragments():
     assert pool.nr_used_bytes == 13
     assert blocks[0]._data == bytes.fromhex("00000000000000000000")
     assert blocks[1]._data == bytes.fromhex("00000003040506070809")
+
+
+def test_from_enc_str_bad_no_fragments():
+    """
+    Attempt to create an Allocation from a bad encoded string (no fragments).
+    """
+    pool, _blocks = create_test_pool_and_blocks([10])
+    with pytest.raises(InvalidEncodedFragment):
+        _allocation = Allocation.from_enc_str("", pool)
