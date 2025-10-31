@@ -380,4 +380,32 @@ signature, adds the `DSKE-Signature` header, and removes the temporary `DSKE-Sig
 
 ## Share encryption
 
-TODO
+When a client POSTs a key share to a hub, the share is in the POST request:
+
+ * The client allocates an encryption from the local pool for that hub.
+
+ * The client encrypts the key share using that encryption key.
+
+ * The client sends both the encrypted share data and the meta-data of the encryption key to the
+   hub in the POST request.
+
+ * The hub extracts the encryption key meta-data from the received POST request.
+
+ * The hub allocates the encryption key from the remote PSRD pool for that client.
+
+ * The hub decrypts the share data.
+
+When a client GETs a key share from a hub, the share is in the GET response:
+
+* The hub allocates an encryption from the local pool for that client.
+
+ * The hub encrypts the key share using that encryption key.
+
+ * The hub sends both the encrypted share data and the meta-data of the encryption key to the
+   hub in the GET response.
+
+ * The client extracts the encryption key meta-data from the received GET response.
+
+ * The client allocates the encryption key from the remote PSRD pool for that hub.
+
+ * The client decrypts the share data.
