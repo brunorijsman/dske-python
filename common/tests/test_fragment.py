@@ -120,7 +120,7 @@ def test_from_api_bad_block_uuid():
 
 def test_to_enc_str():
     """
-    Create an APIFragment for an encoded string.
+    Create an encoded string from a Fragment.
     """
     block = create_test_block(10)
     fragment = block.allocate_fragment(5)

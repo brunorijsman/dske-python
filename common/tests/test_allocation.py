@@ -127,3 +127,13 @@ def test_from_api_second_fragment_is_bad():
         _allocation = Allocation.from_api(_api_allocation, pool)
     assert pool.nr_used_bytes == 0
     assert blocks[0]._data == bytes.fromhex("00010203040506070809")
+
+
+def test_to_enc_str():
+    """
+    Create an encoded string from an Allocation.
+    """
+    pool, blocks = create_test_pool_and_blocks([5, 10])
+    allocation = pool.allocate(8, purpose="test")
+    enc_str = allocation.to_enc_str()
+    assert enc_str == f"{blocks[0].uuid}:0:5,{blocks[1].uuid}:0:3"
