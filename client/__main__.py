@@ -103,9 +103,7 @@ async def post_mgmt_stop():
     """
     Management: Post stop.
     """
-    # TODO: Can we delete the PID file later, when the process actually terminates?
     utils.delete_pid_file("client", _CLIENT.name)
-    # TODO: Process close listening socket when receive SIGTERM
     os.kill(os.getpid(), signal.SIGTERM)
     return {"result": "Client stopped"}
 
