@@ -114,6 +114,10 @@ def test_from_api_bad_block_uuid():
         _fragment = Fragment.from_api(api_fragment, pool)
 
 
+# TODO: Add test case: start outside of block
+# TODO: Add test case: size too large for block
+
+
 def test_to_enc_str():
     """
     Create an APIFragment for an encoded string.

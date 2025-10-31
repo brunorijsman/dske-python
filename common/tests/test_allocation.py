@@ -2,7 +2,9 @@
 Unit tests for the Allocation class.
 """
 
+import pytest
 from common.allocation import Allocation, APIAllocation
+from common.exceptions import InvalidBlockUUIDError
 from common.fragment import APIFragment, Fragment
 from .unit_test_common import create_test_block, create_test_pool_and_blocks
 
@@ -96,3 +98,15 @@ def test_from_api_success():
     assert fragment.start == 0
     assert fragment.size == 5
     assert fragment.data == bytes.fromhex("0001020304")
+
+
+def test_from_api_bad_fragment():
+    """
+    Attempt to create an Allocation from a valid APIAllocation: one of the fragments has an invalid
+    block UUID.
+    """
+    pool, _blocks = create_test_pool_and_blocks([10])
+    api_fragment = APIFragment(block_uuid="not-a-uuid", start=0, size=5)
+    _api_allocation = APIAllocation(fragments=[api_fragment])
+    with pytest.raises(InvalidBlockUUIDError):
+        _allocation = Allocation.from_api(_api_allocation, pool)
