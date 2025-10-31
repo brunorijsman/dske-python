@@ -412,7 +412,7 @@ When a client GETs a key share from a hub, the share is in the GET response:
 
  ## Future enhancements
 
-In this section we list some potential future enhancements to the DSKE protocol.
+In this section we list some potential future enhancements.
 
 ### Clients register with a subset of the hubs
 
