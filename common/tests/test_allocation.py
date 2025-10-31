@@ -145,6 +145,26 @@ def test_from_enc_str_success_one_fragment():
     """
     # pylint: disable=protected-access
     pool, blocks = create_test_pool_and_blocks([10, 10])
+    fragment_enc_str = f"{blocks[0].uuid}:0:5"
+    allocation_enc_str = f"{fragment_enc_str}"
+    allocation = Allocation.from_enc_str(allocation_enc_str, pool)
+    assert len(allocation.fragments) == 1
+    fragment = allocation.fragments[0]
+    assert fragment.block == blocks[0]
+    assert fragment.start == 0
+    assert fragment.size == 5
+    assert fragment.data == bytes.fromhex("0001020304")
+    assert pool.nr_used_bytes == 5
+    assert blocks[0]._data == bytes.fromhex("00000000000506070809")
+    assert blocks[1]._data == bytes.fromhex("00010203040506070809")
+
+
+def test_from_enc_str_success_two_fragments():
+    """
+    Create an allocation from a valid encoded string with two fragment.
+    """
+    # pylint: disable=protected-access
+    pool, blocks = create_test_pool_and_blocks([10, 10])
     fragment_1_enc_str = f"{blocks[0].uuid}:0:10"
     fragment_2_enc_str = f"{blocks[1].uuid}:0:3"
     allocation_enc_str = f"{fragment_1_enc_str},{fragment_2_enc_str}"
