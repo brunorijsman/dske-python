@@ -4,7 +4,7 @@ Unit tests for the Allocation class.
 
 import pytest
 from common.allocation import Allocation, APIAllocation
-from common.exceptions import InvalidBlockUUIDError
+from common.exceptions import InvalidBlockUUIDError, InvalidPSRDIndex
 from common.fragment import APIFragment, Fragment
 from .unit_test_common import create_test_block, create_test_pool_and_blocks
 
@@ -102,7 +102,7 @@ def test_from_api_success():
 
 def test_from_api_bad_fragment():
     """
-    Attempt to create an Allocation from a valid APIAllocation: one of the fragments has an invalid
+    Attempt to create an Allocation from a bad APIAllocation: one of the fragments has an invalid
     block UUID.
     """
     pool, _blocks = create_test_pool_and_blocks([10])
@@ -110,3 +110,20 @@ def test_from_api_bad_fragment():
     _api_allocation = APIAllocation(fragments=[api_fragment])
     with pytest.raises(InvalidBlockUUIDError):
         _allocation = Allocation.from_api(_api_allocation, pool)
+
+
+def test_from_api_second_fragment_is_bad():
+    """
+    Attempt to create an Allocation from bad APIAllocations. The first APIFragment is valid. The
+    second has an invalid block size. Make sure the first fragment is properly given back to the
+    pool (all-or-nothing behavior).
+    """
+    # pylint: disable=protected-access
+    pool, blocks = create_test_pool_and_blocks([10])
+    api_fragment_1 = APIFragment(block_uuid=str(blocks[0].uuid), start=0, size=5)
+    api_fragment_2 = APIFragment(block_uuid=str(blocks[0].uuid), start=5, size=99999)
+    _api_allocation = APIAllocation(fragments=[api_fragment_1, api_fragment_2])
+    with pytest.raises(InvalidPSRDIndex):
+        _allocation = Allocation.from_api(_api_allocation, pool)
+    assert pool.nr_used_bytes == 0
+    assert blocks[0]._data == bytes.fromhex("00010203040506070809")

@@ -85,7 +85,7 @@ class Allocation:
                 fragments.append(fragment)
         except Exception as exc:
             for fragment in fragments:
-                fragment.return_to_block()
+                fragment.give_back()
             raise exc
         return Allocation(fragments=fragments)
 
