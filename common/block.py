@@ -153,7 +153,7 @@ class Block:
             raise PSRDDataAlreadyUsedError(self._block_uuid, start, size)
         self._used[start:end] = True
         data = self._data[start:end]
-        # Zero out allocated bytes in block
+        # Zero out taken bytes in block
         self._data = self._data[:start] + b"\x00" * size + self._data[end:]
         return data
 
