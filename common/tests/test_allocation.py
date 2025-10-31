@@ -137,3 +137,29 @@ def test_to_enc_str():
     allocation = pool.allocate(8, purpose="test")
     enc_str = allocation.to_enc_str()
     assert enc_str == f"{blocks[0].uuid}:0:5,{blocks[1].uuid}:0:3"
+
+
+def test_from_enc_str_success_one_fragment():
+    """
+    Create an allocation from a valid encoded string with one fragment.
+    """
+    # pylint: disable=protected-access
+    pool, blocks = create_test_pool_and_blocks([10, 10])
+    fragment_1_enc_str = f"{blocks[0].uuid}:0:10"
+    fragment_2_enc_str = f"{blocks[1].uuid}:0:3"
+    allocation_enc_str = f"{fragment_1_enc_str},{fragment_2_enc_str}"
+    allocation = Allocation.from_enc_str(allocation_enc_str, pool)
+    assert len(allocation.fragments) == 2
+    fragment_1 = allocation.fragments[0]
+    fragment_2 = allocation.fragments[1]
+    assert fragment_1.block == blocks[0]
+    assert fragment_1.start == 0
+    assert fragment_1.size == 10
+    assert fragment_1.data == bytes.fromhex("00010203040506070809")
+    assert fragment_2.block == blocks[1]
+    assert fragment_2.start == 0
+    assert fragment_2.size == 3
+    assert fragment_2.data == bytes.fromhex("000102")
+    assert pool.nr_used_bytes == 13
+    assert blocks[0]._data == bytes.fromhex("00000000000000000000")
+    assert blocks[1]._data == bytes.fromhex("00000003040506070809")
