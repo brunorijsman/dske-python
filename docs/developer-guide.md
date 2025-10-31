@@ -273,43 +273,70 @@ The sender of an HTTP message signs outgoing HTTP messages as follows:
  * Compute a SHA256 hash over the concatenation of the allocated signing key and the content of
    the signed HTTP message and the parameters of the request. This hash is used as the signature.
 
- * Convey the base64 encoded signature in the HTTP header `DSKE-Signature`.
-
- * Convey the meta-data of the signing key in the HTTP header `DSKE-Signing-Key`.
+ * Convey both the meta-data of the signing key and also the base64 encoded signature in the
+   HTTP header `DSKE-Signature`.
+   Below, we explain how all of this information is encoded in an HTTP header string.
    This allows the receiver to allocate the same signing key from the Pre-Shared Random Data
    to verify the signature.
-   The encoding of the signing key meta data into an HTTP header is described below.
 
 The received of an HTTP message verifies the signature on incoming HTTP messages as follows:
 
- * Extract the meta-data of the signing key from received HTTP header `DSKE-Signing-Key`.
+ * Extract the meta-data of the signing key as well as the signature from received HTTP
+   header `DSKE-Signature`.
 
- * Use this meta data to take the signing key value from the pool of Pre-Shared Random Data.
+ * Use the meta data to take the signing key value from the pool of Pre-Shared Random Data.
 
  * Compute a SHA256 hash over the concatenation of the allocated signing key and the content of
    the signed HTTP message and the parameters of the request.
    This hash is the locally computed signature.
 
- * Compare the locally computed signature with the signature received in the HTTP header
-   `DSKE-Signature`. If they match, the signature is correct.
+ * Compare the locally computed signature with the received signature.
+   If they match, the signature is correct.
 
  * If the signatures do not match, the locally allocated signing key is given back to the pool.
    This is to prevent Denial-of-Service attacks from an attacker guessing singing keys.
 
-The meta-data of the signing key is encoded into the `DSKE-Signing-Key` header as follows:
+The meta-data of the signing key is encoded into the `DSKE-Signature` header as follows:
 
- * One or more encoded fragment meta-data strings, separated by commas.
+ * The meta-data of the singing key, followed by a semi-colon (;), followed by the signature
+   encoded using base64 encoding.
+
+ * The meta-data of the signing key is encoded as one or more encoded fragment meta-data strings,
+   separated by commas.
 
  * Each fragment meta-data string is encoded as the block UUID, the start byte within the block,
    and the size of the fragment, separated by colons.
 
  * Note that the key data (fragment data) is not encoded into the meta-data.
 
-Example of an encoded signing key meta-data (consisting of two fragments, one fragment
-of 20 bytes, and another fragment of a different block of 12 bytes):
+Example of an encoded signature:
+
+```
+9ad7f620-5a0c-4979-8a2d-66142e06fd79:0:20,cda527e9-5ca7-40d6-a842-0b606597611c:0:12;V12fwNZiooqE1x0beAdQ4fo2YXnOCTPbUgqG38eUQc4=
+```
+
+The part after the semi-colon is the base64-encoded signature:
+
+```
+V12fwNZiooqE1x0beAdQ4fo2YXnOCTPbUgqG38eUQc4=
+```
+
+The part before the semi-colon is the sequence of two fragments:
 
 ```
 9ad7f620-5a0c-4979-8a2d-66142e06fd79:0:20,cda527e9-5ca7-40d6-a842-0b606597611c:0:12
+```
+
+The first fragment is bytes 0 through 19 of block 9ad7f620-5a0c-4979-8a2d-66142e06fd79:
+
+```
+9ad7f620-5a0c-4979-8a2d-66142e06fd79:0:20
+```
+
+And the second fragment is bytes 0 through 11 of block cda527e9-5ca7-40d6-a842-0b606597611c:
+
+```
+cda527e9-5ca7-40d6-a842-0b606597611c:0:12
 ```
 
 The signatures have to be computed over the body of the HTTP message, exactly as it is encoded
@@ -343,6 +370,13 @@ On the hub (server, FastAPI) side, we use the
 We register the `dske_authentication` function as a middleware for HTTP.
 This gives us access to the body in a request before decoding and the body in a response
 before encoding.
+
+However, when we are in the middleware code, it is too late to allocate
+a signing key from the PSRD pool. For this reason, the signing key is allocated in the main
+application logic code and passed to the middleware using a temporary HTTP header
+`DSKE-Signing-Key`. 
+The middleware extracts the signing key from the temporary header, uses it to compute the 
+signature, adds the `DSKE-Signature` header, and removes the temporary `DSKE-Signing-Key` header.
 
 ## Share encryption
 
