@@ -190,37 +190,7 @@ The `Block` class has the following attributes:
 | block_uuid | UUID | Uniquely identifies the block. |
 | size | int | Size of the block in bytes. |
 | data | bytes | The bytes in the block. |
-| allocated | bitarray | A bit for each byte in the block to indicate whether the byte is allocated. |
-| consumed | bitarray | A bit for each byte in the block to indicate whether the byte is consumed. |
-
-The state of each byte in the block is described by the following Finite State Machine (FSM):
-
-![Block Finite State Machine (FSM)](figures/block-fsm.png)
-
-When the block is created, each byte is unallocated.
-
-A node can have multiple blocks, organized into pools.
-A pool is represented by the `Pool` class.
-
-A node may need to allocate some bytes from a pool for the purpose of allocating an encryption
-key to encrypt an outgoing message to a signing key to sign an outgoing message.
-Such an allocation of bytes is represented by the `Allocation` class.
-
-When allocation is created, one or more blocks are selected to allocate the bytes from.
-A contiguous sequence of bytes within a block that is assigned to an allocation is called
-a fragment and represented by the `Fragment` class.
-An allocation may span multiple blocks and hence consist of multiple fragments.
-
-Allocating bytes from a block is a two step process.
-
-First the bytes are _allocated_ which means that they are assigned to an allocation.
-
-Then the allocated bytes are _consumed_ which means that the allocated bytes are taken out of
-the block and erased in the block.
-
-A byte which has been allocated but not yet consumed can be deallocated.
-
-TODO: CONTINUE FROM HERE
+| used | bitarray | A bit for each byte in the block to indicate whether the byte is used (allocated). |
 
 ### Class `Fragment`
 

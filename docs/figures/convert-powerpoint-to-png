@@ -28,5 +28,4 @@ mv figures-7.png trusted-relay-node.png
 mv figures-8.png message-signing.png
 mv figures-9.png ladder-diagram-startup.png
 mv figures-10.png ladder-diagram-get-key.png
-mv figures-11.png block-fsm.png
-mv figures-12.png psrd-management-classes.png
+mv figures-11.png psrd-management-classes.png
