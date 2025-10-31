@@ -196,3 +196,20 @@ def test_from_enc_str_bad_no_fragments():
     pool, _blocks = create_test_pool_and_blocks([10])
     with pytest.raises(InvalidEncodedFragment):
         _allocation = Allocation.from_enc_str("", pool)
+
+
+def test_from_enc_str_bad_fragment():
+    """
+    Attempt to create an Allocation from a bad APIAllocation: one of the fragments has an invalid
+    block UUID.
+    """
+    pool, blocks = create_test_pool_and_blocks([10])
+    # Bad block UUID
+    with pytest.raises(InvalidBlockUUIDError):
+        _allocation = Allocation.from_enc_str(f"not-a-uuid:0:5", pool)
+    # Bad start index
+    with pytest.raises(InvalidPSRDIndex):
+        _allocation = Allocation.from_enc_str(f"{blocks[0].uuid}:20:5", pool)
+    # Bad size
+    with pytest.raises(InvalidPSRDIndex):
+        _allocation = Allocation.from_enc_str(f"{blocks[0].uuid}:3:99999", pool)
