@@ -192,6 +192,23 @@ The `Block` class has the following attributes:
 | data | bytes | The bytes in the block. |
 | used | bitarray | A bit for each byte in the block to indicate whether the byte is used (allocated). |
 
+### Class `Pool` ###
+
+The class `Pool` represents a pool of Pre-Shared Random Data (PSRD) from which the DSKE code
+make do allocations (see class `Allocation` below).
+Once data is allocated, it is zeroed out in the `Pool`.
+Each pool has an owner (local or remote); the concept of pool ownership is explained below.
+The pools implemented as a sequence of PSRD blocks (`Block` objects).
+
+The `Pool` class has the following attributes:
+
+| Attribute | Type | Purpose |
+|-|-|-|
+| name | str | The name of the pool (for debugging purposes). |
+| blocks | List[Block] | A list of blocks in the pool. |
+| owner | local or remote | The owner of the pool (explained below). |
+
+
 ### Class `Fragment`
 
 The class `Fragment` represents a contiguous sequence of bytes within a block that have been
@@ -202,12 +219,25 @@ The `Fragment` class has the following attributes:
 | Attribute | Type | Purpose |
 |-|-|-|
 | block | Block | A reference to the block from which the fragment was allocated. |
-| start_byte | int | The index of the byte within the block for the first byte in the fragment. |
+| start | int | The index of the byte within the block for the first byte in the fragment. |
 | size | int | The number of bytes in the fragment. |
-| value | bytes | A copy of the bytes in the block that have been allocated to the fragment. |
-| consumed | bool | True if the bytes in the fragment has been consumed. False if the bytes in the fragment have only been allocated and not yet consumed. |
+| data | bytes | A copy of the bytes in the block that have been allocated to the fragment. |
 
-The relationship between a block and its fragments in shown in the following figure:
+### Class `Allocation` ###
+
+The class `Allocation` represents an allocation of bytes from a PSRD pool (`Pool` object).
+It is implemented as a sequence of fragments (`Fragment` objects).
+This is needed because the number of bytes that need to be allocated may not be available
+as a contiguous sequence of unused (non-allocated) bytes in any block in the pool.
+In that case, the allocation algorithm gathers the needed number of bytes using multiple
+fragments, each fragment representing a contiguous sequence of bytes.
+
+the `Allocation` class has the following attributes:
+
+| Attribute | Type | Purpose |
+|-|-|-|
+| fragments | List[Fragment] | The list of fragments that the allocation is composed of. |
+
 
 ### The concept of block ownership
 
