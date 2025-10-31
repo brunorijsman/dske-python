@@ -3,7 +3,7 @@ Unit tests for the Allocation class.
 """
 
 from common.allocation import Allocation
-from common.fragment import Fragment
+from common.fragment import APIFragment, Fragment
 from common.utils import bytes_to_str
 from .unit_test_common import create_test_block, create_test_pool_and_blocks
 
@@ -67,3 +67,16 @@ def test_to_mgmt():
             },
         ],
     }
+
+
+def test_to_api():
+    """
+    Create an APIAllocation for an Allocation.
+    """
+    pool, blocks = create_test_pool_and_blocks([5, 10])
+    allocation = pool.allocate(8, purpose="test")
+    api_allocation = allocation.to_api()
+    assert api_allocation.fragments == [
+        APIFragment(block_uuid=str(blocks[0].uuid), start=0, size=5),
+        APIFragment(block_uuid=str(blocks[1].uuid), start=0, size=3),
+    ]
