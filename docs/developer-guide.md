@@ -409,3 +409,59 @@ When a client GETs a key share from a hub, the share is in the GET response:
  * The client allocates the encryption key from the remote PSRD pool for that hub.
 
  * The client decrypts the share data.
+
+ ## Future enhancements
+
+In this section we list some potential future enhancements to the DSKE protocol.
+
+### Clients register with a subset of the hubs
+
+In our current implementation and also in the IETF draft, it is required that the client registers
+itself with _all_ of the hubs in the network when the client is onboarded.
+As the network grows and the number of hubs becomes very large and dynamic, this may become a
+problem.
+In the future, it would be useful to enhance the protocol so that a client can register itself with
+only a subset of the hubs.
+This, however, introduces another challenge:
+when two clients want to establish a key, they have to agree on a set of hubs that they have in
+common that can act as relays.
+Or, alternatively, a mechanism could be introduced to do multi-hop relaying of key shares across
+a series of multiple hubs.
+
+### Add support for key multicast
+
+The current implementation only allows a master SAE (encryptor) to establish a key with a single
+slave SAE (encryptor).
+[ETSI GS QKD 014 V1.1.1 (2019-02)](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf)
+allows a master SAE to establish a key with more than one slave SAE;
+this is referred to as key multicast.
+
+### Full implementation of ETSI GS QKD 014 API
+
+The repository contains a subset implementation of
+[ETSI GS QKD 014 V1.1.1 (2019-02)](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf)
+for the purpose of delivering keys to encryptors.
+Since the purpose of this repository is to provide proof-of-concept for the DSKE protocol and
+not to have a full standards-compliant implementation of ETSI GS QKD 014, many simplifications have
+been made including:
+
+ * The ETSI GS QKD 014 API uses HTTP and not HTTPS; it is neither encrypted nor authenticated.
+
+ * Each KMS (client node) can only have one local SAE (encryptor) and it is assumed that the
+   SAE ID is equal to the client node name.
+
+ * The `GET` method for the `Get key` interface does not support the query parameter `number`.
+   Only one key can be retrieved per API call.
+
+ * The `POST` method for the `Get key` interface is not supported.
+
+ * The `POST` method for the `Get key with key IDs` interface is not supported.
+
+ * Error handling is not as robust as it should be.
+
+ ### Unregistration
+
+ When a client starts, it registers itself with all hubs, using the PUT registration API.
+ Currently, client never unregister.
+ We can add an unregistration mechanism by adding a DELETE registration API and calling it
+ when a client shuts down orderly.
