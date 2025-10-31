@@ -56,6 +56,8 @@ class UserKey:
 
     def split_into_shares(
         self,
+        master_sae_id: str,
+        slave_sae_id: str,
         nr_shares: int,
         min_nr_shares: int,
     ) -> list[Share]:
@@ -74,6 +76,12 @@ class UserKey:
             raise ShamirSplitError(self._key_id, str(exc)) from exc
         shares = []
         for share_index, share_value in share_indexes_and_values:
-            share = Share(self._key_id, share_index, value=share_value)
+            share = Share(
+                master_sae_id,
+                slave_sae_id,
+                self._key_id,
+                share_index,
+                value=share_value,
+            )
             shares.append(share)
         return shares

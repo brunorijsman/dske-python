@@ -212,7 +212,9 @@ class PeerHub:
         pool.add_block(block)
         return True
 
-    async def post_share(self, share: Share) -> None:
+    async def post_share(
+        self, master_sae_id: str, slave_sae_id: str, share: Share
+    ) -> None:
         """
         Post a key share to the peer hub.
         """
@@ -220,7 +222,9 @@ class PeerHub:
             url = f"{self._base_url}/dske/api/v1/key-share"
             encryption_key = EncryptionKey.from_pool(self._local_pool, share.size)
             request = APIPostShareRequest(
-                client_name=self._client.name,
+                master_client_name=self._client.name,
+                master_sae_id=master_sae_id,
+                slave_sae_id=slave_sae_id,
                 user_key_id=str(share.user_key_id),
                 share_index=share.share_index,
                 encryption_key_allocation=encryption_key.allocation.to_api(),
@@ -236,7 +240,9 @@ class PeerHub:
             self.delete_fully_used_blocks()
             self.start_request_psrd_task_if_needed()
 
-    async def get_share(self, key_id: UUID) -> Share:
+    async def get_share(
+        self, master_sae_id: str, slave_sae_id: str, key_id: UUID
+    ) -> Share:
         """
         Get a key share from the peer hub.
         """
@@ -244,6 +250,8 @@ class PeerHub:
             url = f"{self._base_url}/dske/api/v1/key-share"
             params = {
                 "client_name": self._client.name,
+                "master_sae_id": master_sae_id,
+                "slave_sae_id": slave_sae_id,
                 "key_id": str(key_id),
             }
             response = await self._http_client.get(
@@ -259,7 +267,9 @@ class PeerHub:
             encrypted_share_value = str_to_bytes(response.encrypted_share_value)
             share_value = encryption_key.decrypt(encrypted_share_value)
             share = Share(
-                user_key_id=response,
+                master_sae_id=master_sae_id,
+                slave_sae_id=slave_sae_id,
+                user_key_id=response.key_id,
                 share_index=response.share_index,
                 value=share_value,
             )

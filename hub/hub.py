@@ -93,7 +93,7 @@ class Hub:
         """
         Store a key share posted by a client.
         """
-        client_name = api_post_share_request.client_name
+        client_name = api_post_share_request.master_client_name
         if client_name not in self._peer_clients:
             raise exceptions.ClientNotRegisteredError(client_name)
         peer_client = self._peer_clients[client_name]
@@ -106,7 +106,10 @@ class Hub:
             api_post_share_request.encrypted_share_value
         )
         share_value = encryption_key.decrypt(encrypted_share_value)
+        # TODO: Check that master and slave client names match registered client
         share = Share(
+            master_sae_id=api_post_share_request.master_sae_id,
+            slave_sae_id=api_post_share_request.slave_sae_id,
             user_key_id=UUID(api_post_share_request.user_key_id),
             share_index=api_post_share_request.share_index,
             value=share_value,
