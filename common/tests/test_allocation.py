@@ -198,10 +198,10 @@ def test_from_enc_str_bad_no_fragments():
         _allocation = Allocation.from_enc_str("", pool)
 
 
-def test_from_enc_str_bad_fragment():
+def test_from_enc_str_bad_one_fragment():
     """
-    Attempt to create an Allocation from a bad APIAllocation: one of the fragments has an invalid
-    block UUID.
+    Attempt to create an Allocation from a bad encoded string (only one fragment in the string,
+    which is bad)
     """
     # pylint: disable=protected-access
     pool, blocks = create_test_pool_and_blocks([10])
@@ -217,3 +217,20 @@ def test_from_enc_str_bad_fragment():
     # No data taken from pool
     assert pool.nr_used_bytes == 0
     assert blocks[0]._data == bytes.fromhex("00010203040506070809")
+
+
+def test_from_enc_str_bad_two_fragment():
+    """
+    Attempt to create an Allocation from a bad encoded string. There are two fragments in the
+    encoded string; the second is bad. Make sure the first one is give back to the pool.
+    """
+    # pylint: disable=protected-access
+    pool, blocks = create_test_pool_and_blocks([10, 5])
+    fragment_1_enc_str = f"{blocks[0].uuid}:0:5"
+    fragment_2_enc_str = "not-a-uuid:0:5"
+    allocation_enc_str = f"{fragment_1_enc_str},{fragment_2_enc_str}"
+    with pytest.raises(InvalidBlockUUIDError):
+        _allocation = Allocation.from_enc_str(allocation_enc_str, pool)
+    assert pool.nr_used_bytes == 0
+    assert blocks[0]._data == bytes.fromhex("00010203040506070809")
+    assert blocks[1]._data == bytes.fromhex("0001020304")
