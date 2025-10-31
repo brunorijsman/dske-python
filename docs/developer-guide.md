@@ -459,6 +459,8 @@ been made including:
 
  * Error handling is not as robust as it should be.
 
+ * Multicast keys (more than one slave SAE) is not supported.
+
  ### Unregistration
 
  When a client starts, it registers itself with all hubs, using the PUT registration API.
