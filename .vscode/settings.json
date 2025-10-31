@@ -58,6 +58,7 @@
         "Shamir",
         "Shor's",
         "Starlette",
+        "unregistration",
         "urandom",
         "Uvicorn",
         "venv"

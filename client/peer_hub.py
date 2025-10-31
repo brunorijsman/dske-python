@@ -148,12 +148,6 @@ class PeerHub:
         self._registered = True
         return True
 
-    async def unregister(self) -> None:
-        """
-        Unregister this client from the peer hub.
-        """
-        # TODO: Implement this and call it from somewhere
-
     def start_request_psrd_task_if_needed(self) -> None:
         """
         Start request PSRD task(s) if needed.

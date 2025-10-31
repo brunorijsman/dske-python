@@ -47,7 +47,7 @@ async def lifespan(_app: fastapi.FastAPI):
     """
     _CLIENT.start_all_peer_hubs()
     yield
-    # TODO: Unregister (attempt without retry or very limited)
+    # We currently do not have any shutdown actions.
 
 
 _APP = fastapi.FastAPI(lifespan=lifespan)

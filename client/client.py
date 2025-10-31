@@ -124,13 +124,6 @@ class Client:
         for peer_hub in self._peer_hubs:
             peer_hub.start_register_task()
 
-    async def unregister_from_all_peer_hubs(self) -> None:
-        """
-        Unregister from all peer hubs.
-        """
-        for peer_hub in self._peer_hubs:
-            await peer_hub.unregister()
-
     async def scatter_key_amongst_peer_hubs(self, key: UserKey) -> None:
         """
         Split the key into key shares, and send each key share to a peer hub.

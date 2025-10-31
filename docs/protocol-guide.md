@@ -1055,3 +1055,10 @@ been made including:
  * The `POST` method for the `Get key with key IDs` interface is not supported.
 
  * Error handling is not as robust as it should be.
+
+ ### Unregistration
+
+ When a client starts, it registers itself with all hubs, using the PUT registration API.
+ Currently, client never unregister.
+ We can add an unregistration mechanism by adding a DELETE registration API and calling it
+ when a client shuts down orderly.

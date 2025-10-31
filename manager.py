@@ -196,7 +196,7 @@ class Manager:
         """
         Stop all nodes.
         """
-        # Stop the clients first, so that they can cleanly unregister from the hubs.
+        # Stop the clients first, in case we implement unregistration at some point
         for node in self.selected_nodes(reverse_order=True):
             self.stop_node(node)
         self.wait_for_selected_nodes_stopped()

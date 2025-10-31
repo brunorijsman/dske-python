@@ -20,11 +20,6 @@ TODO: Make sure key has unique key UUID
 
 TODO: Key initiator: Select N peer hub (initially: all peer hubs)
 
-TODO: Have client unregister itself from all hubs when it shuts down.
-      The API call should use the DELETE method.
-      Shutting down should not cause the client to unregister itself; make unregistration
-      an explicit option.
-
 TODO: Allow a client to register itself again (after a restart). Done; just need to test.
 
 TODO: Add statistics management API and topology command to query it.
