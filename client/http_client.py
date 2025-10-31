@@ -44,13 +44,13 @@ class HttpClient:
             allocation = Allocation.from_enc_str(
                 received_signature.signing_key_allocation_enc_str, self._peer_pool
             )
-            allocation.mark_allocated()
             signing_key = SigningKey(allocation)
             await response.aread()
             content = response.content
             computed_signature = signing_key.sign([content])
             signature_ok = received_signature.same_as(computed_signature)
             if not signature_ok:
+                # TODO: Give allocation back to pool
                 raise InvalidSignatureError()
 
     def __init__(self, local_pool: Pool, peer_pool: Pool):

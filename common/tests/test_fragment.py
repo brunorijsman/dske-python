@@ -86,7 +86,7 @@ def test_from_api_success():
     Create a Fragment from a valid APIFragment.
     """
     # pylint: disable=protected-access
-    (pool, blocks) = create_test_pool_and_blocks(10)
+    (pool, blocks) = create_test_pool_and_blocks([10])
     api_fragment = APIFragment(block_uuid=str(blocks[0].uuid), start=0, size=5)
     fragment = Fragment.from_api(api_fragment, pool)
     assert fragment.block == blocks[0]
