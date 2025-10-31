@@ -4,6 +4,7 @@ A Pre-Shared Random Data (PSRD) fragment.
 
 from uuid import UUID
 import pydantic
+from common.exceptions import InvalidBlockUUIDError, InvalidEncodedFragment
 from . import utils
 
 
@@ -13,7 +14,7 @@ class APIFragment(pydantic.BaseModel):
     """
 
     block_uuid: str
-    start_byte: int
+    start: int
     size: int
 
 
@@ -23,16 +24,19 @@ class Fragment:
     """
 
     _block: "Block"  # type: ignore
-    _start_byte: int
+    _start: int
     _size: int
-    _consumed: bool
+    _data: bytes | None  # None means the fragment has been returned to the block
 
-    def __init__(self, block, start_byte, size):
+    def __init__(self, block, start, size, data):
+        # Don't call this directly. Instead use one of the following:
+        #   Block.allocate_fragment
+        #   Fragment.from_api
+        #   Fragment.from_enc_str
         self._block = block
-        self._start_byte = start_byte
+        self._start = start
         self._size = size
-        self._value = None
-        self._consumed = False
+        self._data = data
 
     @property
     def block(self):
@@ -42,11 +46,11 @@ class Fragment:
         return self._block
 
     @property
-    def start_byte(self):
+    def start(self):
         """
-        The starting byte of the fragment.
+        The starting byte with the block the fragment was taken from.
         """
-        return self._start_byte
+        return self._start
 
     @property
     def size(self):
@@ -56,11 +60,19 @@ class Fragment:
         return self._size
 
     @property
-    def consumed(self):
+    def data(self):
         """
-        Whether the fragment is consumed.
+        The data in the fragment.
         """
-        return self._consumed
+        return self._data
+
+    def give_back(self):
+        """
+        Give the fragment back to the block it was taken from.
+        """
+        assert self._data is not None, "Attempt to return fragment twice"
+        self._block.give_back_data(self._start, self._data)
+        self._data = None
 
     def to_mgmt(self) -> dict:
         """
@@ -68,68 +80,10 @@ class Fragment:
         """
         return {
             "block_uuid": str(self._block.uuid),
-            "start_byte": self._start_byte,
+            "start": self._start,
             "size": self._size,
-            "value": utils.bytes_to_str(self._value, truncate=True),
-            "consumed": self._consumed,
+            "data": utils.bytes_to_str(self._data, truncate=True),
         }
-
-    def mark_allocated(self):
-        """
-        Mark the fragment as allocated in the block.
-        """
-        self._block.mark_fragment_allocated(self)
-
-    def consume(self) -> bytes:
-        """
-        Consume the PSRD fragment. This requires that the fragment was previously allocated.
-        Since the allocation was successful, consuming the data cannot fail. Once the data has
-        consumed, it cannot be un-consumed.
-        """
-        assert not self._consumed
-        assert self._value is None
-        self._value = self._block.consume_fragment(self)
-        self._consumed = True
-        return self._value
-
-    @classmethod
-    def from_api(
-        cls,
-        api_fragment: APIFragment,
-        pool: "Pool",  # type: ignore
-    ) -> "Fragment":
-        """
-        Create a Fragment from an APIFragment.
-        """
-        block = pool.get_block(UUID(api_fragment.block_uuid))
-        # TODO: Handle the case that the block is not found; currently exception is raised
-        return Fragment(
-            block=block,
-            start_byte=api_fragment.start_byte,
-            size=api_fragment.size,
-        )
-
-    @classmethod
-    def from_enc_str(
-        cls,
-        enc_str: str,
-        pool: "Pool",  # type: ignore
-    ) -> "Fragment":
-        """
-        Create a Fragment from an encoded string as used in an HTTP header or URL parameter.
-        The format of the string is: <block_uuid>:<start_byte>:<size>
-        """
-        parts = enc_str.split(":")
-        if len(parts) != 3:
-            raise ValueError(f"Invalid fragment parameter string: {enc_str}")
-        block_uuid_str, start_byte_str, size_str = parts
-        block = pool.get_block(UUID(block_uuid_str))
-        if block is None:
-            raise ValueError(f"Block not found: {block_uuid_str}")
-        start_byte = int(start_byte_str)
-        size = int(size_str)
-        # TODO: Validate that the size of the fragment is "reasonable"
-        return Fragment(block=block, start_byte=start_byte, size=size)
 
     def to_api(self) -> APIFragment:
         """
@@ -137,8 +91,29 @@ class Fragment:
         """
         return APIFragment(
             block_uuid=str(self._block.uuid),
-            start_byte=self._start_byte,
+            start=self._start,
             size=self._size,
+        )
+
+    @staticmethod
+    def from_api(
+        api_fragment: APIFragment,
+        pool: "Pool",  # type: ignore
+    ) -> "Fragment":
+        """
+        Create a Fragment from an APIFragment.
+        """
+        try:
+            block_uuid = UUID(api_fragment.block_uuid)
+        except ValueError as exc:
+            raise InvalidBlockUUIDError(block_uuid=api_fragment.block_uuid) from exc
+        block = pool.get_block(block_uuid)
+        data = block.take_data(api_fragment.start, api_fragment.size)
+        return Fragment(
+            block=block,
+            start=api_fragment.start,
+            size=api_fragment.size,
+            data=data,
         )
 
     def to_enc_str(self) -> str:
@@ -147,4 +122,34 @@ class Fragment:
         parameters.
         The format of the string is: <block_uuid>:<start_byte>:<size>
         """
-        return f"{self._block.uuid}:{self._start_byte}:{self._size}"
+        return f"{self._block.uuid}:{self._start}:{self._size}"
+
+    @staticmethod
+    def from_enc_str(
+        enc_str: str,
+        pool: "Pool",  # type: ignore
+    ) -> "Fragment":
+        """
+        Create a Fragment from an encoded string as used in an HTTP header or URL parameter.
+        The format of the string is: <block_uuid>:<start_byte>:<size>
+        """
+        # TODO: Add expected_max_size parameter to avoid insane large sizes.
+        parts = enc_str.split(":")
+        if len(parts) != 3:
+            raise InvalidEncodedFragment(encoded_fragment=enc_str)
+        block_uuid_str, start_byte_str, size_str = parts
+        try:
+            block_uuid = UUID(block_uuid_str)
+        except ValueError as exc:
+            raise InvalidBlockUUIDError(block_uuid=block_uuid_str) from exc
+        block = pool.get_block(block_uuid)
+        try:
+            start = int(start_byte_str)
+        except ValueError as exc:
+            raise InvalidEncodedFragment(encoded_fragment=enc_str) from exc
+        try:
+            size = int(size_str)
+        except ValueError as exc:
+            raise InvalidEncodedFragment(encoded_fragment=enc_str) from exc
+        data = block.take_data(start, size)
+        return Fragment(block=block, start=start, size=size, data=data)

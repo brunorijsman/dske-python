@@ -206,26 +206,26 @@ Status for client carol on port 8105
       "local_pool": {
         "blocks": [
           {
-            "uuid": "7b5edbb0-e51d-49b6-9e87-99f684df6180",
-            "size": 1000,
+            "uuid": "a74c4d68-9c84-4d06-85a6-97e1519eb5b3",
+            "size": 2000,
             "data": "AAAAAAAAAAAAAA==...",
-            "allocated": 48,
-            "consumed": 48
+            "nr_used_bytes": 48,
+            "nr_unused_bytes": 1952
           }
         ],
-        "owner": "Owner.LOCAL"
+        "owner": "local"
       },
       "peer_pool": {
         "blocks": [
           {
-            "uuid": "b9654256-403b-470f-abab-c47901a5bb82",
-            "size": 1000,
+            "uuid": "35571355-223a-47ac-a5b1-0d341951e78e",
+            "size": 2000,
             "data": "AAAAAAAAAAAAAA==...",
-            "allocated": 32,
-            "consumed": 32
+            "nr_used_bytes": 32,
+            "nr_unused_bytes": 1968
           }
         ],
-        "owner": "Owner.PEER"
+        "owner": "peer"
       }
     },
     ...
@@ -260,24 +260,46 @@ Your output may look different.
 
 ```
 $ cat client-carol.out
-INFO:     Started server process [63929]
+INFO:     Started server process [2353]
 INFO:     Waiting for application startup.
+INFO:     Begin register task for peer hub None
+INFO:     Begin register task for peer hub None
+INFO:     Begin register task for peer hub None
+INFO:     Begin register task for peer hub None
+INFO:     Begin register task for peer hub None
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8105 (Press CTRL+C to quit)
-INFO:     127.0.0.1:54108 - "POST /client/carol/mgmt/v1/stop HTTP/1.1" 200 OK
+INFO:     Call PUT http://127.0.0.1:8100/hub/hank/dske/oob/v1/registration 200
+INFO:     Call PUT http://127.0.0.1:8101/hub/helen/dske/oob/v1/registration 200
+INFO:     Call PUT http://127.0.0.1:8103/hub/holly/dske/oob/v1/registration 200
+INFO:     Finish register task for peer hub None
+INFO:     Finish register task for peer hub None
+INFO:     Finish register task for peer hub None
+INFO:     Call PUT http://127.0.0.1:8102/hub/hilary/dske/oob/v1/registration 200
+INFO:     Call PUT http://127.0.0.1:8104/hub/hugo/dske/oob/v1/registration 200
+INFO:     Begin request PSRD task for peer hub hank and pool owner local
+INFO:     Begin request PSRD task for peer hub hank and pool owner peer
+INFO:     Begin request PSRD task for peer hub helen and pool owner local
+INFO:     Begin request PSRD task for peer hub helen and pool owner peer
+INFO:     Begin request PSRD task for peer hub holly and pool owner local
+INFO:     Begin request PSRD task for peer hub holly and pool owner peer
+INFO:     Finish register task for peer hub None
+INFO:     Finish register task for peer hub None
+INFO:     Begin request PSRD task for peer hub hilary and pool owner local
+INFO:     Begin request PSRD task for peer hub hilary and pool owner peer
+INFO:     Begin request PSRD task for peer hub hugo and pool owner local
+INFO:     Begin request PSRD task for peer hub hugo and pool owner peer
+INFO:     Call GET http://127.0.0.1:8100/hub/hank/dske/oob/v1/psrd?client_name=carol&pool_owner=client&size=2000 200
+INFO:     Finish request PSRD task for peer hub hank and pool owner local
+INFO:     Call GET http://127.0.0.1:8100/hub/hank/dske/oob/v1/psrd?client_name=carol&pool_owner=hub&size=2000 200
+INFO:     Finish request PSRD task for peer hub hank and pool owner peer
+...
+INFO:     Call POST http://127.0.0.1:8103/hub/holly/dske/api/v1/key-share 200
+INFO:     Call POST http://127.0.0.1:8104/hub/hugo/dske/api/v1/key-share 200
+INFO:     Successfully scattered 5 out of 5 shares for key ID 47487f0d-f164-4ba6-9113-1dfe079f70ac
+INFO:     127.0.0.1:49915 - "GET /client/carol/etsi/api/v1/keys/connie/enc_keys HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49926 - "POST /client/carol/mgmt/v1/stop HTTP/1.1" 200 OK
 INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [63929]
-INFO:     Started server process [73470]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://127.0.0.1:8105 (Press CTRL+C to quit)
-INFO:     127.0.0.1:54466 - "GET /client/carol/etsi/api/v1/keys/connie/enc_keys HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54611 - "GET /client/carol/mgmt/v1/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54625 - "POST /client/carol/mgmt/v1/stop HTTP/1.1" 200 OK
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [73470]
-```
+INFO:     Finished server process [2353]```

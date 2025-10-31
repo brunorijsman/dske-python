@@ -114,7 +114,7 @@ class Hub:
         # TODO: Check if the key UUID is already present, and if so, do something sensible
         self._shares[share.user_key_id] = share
         peer_client.add_dske_signing_key_header_to_response(headers_temp_response)
-        peer_client.delete_fully_consumed_blocks()
+        peer_client.delete_fully_used_blocks()
 
     async def get_share_requested_by_client(
         self,
@@ -145,7 +145,7 @@ class Hub:
             encrypted_share_value=bytes_to_str(encrypted_share_value),
         )
         peer_client.add_dske_signing_key_header_to_response(headers_temp_response)
-        peer_client.delete_fully_consumed_blocks()
+        peer_client.delete_fully_used_blocks()
         return response
 
     def initiate_stop(self):

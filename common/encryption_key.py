@@ -16,7 +16,6 @@ class EncryptionKey:
         Should only be called from class methods from_xxx.
         """
         self._allocation = allocation
-        self._allocation.consume()
 
     @property
     def allocation(self) -> Allocation:
@@ -38,14 +37,13 @@ class EncryptionKey:
         """
         Create an EncryptionKey from an existing allocation that was received from the peer.
         """
-        allocation.mark_allocated()
         return EncryptionKey(allocation)
 
     def encrypt(self, data: bytes) -> bytes:
         """
         Encrypt data and return the encrypted data.
         """
-        encryption_key = self._allocation.value
+        encryption_key = self._allocation.data
         assert len(encryption_key) == len(data)
         encrypted_byte_list = [
             data_byte ^ encryption_key_byte

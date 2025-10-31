@@ -23,7 +23,7 @@ def test_get_status():
     system_test_common.get_status("curtis", "cindy")
 
 
-def test_get_key_pair():
+def test_get_key_pair_simple():
     """
     ETSI QKD Get key on master, ETSI QKD get key with key IDs on slave.
     """

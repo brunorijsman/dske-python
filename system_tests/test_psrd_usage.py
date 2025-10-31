@@ -36,7 +36,7 @@ def _check_client_psrd_consumption(
     for_client_name: str,  # * for all clients
     for_peer_hub_name: str,  # * for all hubs
     for_local_or_peer: str,
-    expected_consumed_lst: List[int],
+    expected_used_lst: List[int],
 ):
     """
     Check the PSRD consumption for a given pool (local or remote) on a given (or all) client(s)
@@ -59,18 +59,18 @@ def _check_client_psrd_consumption(
                             block_statuses = peer_hub_status[f"{local_or_peer}_pool"][
                                 "blocks"
                             ]
-                            assert len(block_statuses) == len(expected_consumed_lst)
-                            for block_status, expected_consumed in zip(
-                                block_statuses, expected_consumed_lst
+                            assert len(block_statuses) == len(expected_used_lst)
+                            for block_status, expected_used in zip(
+                                block_statuses, expected_used_lst
                             ):
-                                assert block_status["consumed"] == expected_consumed
+                                assert block_status["nr_used_bytes"] == expected_used
 
 
 def _check_hub_psrd_consumption(
     for_hub_name: str,  # * for all clients
     for_peer_client_name: str,  # * for all hubs
     for_local_or_peer: str,
-    expected_consumed_lst: List[int],
+    expected_used_lst: List[int],
 ):
     """
     Check the PSRD consumption for a given pool (local or remote) on a given (or all) client(s)
@@ -93,18 +93,18 @@ def _check_hub_psrd_consumption(
                             block_statuses = peer_client_status[
                                 f"{local_or_peer}_pool"
                             ]["blocks"]
-                            assert len(block_statuses) == len(expected_consumed_lst)
-                            for block_status, expected_consumed in zip(
-                                block_statuses, expected_consumed_lst
+                            assert len(block_statuses) == len(expected_used_lst)
+                            for block_status, expected_used in zip(
+                                block_statuses, expected_used_lst
                             ):
-                                assert block_status["consumed"] == expected_consumed
+                                assert block_status["nr_used_bytes"] == expected_used
 
 
 def test_psrd_usage_one_small_key():
     """
     Test PSRD usage when establishing one small key (small enough to fit in one block).
     """
-    # Check no PSRD consumed at start (out-of-band messages are not signed nor encrypted)
+    # Check no PSRD used at start (out-of-band messages are not signed nor encrypted)
     _check_client_psrd_consumption("*", "*", "*", [0])
     _check_hub_psrd_consumption("*", "*", "*", [0])
 
@@ -137,7 +137,7 @@ def test_psrd_usage_two_small_keys():
     Test PSRD usage when establishing two small keys (small enough for both keys to fit in one
     block).
     """
-    # Check no PSRD consumed at start (out-of-band messages are not signed nor encrypted)
+    # Check no PSRD used at start (out-of-band messages are not signed nor encrypted)
     _check_client_psrd_consumption("*", "*", "*", [0])
     _check_hub_psrd_consumption("*", "*", "*", [0])
 
@@ -175,10 +175,10 @@ def test_psrd_usage_refresh():
     Test PSRD usage when establishing one key, large enough to cause the pool size to drop below
     the threshold for requesting more PSRD. To be more precise:
     - Any pool from which both a signing key and an encryption key are allocated requests a new
-      block. The first block will be partly consumed. The second block will have nothing consumed.
+      block. The first block will be partly used. The second block will have nothing used.
     - Any pool from which only a signing key is allocated does not request a new block.
     """
-    # Check no PSRD consumed at start (out-of-band messages are not signed nor encrypted)
+    # Check no PSRD used at start (out-of-band messages are not signed nor encrypted)
     _check_client_psrd_consumption("*", "*", "*", [0])
     _check_hub_psrd_consumption("*", "*", "*", [0])
 

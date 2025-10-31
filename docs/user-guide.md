@@ -328,9 +328,6 @@ In the following example we ask master SAE Carol for a key which is shared with 
 <pre>
  $ <b>./manager.py topology.yaml etsi-qkd carol celia get-key</b>
 Invoke ETSI QKD Get Key API for client carol on port 8105
-master_sae_id='carol' slave_sae_id='celia'
-url='http://127.0.0.1:8105/dske/client/etsi/api/v1/keys/celia/enc_keys'
-response=<Response [200]>
 {
   "keys": {
     "key_ID": "f47f23d7-be01-41d3-a5bc-106b2335e652",
@@ -369,7 +366,6 @@ f47f23d7-be01-41d3-a5bc-106b2335e652 which was established with master SAE Carol
 <pre>
 $ <b>./manager.py topology.yaml etsi-qkd carol celia get-key-with-key-ids f47f23d7-be01-41d3-a5bc-106b2335e652</b>
 Invoke ETSI QKD Get Key with Key IDs API for client celia on port 8105
-slave_client_name='celia' master_sae_id='carol' f47f23d7-be01-41d3-a5bc-106b2335e652
 {
   "keys": [
     {
@@ -401,7 +397,6 @@ In the following example, we ask for a key pair between master SAE Carol and sla
 <pre>
 $ <b>./manager.py topology.yaml etsi-qkd carol celia get-key-pair</b>
 Invoke ETSI QKD Get Key API for client carol on port 8105
-master_sae_id='carol' slave_sae_id='celia'
 {
   "keys": {
     "key_ID": "cc658ffe-8d54-414b-b91f-20b59b03f034",
@@ -409,7 +404,6 @@ master_sae_id='carol' slave_sae_id='celia'
   }
 }
 Invoke ETSI QKD Get Key with Key IDs API for client celia on port 8106
-master_sae_id='carol' slave_sae_id='celia' cc658ffe-8d54-414b-b91f-20b59b03f034
 {
   "keys": [
     {
@@ -442,12 +436,6 @@ master_sae_id='carol' slave_sae_id='celia'
 }
 </pre>
 
-
-Note: The implementation of the ETSI QKD API interface is far from complete.
-The `size` and `number` GET parameters are not yet supported.
-`POST` methods are not yet supported.
-Multicast keys are not yet supported.
-
 ## Report the topology status
 
 Use the manager `status` command to report the status of each node in the topology:
@@ -456,53 +444,36 @@ Use the manager `status` command to report the status of each node in the topolo
 $ <b>./manager.py topology.yaml status</b>
 Status for hub hank on port 8100
 {
-  "hub_name": "hank",
+  "name": "hank",
   "peer_clients": [
     {
       "client_name": "carol",
-      "pool": {
+      "local_pool": {
         "blocks": [
           {
-            "uuid": "14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5",
-            "size": 1000,
+            "uuid": "4cb97ab1-0e3f-4f48-a0d7-90de58e85d53",
+            "size": 2000,
             "data": "AAAAAAAAAAAAAA==...",
-            "allocated": 18,
-            "consumed": 16
+            "nr_used_bytes": 32,
+            "nr_unused_bytes": 1968
           }
-        ]
+        ],
+        "owner": "local"
+      },
+      "peer_pool": {
+        "blocks": [
+          {
+            "uuid": "c142de3a-8464-440f-bbfd-78937481732a",
+            "size": 2000,
+            "data": "AAAAAAAAAAAAAA==...",
+            "nr_used_bytes": 48,
+            "nr_unused_bytes": 1952
+          }
+        ],
+        "owner": "peer"
       }
     },
     ... snip ...
-    {
-      "hub_name": "holly",
-      "registered": true,
-      "psrd_pool": {
-        "blocks": [
-          {
-            "uuid": "67193b56-13fe-4e43-a42c-103097fcdbae",
-            "size": 1000,
-            "data": "hGV7ypmUQBiiBQ==...",
-            "allocated": 0,
-            "consumed": 0
-          }
-        ]
-      }
-    },
-    {
-      "hub_name": "hugo",
-      "registered": true,
-      "psrd_pool": {
-        "blocks": [
-          {
-            "uuid": "64ba8d8f-d26c-498f-854a-123346074072",
-            "size": 1000,
-            "data": "iSZnsqd1CSIEWw==...",
-            "allocated": 0,
-            "consumed": 0
-          }
-        ]
-      }
-    }
   ]
 }
 </pre>
@@ -514,24 +485,37 @@ client or hub node, for example:
 $ <b>./manager.py topology.yaml --client celia status</b>
 Status for client celia on port 8106
 {
-  "client_name": "celia",
+  "name": "celia",
   "peer_hubs": [
-    ... snip ...
     {
-      "hub_name": "hugo",
+      "hub_name": "hank",
       "registered": true,
-      "psrd_pool": {
+      "local_pool": {
         "blocks": [
           {
-            "uuid": "78a32566-5ee1-4adb-b468-91c12ae4920c",
-            "size": 1000,
+            "uuid": "03478f57-a705-4c9c-940e-58ff5d9b52ea",
+            "size": 2000,
             "data": "AAAAAAAAAAAAAA==...",
-            "allocated": 18,
-            "consumed": 16
+            "nr_used_bytes": 32,
+            "nr_unused_bytes": 1968
           }
-        ]
+        ],
+        "owner": "local"
+      },
+      "peer_pool": {
+        "blocks": [
+          {
+            "uuid": "b7f83d46-c982-41d9-ba35-4965471bb56a",
+            "size": 2000,
+            "data": "AAAAAAAAAAAAAA==...",
+            "nr_used_bytes": 48,
+            "nr_unused_bytes": 1952
+          }
+        ],
+        "owner": "peer"
       }
-    }
+    },
+    ... snip ...
   ]
 }
 </pre>
@@ -550,16 +534,19 @@ $ <b>./manager.py topology.yaml --client carol status | tail -n +2 | jq</b>
       "local_pool": {
         "blocks": [
           {
-            "uuid": "266458ba-b183-42e9-9f5d-1c1113170d07",
+            "uuid": "c142de3a-8464-440f-bbfd-78937481732a",
             "size": 2000,
-            "data": "ehqm+BghWSm0+A==...",
-            "allocated": 0,
-            "consumed": 0
+            "data": "AAAAAAAAAAAAAA==...",
+            "nr_used_bytes": 48,
+            "nr_unused_bytes": 1952
           }
         ],
-        "owner": "Owner.LOCAL"
+        "owner": "local"
       },
-      ...
+      ... snip ...
+    }
+  ]
+}
 </pre>
 
 Even better, you can use the `pq` command with a query to look for specific fields in the JSON
@@ -568,18 +555,18 @@ In the following example we display the information about the local pool for pee
 on client carol:
 
 <pre>
-$ <b>./manager.py topology.yaml --client carol status | tail -n +2 | jq '(.peer_hubs[] | select(.hub_name == "hank") .local_pool)</b>
+$ <b>./manager.py topology.yaml --client carol status | tail -n +2 | jq '(.peer_hubs[] | select(.hub_name == "hank") .local_pool)'</b>
 {
   "blocks": [
     {
-      "uuid": "266458ba-b183-42e9-9f5d-1c1113170d07",
+      "uuid": "c142de3a-8464-440f-bbfd-78937481732a",
       "size": 2000,
-      "data": "ehqm+BghWSm0+A==...",
-      "allocated": 0,
-      "consumed": 0
+      "data": "AAAAAAAAAAAAAA==...",
+      "nr_used_bytes": 48,
+      "nr_unused_bytes": 1952
     }
   ],
-  "owner": "Owner.LOCAL"
+  "owner": "local"
 }
 </pre>
 
@@ -591,19 +578,33 @@ For example, the log file for client carol is `client-carol.out`:
 
 <pre>
 $ <b>cat client-carol.out</b>
-INFO:     Started server process [81636]
+INFO:     Started server process [2353]
 INFO:     Waiting for application startup.
+INFO:     Begin register task for peer hub None
+INFO:     Begin register task for peer hub None
+INFO:     Begin register task for peer hub None
+INFO:     Begin register task for peer hub None
+INFO:     Begin register task for peer hub None
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8105 (Press CTRL+C to quit)
-INFO:     127.0.0.1:56441 - "GET /docs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56441 - "GET /openapi.json HTTP/1.1" 200 OK
-Share constructor: value=b'\xd4\x0b\xcf\xf2D\x83\x03R\x84\xc7\n\xd1#X\xd3`' encrypted_value=None
-Share constructor: value=b'-kD\x06\x99\xb2E\xc2\xd5\xf0\xb3z\xd0Oyn' encrypted_value=None
-Share constructor: value=b'\x11\x9c\x84\x19\x93\xed\xac\xa516Z\x07\xfaf\xe7\xfa' encrypted_value=None
-Share constructor: value=b'\xe8\xfc\x0f\xedN\xdc\xea5`\x01\xe3\xac\tqM\xf4' encrypted_value=None
-Share constructor: value=b'\xf5yZ_2o\xca\xba\xa9tN<\x1adLa' encrypted_value=None
-api_share=APIShare(client_name='carol', key_id='6050fccc-b882-402e-8ca1-62f0147999de', share_index=0, encrypted_value='e2wgFBkt7R8FGubnZesLJw==', encryption_key_allocation=APIAllocation(fragments=[APIFragment(block_uuid='14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5', start_byte=0, size=16)]), signature_key_allocation=APIAllocation(fragments=[APIFragment(block_uuid='14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5', start_byte=16, size=2)]))
-url='http://127.0.0.1:8100/dske/hub/api/v1/key-share'
+INFO:     Call PUT http://127.0.0.1:8100/hub/hank/dske/oob/v1/registration 200
+INFO:     Call PUT http://127.0.0.1:8101/hub/helen/dske/oob/v1/registration 200
+INFO:     Call PUT http://127.0.0.1:8103/hub/holly/dske/oob/v1/registration 200
+INFO:     Finish register task for peer hub None
+INFO:     Finish register task for peer hub None
+INFO:     Finish register task for peer hub None
+INFO:     Call PUT http://127.0.0.1:8102/hub/hilary/dske/oob/v1/registration 200
+INFO:     Call PUT http://127.0.0.1:8104/hub/hugo/dske/oob/v1/registration 200
+INFO:     Begin request PSRD task for peer hub hank and pool owner local
+INFO:     Begin request PSRD task for peer hub hank and pool owner peer
+INFO:     Begin request PSRD task for peer hub helen and pool owner local
+INFO:     Begin request PSRD task for peer hub helen and pool owner peer
+INFO:     Begin request PSRD task for peer hub holly and pool owner local
+INFO:     Begin request PSRD task for peer hub holly and pool owner peer
+INFO:     Finish register task for peer hub None
+INFO:     Finish register task for peer hub None
+INFO:     Begin request PSRD task for peer hub hilary and pool owner local
+INFO:     Begin request PSRD task for peer hub hilary and pool owner peer
 ... snip ...
 </pre>
 
@@ -667,48 +668,32 @@ In this example, we pipe the output of `curl` through `jq` (JSON query) to prett
 JSON REST response:
 
 <pre>
-$ <b>curl --silent http://127.0.0.1:8100/dske/hub/mgmt/v1/status | jq</b>
+$ <b>curl --silent http://127.0.0.1:8100/hub/hank/mgmt/v1/status | jq</b>
 {
-  "hub_name": "hank",
+  "name": "hank",
   "peer_clients": [
     {
       "client_name": "carol",
-      "pool": {
+      "local_pool": {
         "blocks": [
           {
-            "uuid": "14c4f032-ce4c-4b9a-8ce9-bda65a5a18e5",
-            "size": 1000,
+            "uuid": "4cb97ab1-0e3f-4f48-a0d7-90de58e85d53",
+            "size": 2000,
             "data": "AAAAAAAAAAAAAA==...",
-            "allocated": 18,
-            "consumed": 16
+            "nr_used_bytes": 32,
+            "nr_unused_bytes": 1968
           }
-        ]
-      }
-    },
-    {
-      "client_name": "celia",
-      "pool": {
-        "blocks": [
-          {
-            "uuid": "7734118a-24f6-4fb0-9cba-8d00bbbaedc7",
-            "size": 1000,
-            "data": "AAAAAAAAAAAAAA==...",
-            "allocated": 18,
-            "consumed": 18
-          }
-        ]
-      }
-    },
-    ... snip ...
+        ],
+        "owner": "local"
+      },
+      ... snip ...
+    }
   ],
   "shares": [
     {
-      "key_id": "6050fccc-b882-402e-8ca1-62f0147999de",
+      "key_id": "bc266858-9c0e-4d9b-8d48-b7f312b1aeb5",
       "share_index": 0,
-      "value": "1AvP8kSDA1KExw==...",
-      "encrypted_value": null,
-      "encryption_key_allocation": null,
-      "signature_key_allocation": null
+      "value": "+xLr39AZfdNefw==..."
     }
   ]
 }

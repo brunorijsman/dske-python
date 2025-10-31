@@ -55,7 +55,7 @@ class PeerClient:
         """
         Create a block filled ith random data and add it to the specified pool.
         """
-        block = Block.create_random_block(size)
+        block = Block.new_with_random_data(size)
         match pool_owner:
             case Pool.Owner.LOCAL:
                 pool = self._local_pool
@@ -83,18 +83,18 @@ class PeerClient:
         allocation = Allocation.from_enc_str(
             received_signature.signing_key_allocation_enc_str, self._peer_pool
         )
-        allocation.mark_allocated()
         signing_key = SigningKey(allocation)
         query = raw_request.scope.get("query_string", b"")
         body = await raw_request.body()
         computed_signature = signing_key.sign([query, body])
         signature_ok = received_signature.same_as(computed_signature)
         if not signature_ok:
+            # TODO: Give allocation back to pool
             raise InvalidSignatureError()
 
-    def delete_fully_consumed_blocks(self) -> None:
+    def delete_fully_used_blocks(self) -> None:
         """
-        Delete fully consumed PSRD blocks from the pools.
+        Delete fully used PSRD blocks from the pools.
         """
         for pool in (self._local_pool, self._peer_pool):
-            pool.delete_fully_consumed_blocks()
+            pool.delete_fully_used_blocks()

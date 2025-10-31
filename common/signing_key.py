@@ -31,7 +31,6 @@ class SigningKey:
         Create a SigningKey from an Allocation that was previously allocated from a Pool.
         """
         self._allocation = allocation
-        self._allocation.consume()
 
     @classmethod
     def from_pool(cls, pool: Pool):
@@ -50,14 +49,14 @@ class SigningKey:
         return (
             f"{self._allocation.to_enc_str()}"
             f"{_ENCODING_SEPARATOR}"
-            f"{bytes_to_str(self._allocation.value)}"
+            f"{bytes_to_str(self._allocation.data)}"
         )
 
     def sign(self, signed_data_list: list[bytes | None]) -> Signature:
         """
         Sign data and return the signature.
         """
-        signing_key_data = self._allocation.value
+        signing_key_data = self._allocation.data
         signed_data = b""
         for signed_date_item in signed_data_list:
             if signed_date_item is not None:
