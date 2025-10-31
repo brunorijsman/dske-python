@@ -252,3 +252,98 @@ Sharing a secret means sending the some information about the `Allocation` objec
 which bytes in which blocks have been allocated, but not the byte values themselves.
 The peer then uses this information to create a corresponding `Allocation` object with
 identical byte values.
+
+## Message authentication
+
+The DSKE protocol runs over HTTP and not over HTTPS;
+it uses its own authentication and encryption mechanisms instead of relying on TLS.
+
+In-band DSKE protocol messages are signed using PSRD data for authentication.
+
+The client signs outgoing HTTP request messages and the hub verifies the signature on incoming
+HTTP request messages.
+The hub signs outgoing HTTP response message and the client verifies the signature on incoming
+HTTP response messages.
+
+The sender of an HTTP message signs outgoing HTTP messages as follows:
+
+ * Allocate a 32 (SIGNING_KEY_SIZE) byte signing key from the local pool associated with the
+   received of the message.
+
+ * Compute a SHA256 hash over the concatenation of the allocated signing key and the content of
+   the signed HTTP message and the parameters of the request. This hash is used as the signature.
+
+ * Convey the base64 encoded signature in the HTTP header `DSKE-Signature`.
+
+ * Convey the meta-data of the signing key in the HTTP header `DSKE-Signing-Key`.
+   This allows the receiver to allocate the same signing key from the Pre-Shared Random Data
+   to verify the signature.
+   The encoding of the signing key meta data into an HTTP header is described below.
+
+The received of an HTTP message verifies the signature on incoming HTTP messages as follows:
+
+ * Extract the meta-data of the signing key from received HTTP header `DSKE-Signing-Key`.
+
+ * Use this meta data to take the signing key value from the pool of Pre-Shared Random Data.
+
+ * Compute a SHA256 hash over the concatenation of the allocated signing key and the content of
+   the signed HTTP message and the parameters of the request.
+   This hash is the locally computed signature.
+
+ * Compare the locally computed signature with the signature received in the HTTP header
+   `DSKE-Signature`. If they match, the signature is correct.
+
+ * If the signatures do not match, the locally allocated signing key is given back to the pool.
+   This is to prevent Denial-of-Service attacks from an attacker guessing singing keys.
+
+The meta-data of the signing key is encoded into the `DSKE-Signing-Key` header as follows:
+
+ * One or more encoded fragment meta-data strings, separated by commas.
+
+ * Each fragment meta-data string is encoded as the block UUID, the start byte within the block,
+   and the size of the fragment, separated by colons.
+
+ * Note that the key data (fragment data) is not encoded into the meta-data.
+
+Example of an encoded signing key meta-data (consisting of two fragments, one fragment
+of 20 bytes, and another fragment of a different block of 12 bytes):
+
+```
+9ad7f620-5a0c-4979-8a2d-66142e06fd79:0:20,cda527e9-5ca7-40d6-a842-0b606597611c:0:12
+```
+
+The signatures have to be computed over the body of the HTTP message, exactly as it is encoded
+in the HTTP message.
+This was non-trivial to implement in the code.
+
+On the client side, we use the Python
+[httpx](https://www.python-httpx.org/)
+module.
+On the server (hub) side, we use the Python
+[FastAPI](https://fastapi.tiangolo.com/)
+module.
+Both modules try to make life easier for the developer by allowing the code to use Python objects
+(instead of raw bytes or strings) to represent the body of a message.
+However, to compute the signature we needed the exact encoded bytes in the HTTP message, not
+its representation as a Python object.
+We could have tried to work with canonical encoders/decoders, but that would be complex and
+error-prone.
+Instead, we used a different mechanism to get access to the encoded message body and
+compute/verify the signature over it.
+
+On the client (httpx) side, we use the 
+[per-request authentication mechanism](https://www.python-httpx.org/advanced/authentication/)
+to register a `async_auth_flow` callback.
+This callback is called after the message is encoded but before it is sent.
+This allows us to compute the signature and add the `DSKE-Signature` header on the outgoing
+HTTP request.
+
+On the hub (server, FastAPI) side, we use the
+[Starlette middleware mechanism](https://www.starlette.dev/middleware/).
+We register the `dske_authentication` function as a middleware for HTTP.
+This gives us access to the body in a request before decoding and the body in a response
+before encoding.
+
+## Share encryption
+
+TODO

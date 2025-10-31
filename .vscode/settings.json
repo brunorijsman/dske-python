@@ -57,6 +57,7 @@
         "setaf",
         "Shamir",
         "Shor's",
+        "Starlette",
         "urandom",
         "Uvicorn",
         "venv"
