@@ -4,6 +4,7 @@ Unit tests for the Allocation class.
 
 from common.allocation import Allocation
 from common.fragment import Fragment
+from common.utils import bytes_to_str
 from .unit_test_common import create_test_block, create_test_pool_and_blocks
 
 
@@ -43,4 +44,26 @@ def test_give_back():
     assert blocks[1]._data == bytes.fromhex("000102030405")
 
 
-# TODO: CONTINUE FROM HERE
+def test_to_mgmt():
+    """
+    Get the management status.
+    """
+    pool, blocks = create_test_pool_and_blocks([5, 10])
+    allocation = pool.allocate(8, purpose="test")
+    allocation_mgmt = allocation.to_mgmt()
+    assert allocation_mgmt == {
+        "fragments": [
+            {
+                "block_uuid": str(blocks[0].uuid),
+                "data": "AAECAwQ=",  # base64 for 0001020304
+                "size": 5,
+                "start": 0,
+            },
+            {
+                "block_uuid": str(blocks[1].uuid),
+                "data": "AAEC",  # base64 for 0001
+                "size": 3,
+                "start": 0,
+            },
+        ],
+    }
