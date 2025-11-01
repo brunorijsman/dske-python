@@ -269,7 +269,7 @@ class PeerHub:
             share = Share(
                 master_sae_id=master_sae_id,
                 slave_sae_id=slave_sae_id,
-                user_key_id=response.key_id,
+                user_key_id=key_id,
                 share_index=response.share_index,
                 value=share_value,
             )

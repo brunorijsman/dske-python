@@ -356,7 +356,7 @@ class Manager:
 
     def etsi_qkd_get_key_with_key_ids(
         self, master_node: Node, slave_node: Node, key_id: str
-    ) -> dict:
+    ) -> None | dict:
         """
         Invoke the ETSI QKD Get Key with Key IDs API.
         """
@@ -369,9 +369,7 @@ class Manager:
         response = self.http_request(
             "GET", url, "ETSI QKD Get key with key IDs", params=params
         )
-        if response is None:
-            return None
-        return response.json()
+        return response
 
     def etsi_qkd_get_key_pair(
         self,
@@ -382,17 +380,22 @@ class Manager:
         """
         Invoke the ETSI QKD Get Key API on master, followed by Get Key with Key IDs API on slave.
         """
-        response = self.etsi_qkd_get_key(master_node, slave_node, size)
-        if response is None:
+        master_response = self.etsi_qkd_get_key(master_node, slave_node, size)
+        if master_response is None:
             return
-        if response.status_code != 200:
+        if master_response.status_code != 200:
             return
-        master_response_json = response.json()
+        master_response_json = master_response.json()
         key_id = master_response_json["keys"]["key_ID"]
-        slave_response_json = self.etsi_qkd_get_key_with_key_ids(
+        master_key_value = master_response_json["keys"]["key"]
+        slave_response = self.etsi_qkd_get_key_with_key_ids(
             master_node, slave_node, key_id
         )
-        master_key_value = master_response_json["keys"]["key"]
+        if slave_response is None:
+            return
+        if slave_response.status_code != 200:
+            return
+        slave_response_json = slave_response.json()
         slave_key_value = slave_response_json["keys"][0]["key"]
         if master_key_value == slave_key_value:
             print("Key values match")
