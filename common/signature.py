@@ -2,6 +2,7 @@
 The signature for a DSKE in-band protocol message.
 """
 
+from typing import Optional
 from .utils import bytes_to_str, str_to_bytes
 
 HEADER_NAME = "DSKE-Signature"
@@ -74,12 +75,13 @@ class Signature:
         headers[HEADER_NAME] = self.to_enc_str()
 
     @classmethod
-    def from_headers(cls, headers: dict[str, str]) -> "Signature":
+    def from_headers(cls, headers: dict[str, str]) -> Optional["Signature"]:
         """
-        Create a Signature from the DSKE-Signature header in a dictionary of HTTP headers.
+        Create a Signature from the DSKE-Signature header in a dictionary of HTTP headers. Returns
+        None if the header is not present.
         """
         signature_enc_str = headers.get(LOWER_HEADER_NAME, None)
         if signature_enc_str is None:
-            assert False  # TODO: Raise an exception instead
+            return None
         signature = cls.from_enc_str(signature_enc_str)
         return signature

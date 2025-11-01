@@ -317,3 +317,19 @@ class InvalidEncodedFragment(DSKEException):
             message="Invalid encoded fragment.",
             details={"encoded_fragment": encoded_fragment},
         )
+
+
+class EncryptorNotRegisteredForClientError(DSKEException):
+    """
+    Exception raised when an encryptor is not registered for a client.
+    """
+
+    def __init__(self, client_name: str, encryptor_name: str):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Encryptor is not registered for client.",
+            details={
+                "client_name": client_name,
+                "encryptor_name": encryptor_name,
+            },
+        )

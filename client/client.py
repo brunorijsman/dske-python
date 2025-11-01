@@ -2,6 +2,7 @@
 A DSKE client, or just client for short.
 """
 
+import traceback
 import asyncio
 from uuid import UUID
 from common import exceptions
@@ -64,15 +65,15 @@ class Client:
             "peer_hubs": peer_hubs_status,
         }
 
-    async def etsi_status(self, slave_sae_id: str):
+    async def etsi_status(self, master_sae_id: str, slave_sae_id: str):
         """
         ETSI QKD 014 V1.1.1 Status API.
         """
         # See remark about ETSI QKD API in file TODO
         return {
             "source_kme_id": self._name,
-            "target_kme_id": slave_sae_id,
-            "master_sae_id": self._name,
+            "target_kme_id": "TODO",  # TODO: Determine slave KME ID from slave SAE ID
+            "master_sae_id": master_sae_id,
             "slave_sae_id": slave_sae_id,
             "key_size": self._default_key_size_in_bits,
             "stored_key_count": 25000,  # TODO

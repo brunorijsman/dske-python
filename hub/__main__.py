@@ -9,6 +9,7 @@ import uvicorn
 from common import configuration
 from common import utils
 from common.block import APIBlock
+from common.exceptions import DSKEException
 from common.share_api import APIGetShareResponse, APIPostShareRequest
 from common.signing_key import MiddlewareSigningKey
 from common.registration_api import (
@@ -67,6 +68,11 @@ async def middleware_add_response_signature(
     Add a signature to the response.
     """
     signing_key = MiddlewareSigningKey.extract_from_headers(response.headers)
+    if signing_key is None:
+        # Don't sign if the signing key is missing. This could happen, for example, in
+        # error responses. The other side can always reject the response if it doesn't like
+        # the missing signature.
+        return response
     chunks = []
     async for chunk in response.body_iterator:
         chunks.append(chunk)
@@ -80,6 +86,18 @@ async def middleware_add_response_signature(
         media_type=response.media_type,
     )
     return signed_response
+
+
+@_APP.exception_handler(DSKEException)
+async def dske_exception_handler(_request: fastapi.Request, exc: DSKEException):
+    """
+    Handle DSKE exceptions.
+    """
+    # Error responses are not signed.
+    return fastapi.responses.JSONResponse(
+        status_code=exc.status_code,
+        content={"message": exc.message, "details": exc.details},
+    )
 
 
 @_APP.put(f"/hub/{_HUB.name}/dske/oob/v1/registration")
@@ -106,8 +124,6 @@ async def get_oob_psrd(
     """
     DSKE Out of band: Get a block of Pre-Shared Random Data (PSRD).
     """
-    # TODO: Error if the client was not peer.
-    # TODO: Allow size to be None (use default size decided by hub).
     block = _HUB.generate_block_for_client(client_name, pool_owner, size)
     return block.to_api()
 

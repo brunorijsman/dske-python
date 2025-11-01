@@ -6,11 +6,12 @@ import argparse
 import contextlib
 import os
 import signal
+from typing import Annotated
 import fastapi
 import uvicorn
 from common import configuration
 from common import utils
-from common.exceptions import DSKEException
+from common.exceptions import DSKEException, EncryptorNotRegisteredForClientError
 from .client import Client
 
 
@@ -71,30 +72,42 @@ async def dske_exception_handler(_request: fastapi.Request, exc: DSKEException):
 
 
 @_APP.get(f"/client/{_CLIENT.name}/etsi/api/v1/keys/{{slave_sae_id}}/status")
-async def get_etsi_status(slave_sae_id: str):
+async def get_etsi_status(
+    slave_sae_id: str,
+    authorization_header: Annotated[str | None, fastapi.Header()] = None,
+):
     """
     ETSI QKD 014 API: Status.
     """
-    return await _CLIENT.etsi_status(slave_sae_id)
+    master_sae_id = calling_sae_id(authorization_header)
+    return await _CLIENT.etsi_status(master_sae_id, slave_sae_id)
 
 
 @_APP.get(f"/client/{_CLIENT.name}/etsi/api/v1/keys/{{slave_sae_id}}/enc_keys")
-async def get_etsi_get_key(slave_sae_id: str, size: int | None = None):
+async def get_etsi_get_key(
+    slave_sae_id: str,
+    size: int | None = None,
+    authorization_header: Annotated[str | None, fastapi.Header()] = None,
+):
     """
     ETSI QKD 014 API: Get Key.
     """
-    master_sae_id = _CLIENT.name  # Currently, SAE names are the same as client names.
+    master_sae_id = calling_sae_id(authorization_header)
     return await _CLIENT.etsi_get_key(master_sae_id, slave_sae_id, size)
 
 
 @_APP.get(f"/client/{_CLIENT.name}/etsi/api/v1/keys/{{master_sae_id}}/dec_keys")
-async def get_eti_get_key_with_key_ids(master_sae_id: str, key_ID: str):
+async def get_eti_get_key_with_key_ids(
+    master_sae_id: str,
+    key_ID: str,
+    authorization_header: Annotated[str | None, fastapi.Header()] = None,
+):
     """
     ETSI QKD 014 API: Get Key with Key IDs.
     """
     # ETSI QKD 014 says that ID in key_ID has to be upper case, which lint doesn't like.
     # pylint: disable=invalid-name
-    slave_sae_id = _CLIENT.name  # Currently, SAE names are the same as client names.
+    slave_sae_id = calling_sae_id(authorization_header)
     return await _CLIENT.etsi_get_key_with_key_ids(master_sae_id, slave_sae_id, key_ID)
 
 
@@ -114,6 +127,26 @@ async def post_mgmt_stop():
     utils.delete_pid_file("client", _CLIENT.name)
     os.kill(os.getpid(), signal.SIGTERM)
     return {"result": "Client stopped"}
+
+
+def calling_sae_id(authorization_header: str | None) -> str:
+    """
+    Get the SAE ID of the calling entity from the request headers.
+    """
+    if authorization_header is None:
+        if len(_CLIENT.encryptor_names) == 1:
+            # If the client has exactly one encryptor, we assume that this is the one.
+            # This makes it easier for users to use curl for testing in simple topologies.
+            master_sae_id = _CLIENT.encryptor_names[0]
+        else:
+            # There is more than one encryptor, so we cannot guess which one is calling.
+            raise EncryptorNotRegisteredForClientError(
+                client_name=_CLIENT.name,
+                encryptor_name=authorization_header,
+            )
+    else:
+        master_sae_id = authorization_header.strip()
+    return master_sae_id
 
 
 def main():

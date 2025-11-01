@@ -113,7 +113,7 @@ class MiddlewareSigningKey:
         """
         signing_key_enc_str = headers.get(LOWER_HEADER_NAME, None)
         if signing_key_enc_str is None:
-            assert False  # TODO: Raise an exception instead
+            return None
         signing_key = cls.from_enc_str(signing_key_enc_str)
         del headers[LOWER_HEADER_NAME]
         return signing_key
