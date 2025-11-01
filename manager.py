@@ -317,9 +317,7 @@ class Manager:
         """
         Given an SAE ID, find the KME node that is associated with it.
         """
-        # For now we make the simplifying assumption that there is only one SAE (encryptor) attached
-        # to each KME (client), and that the SAE has the same name as the KME. This makes the code
-        # simpler, since the KMEs don't need to keep track of which SAEs are attached to them.
+        # $$$
         for node in self._nodes:
             if node.type == NodeType.CLIENT and node.name == sae_id:
                 return node

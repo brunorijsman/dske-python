@@ -54,10 +54,17 @@ def parse_configuration_file(filename: str = DEFAULT_CONFIGURATION_FILE):
             "name": {"type": "string"},
         },
     }
+    encryptor_schema = {
+        "type": "dict",
+        "schema": {
+            "name": {"type": "string"},
+        },
+    }
     client_schema = {
         "type": "dict",
         "schema": {
             "name": {"type": "string"},
+            "encryptors": {"type": "list", "schema": encryptor_schema},
         },
     }
     schema = {
