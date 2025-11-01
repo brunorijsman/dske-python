@@ -354,7 +354,7 @@ class Manager:
     # in cleartext in an HTTP "Authorization" header. This is, of course, not secure, but it is
     # sufficient for our simplified implementation and testing purposes.
 
-    def etsi_qkd_report_call(
+    def _etsi_qkd_report_call(
         self, api_name: str, kme_node: Node, master_sae_id: str, slave_sae_id: str
     ):
         print(
@@ -374,7 +374,7 @@ class Manager:
         """
         Invoke the ETSI QKD Status API.
         """
-        self.etsi_qkd_report_call(
+        self._etsi_qkd_report_call(
             "Status", master_kme_node, master_sae_id, slave_sae_id
         )
         url = f"{master_kme_node.base_url}/etsi/api/v1/keys/{slave_sae_id}/status"
@@ -395,7 +395,7 @@ class Manager:
         """
         Invoke the ETSI QKD Get Key API.
         """
-        self.etsi_qkd_report_call(
+        self._etsi_qkd_report_call(
             "Get Key", master_kme_node, master_sae_id, slave_sae_id
         )
         url = f"{master_kme_node.base_url}/etsi/api/v1/keys/{slave_sae_id}/enc_keys"
@@ -421,7 +421,7 @@ class Manager:
         """
         Invoke the ETSI QKD Get Key with Key IDs API.
         """
-        self.etsi_qkd_report_call(
+        self._etsi_qkd_report_call(
             "Get Key with Key IDs", slave_kme_node, master_sae_id, slave_sae_id
         )
         url = f"{slave_kme_node.base_url}/etsi/api/v1/keys/{master_sae_id}/dec_keys"
