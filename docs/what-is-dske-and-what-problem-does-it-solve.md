@@ -129,7 +129,9 @@ quantum-unsafe key agreement protocols:
 
  * Distributed Symmetric Key Establishment (DSKE) implements quantum-safe key establishment
    in a completely different manner.
-   The rest of this chapter describes the details of how our implementation of the DSKE protocol
+   The 
+   [Protocol guide](/docs/protocol-guide.md)
+   describes the details of how our implementation of the DSKE protocol
    works.
    This GitHub repository contains an open source proof-of-concept implementation of the DSKE
    approach.
