@@ -44,7 +44,11 @@ _ARGS = parse_command_line_arguments()
 peer_hub_urls = _ARGS.hubs
 if peer_hub_urls is None:
     peer_hub_urls = []
-_CLIENT = Client(_ARGS.name, _ARGS.encryptors, peer_hub_urls)
+if _ARGS.encryptors is None:
+    encryptor_names = []
+else:
+    encryptor_names = _ARGS.encryptors
+_CLIENT = Client(_ARGS.name, encryptor_names, peer_hub_urls)
 
 
 @contextlib.asynccontextmanager

@@ -111,25 +111,25 @@ def test_psrd_usage_one_small_key():
     # Get a small key (consume only PSRD from first block)
     key_size_in_bytes = 10
     key_size_in_bits = key_size_in_bytes * 8
-    system_test_common.get_key_pair("carol", "cindy", size=key_size_in_bits)
+    system_test_common.get_key_pair("sammy", "sofia", size=key_size_in_bits)
 
-    # Check PSRD consumption on master client Carol
+    # Check PSRD consumption on master client carol
     sign_size = SIGNING_KEY_SIZE
     sign_and_encrypt_size = SIGNING_KEY_SIZE + key_size_in_bytes
     _check_client_psrd_consumption("carol", "*", "local", [sign_and_encrypt_size])
     _check_client_psrd_consumption("carol", "*", "peer", [sign_size])
 
-    # Check PSRD consumption on slave client Cindy
-    _check_client_psrd_consumption("cindy", "*", "local", [sign_size])
-    _check_client_psrd_consumption("cindy", "*", "peer", [sign_and_encrypt_size])
+    # Check PSRD consumption on slave client connie
+    _check_client_psrd_consumption("connie", "*", "local", [sign_size])
+    _check_client_psrd_consumption("connie", "*", "peer", [sign_and_encrypt_size])
 
     # Check PSRD consumption on each hub
     for client in ["celia", "connie", "curtis"]:
         _check_hub_psrd_consumption("*", client, "*", [0])
     _check_hub_psrd_consumption("*", "carol", "local", [sign_size])
     _check_hub_psrd_consumption("*", "carol", "peer", [sign_and_encrypt_size])
-    _check_hub_psrd_consumption("*", "cindy", "local", [sign_and_encrypt_size])
-    _check_hub_psrd_consumption("*", "cindy", "peer", [sign_size])
+    _check_hub_psrd_consumption("*", "connie", "local", [sign_and_encrypt_size])
+    _check_hub_psrd_consumption("*", "connie", "peer", [sign_size])
 
 
 def test_psrd_usage_two_small_keys():
