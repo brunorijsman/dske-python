@@ -300,87 +300,147 @@ class Manager:
         """
         ETSI QKD operations.
         """
-        master_node = self.find_kme_node_for_sae(self._args.master_sae_id)
-        slave_node = self.find_kme_node_for_sae(self._args.slave_sae_id)
+        # ETSI QKD 014 uses different terminology than DSKE:
+        #
+        # ETSI QKD 014 term                   DSKE term
+        # ----------------------------------  ----------------------------------
+        # SAE (Secure Application Entity)     Encryptor
+        # SAE ID                              Encryptor name
+        # KME (Key Management Entity)         Client
+        # KME ID                              Client name
+        # N/A                                 Hub
+        # N/A                                 Hub name
+        #
+        # In the code related to ETSI QKD 014, we use the ETSI terminology.
+
+        master_sae_id = self._args.master_sae_id
+        slave_sae_id = self._args.slave_sae_id
+        master_kme_node = self.find_kme_node_for_sae_id(master_sae_id)
+        slave_kme_node = self.find_kme_node_for_sae_id(slave_sae_id)
         match self._args.etsi_qkd_command:
             case "get-status":
-                self.etsi_qkd_get_status(master_node, slave_node)
+                self.etsi_qkd_get_status(master_kme_node, master_sae_id, slave_sae_id)
             case "get-key":
                 size = self._args.size
-                self.etsi_qkd_get_key(master_node, slave_node, size)
+                self.etsi_qkd_get_key(
+                    master_kme_node, master_sae_id, slave_sae_id, size
+                )
             case "get-key-with-key-ids":
                 key_id = self._args.key_id
-                self.etsi_qkd_get_key_with_key_ids(master_node, slave_node, key_id)
+                self.etsi_qkd_get_key_with_key_ids(
+                    slave_kme_node, master_sae_id, slave_sae_id, key_id
+                )
             case "get-key-pair":
                 size = self._args.size
-                self.etsi_qkd_get_key_pair(master_node, slave_node, size)
+                self.etsi_qkd_get_key_pair(
+                    master_kme_node, slave_kme_node, master_sae_id, slave_sae_id, size
+                )
 
-    def find_kme_node_for_sae(self, sae_id: str) -> Node:
+    def find_kme_node_for_sae_id(self, sae_id: str) -> Node:
         """
-        Given an SAE ID, find the KME node that is associated with it.
+        Given an encryptor name (SAE ID), find the client node (KME) that is associated with it.
         """
-        # $$$
         for node in self._nodes:
-            if node.type == NodeType.CLIENT and node.name == sae_id:
+            if node.type == NodeType.CLIENT and sae_id in node.encryptor_names:
                 return node
-        self.fatal_error(f"Could not find KME client node for SAE ID {sae_id}")
+        self.fatal_error(
+            f"There is no encryptor (SAE) in the topology with name (SAE ID) {sae_id}"
+        )
 
-    def etsi_qkd_get_status(self, master_node: Node, slave_node: Node):
+    # In the following ETSI QKD 014 API calls, the master SAE ID neither passed in a request query
+    # parameter nor passed as a JSON attribute in the request body. In real life, the KME would
+    # determine the SAE ID from the TLS authentication. However, we only have a simplified
+    # implementation of ETSI QKD 014 without HTTPS (TLS). For that reason, we pass the master SAE ID
+    # in cleartext in an HTTP "Authorization" header. This is, of course, not secure, but it is
+    # sufficient for our simplified implementation and testing purposes.
+
+    def etsi_qkd_get_status(
+        self,
+        master_kme_node: Node,
+        master_sae_id: str,
+        slave_sae_id: str,
+    ):
         """
         Invoke the ETSI QKD Status API.
         """
         print(
-            f"Invoke ETSI QKD Status API for client {master_node.name} on port {master_node.port}"
+            f"Invoke ETSI QKD Status API on client {master_kme_node.name} "
+            f"on port {master_kme_node.port}"
         )
-        url = f"{master_node.base_url}/etsi/api/v1/keys/{slave_node.name}/status"
-        self.http_request("GET", url, "ETSI QKD Get status")
+        url = f"{master_kme_node.base_url}/etsi/api/v1/keys/{slave_sae_id}/status"
+        self.http_request(
+            "GET",
+            url,
+            "ETSI QKD Get status",
+            headers={"Authorization": master_sae_id},
+        )
 
     def etsi_qkd_get_key(
         self,
-        master_node: Node,
-        slave_node: Node,
+        master_kme_node: Node,
+        master_sae_id: str,
+        slave_sae_id: str,
         size: int | None,
     ) -> None | dict:
         """
         Invoke the ETSI QKD Get Key API.
         """
         print(
-            f"Invoke ETSI QKD Get Key API for client {master_node.name} on port {master_node.port}"
+            f"Invoke ETSI QKD Get Key API on client {master_kme_node.name} "
+            f"on port {master_kme_node.port}"
         )
-        url = f"{master_node.base_url}/etsi/api/v1/keys/{slave_node.name}/enc_keys"
+        url = f"{master_kme_node.base_url}/etsi/api/v1/keys/{slave_sae_id}/enc_keys"
         params = {}
         if size is not None:
             params["size"] = size
-        response = self.http_request("GET", url, "ETSI QKD Get key", params=params)
+        response = self.http_request(
+            "GET",
+            url,
+            "ETSI QKD Get key",
+            params=params,
+            headers={"Authorization": master_sae_id},
+        )
         return response
 
     def etsi_qkd_get_key_with_key_ids(
-        self, master_node: Node, slave_node: Node, key_id: str
+        self,
+        slave_kme_node: Node,
+        master_sae_id: str,
+        slave_sae_id: str,
+        key_id: str,
     ) -> None | dict:
         """
         Invoke the ETSI QKD Get Key with Key IDs API.
         """
         print(
-            f"Invoke ETSI QKD Get Key with Key IDs API for client {slave_node.name} "
-            f"on port {slave_node.port}"
+            f"Invoke ETSI QKD Get Key with Key IDs API on client {slave_kme_node.name} "
+            f"on port {slave_kme_node.port}"
         )
-        url = f"{slave_node.base_url}/etsi/api/v1/keys/{master_node.name}/dec_keys"
+        url = f"{slave_kme_node.base_url}/etsi/api/v1/keys/{master_sae_id}/dec_keys"
         params = {"key_ID": key_id}
         response = self.http_request(
-            "GET", url, "ETSI QKD Get key with key IDs", params=params
+            "GET",
+            url,
+            "ETSI QKD Get key with key IDs",
+            params=params,
+            headers={"Authorization": slave_sae_id},
         )
         return response
 
     def etsi_qkd_get_key_pair(
         self,
-        master_node: Node,
-        slave_node: Node,
+        master_kme_node: Node,
+        slave_kme_node: None,
+        master_sae_id: str,
+        slave_sae_id: str,
         size: int | None,
     ):
         """
         Invoke the ETSI QKD Get Key API on master, followed by Get Key with Key IDs API on slave.
         """
-        master_response = self.etsi_qkd_get_key(master_node, slave_node, size)
+        master_response = self.etsi_qkd_get_key(
+            master_kme_node, master_sae_id, slave_sae_id, size
+        )
         if master_response is None:
             return
         if master_response.status_code != 200:
@@ -389,7 +449,7 @@ class Manager:
         key_id = master_response_json["keys"]["key_ID"]
         master_key_value = master_response_json["keys"]["key"]
         slave_response = self.etsi_qkd_get_key_with_key_ids(
-            master_node, slave_node, key_id
+            slave_kme_node, master_sae_id, slave_sae_id, key_id
         )
         if slave_response is None:
             return
@@ -408,13 +468,20 @@ class Manager:
         url: str,
         action: str | None,
         params: dict | None = None,
+        headers: dict | None = None,
         quiet_success: bool = False,
     ) -> httpx.Response:
         """
         Make an HTTP request.
         """
         try:
-            response = httpx.request(method=method, url=url, params=params, timeout=1.0)
+            response = httpx.request(
+                method=method,
+                url=url,
+                params=params,
+                headers=headers,
+                timeout=1.0,
+            )
         except httpx.HTTPError as exc:
             if action is not None:
                 print(f"Failed to {action}: {method} {url} raised exception {exc}")

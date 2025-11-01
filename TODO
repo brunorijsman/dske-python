@@ -96,3 +96,5 @@ TODO: Do we need the owner field in class Block? We known the owner by virtue of
 TODO: If signature validation fails, return fragment to pool
 
 TODO: Test case for this
+
+TODO: Error message if --client or --hub does not exist in topology
