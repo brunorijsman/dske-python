@@ -58,7 +58,7 @@ def test_three_node_failures_after_get_key():
     The initial Get Key should succeed, but the subsequent Get key with key IDs should fail.
     """
     system_test_common.start_topology()
-    key_id = system_test_common.get_key("celia", "connie")
+    key_id = system_test_common.get_key("selena", "sofia")
     system_test_common.stop_node("hub", "hank")
     system_test_common.stop_node("hub", "helen")
     system_test_common.stop_node("hub", "hugo")

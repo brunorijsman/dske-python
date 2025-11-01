@@ -89,7 +89,10 @@ async def put_oob_client_registration(
     """
     DSKE Out of band: Register a client.
     """
-    _peer_client = _HUB.register_client(client_name=registration_request.client_name)
+    _peer_client = _HUB.register_client(
+        client_name=registration_request.client_name,
+        encryptor_names=registration_request.encryptor_names,
+    )
     response = APIPutRegistrationResponse(hub_name=_HUB.name)
     return response
 

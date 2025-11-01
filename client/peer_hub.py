@@ -134,7 +134,9 @@ class PeerHub:
         Attempt to register this client with the peer hub. Returns true if successful.
         """
         url = f"{self._base_url}/dske/oob/v1/registration"
-        data = APIPutRegistrationRequest(client_name=self._client.name)
+        data = APIPutRegistrationRequest(
+            client_name=self._client.name, encryptor_names=self._client.encryptor_names
+        )
         try:
             registration = await self._http_client.put(
                 url, data, APIPutRegistrationResponse

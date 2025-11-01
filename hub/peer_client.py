@@ -2,7 +2,7 @@
 A peer DSKE client.
 """
 
-import typing
+from typing import assert_never, List
 import fastapi
 from common.allocation import Allocation
 from common.block import Block
@@ -18,11 +18,13 @@ class PeerClient:
     """
 
     _client_name: str
+    _encryptor_names: List[str]
     _local_pool: Pool
     _peer_pool: Pool
 
-    def __init__(self, client_name: str):
+    def __init__(self, client_name: str, encryptor_names: List[str]):
         self._client_name = client_name
+        self._encryptor_names = encryptor_names
         self._local_pool = Pool(client_name, Pool.Owner.LOCAL)
         self._peer_pool = Pool(client_name, Pool.Owner.PEER)
         self._shares = {}
@@ -47,6 +49,7 @@ class PeerClient:
         """
         return {
             "client_name": self._client_name,
+            "encryptor_names": self._encryptor_names,
             "local_pool": self._local_pool.to_mgmt(),
             "peer_pool": self._peer_pool.to_mgmt(),
         }
@@ -62,7 +65,7 @@ class PeerClient:
             case Pool.Owner.PEER:
                 pool = self._peer_pool
             case _:
-                typing.assert_never("Invalid pool owner")
+                assert_never("Invalid pool owner")
         pool.add_block(block)
         return block
 

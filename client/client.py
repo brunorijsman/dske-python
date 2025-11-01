@@ -28,12 +28,12 @@ class Client:
     _max_keys_per_request = 1  # TODO: Allow more than one
 
     _name: str
-    _encryptors: list[str]
+    _encryptor_names: list[str]
     _peer_hubs: list[PeerHub]
 
-    def __init__(self, name: str, encryptors: list[str], peer_hub_urls: list[str]):
+    def __init__(self, name: str, encryptor_names: list[str], peer_hub_urls: list[str]):
         self._name = name
-        self._encryptors = encryptors
+        self._encryptor_names = encryptor_names
         self._peer_hubs = []
         for peer_hub_url in peer_hub_urls:
             peer_hub = PeerHub(self, peer_hub_url)
@@ -46,6 +46,13 @@ class Client:
         """
         return self._name
 
+    @property
+    def encryptor_names(self):
+        """
+        Get the encryptor names.
+        """
+        return self._encryptor_names
+
     def to_mgmt(self):
         """
         Get the management status.
@@ -53,7 +60,7 @@ class Client:
         peer_hubs_status = [peer_hub.to_mgmt() for peer_hub in self._peer_hubs]
         return {
             "name": self._name,
-            "encryptors": self._encryptors,
+            "encryptor_names": self._encryptor_names,
             "peer_hubs": peer_hubs_status,
         }
 

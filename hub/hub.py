@@ -3,6 +3,7 @@ A DSKE security hub, or DSKE hub, or just hub for short.
 """
 
 import asyncio
+from typing import List
 import os
 import signal
 from uuid import UUID
@@ -54,14 +55,16 @@ class Hub:
             "shares": [share.to_mgmt() for share in self._shares.values()],
         }
 
-    def register_client(self, client_name: str) -> PeerClient:
+    def register_client(
+        self, client_name: str, encryptor_names: List[str]
+    ) -> PeerClient:
         """
         Register a peer client.
         """
         # We don't check whether the client is already registered (this could happen when the
         # client restarts without unregistering first). The registration of the newly started
         # client will overwrite the existing client.
-        peer_client = PeerClient(client_name)
+        peer_client = PeerClient(client_name, encryptor_names)
         self._peer_clients[client_name] = peer_client
         return peer_client
 
