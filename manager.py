@@ -354,6 +354,17 @@ class Manager:
     # in cleartext in an HTTP "Authorization" header. This is, of course, not secure, but it is
     # sufficient for our simplified implementation and testing purposes.
 
+    def etsi_qkd_report_call(
+        self, api_name: str, kme_node: Node, master_sae_id: str, slave_sae_id: str
+    ):
+        print(
+            f"Invoke ETSI QKD {api_name} API "
+            f"on client (KME) {kme_node.name} "
+            f"port {kme_node.port} "
+            f"master encryptor (SAE) {master_sae_id} "
+            f"slave encryptor (SAE) {slave_sae_id}:"
+        )
+
     def etsi_qkd_get_status(
         self,
         master_kme_node: Node,
@@ -363,9 +374,8 @@ class Manager:
         """
         Invoke the ETSI QKD Status API.
         """
-        print(
-            f"Invoke ETSI QKD Status API on client {master_kme_node.name} "
-            f"on port {master_kme_node.port}"
+        self.etsi_qkd_report_call(
+            "Status", master_kme_node, master_sae_id, slave_sae_id
         )
         url = f"{master_kme_node.base_url}/etsi/api/v1/keys/{slave_sae_id}/status"
         self.http_request(
@@ -385,9 +395,8 @@ class Manager:
         """
         Invoke the ETSI QKD Get Key API.
         """
-        print(
-            f"Invoke ETSI QKD Get Key API on client {master_kme_node.name} "
-            f"on port {master_kme_node.port}"
+        self.etsi_qkd_report_call(
+            "Get Key", master_kme_node, master_sae_id, slave_sae_id
         )
         url = f"{master_kme_node.base_url}/etsi/api/v1/keys/{slave_sae_id}/enc_keys"
         params = {}
@@ -412,9 +421,8 @@ class Manager:
         """
         Invoke the ETSI QKD Get Key with Key IDs API.
         """
-        print(
-            f"Invoke ETSI QKD Get Key with Key IDs API on client {slave_kme_node.name} "
-            f"on port {slave_kme_node.port}"
+        self.etsi_qkd_report_call(
+            "Get Key with Key IDs", slave_kme_node, master_sae_id, slave_sae_id
         )
         url = f"{slave_kme_node.base_url}/etsi/api/v1/keys/{master_sae_id}/dec_keys"
         params = {"key_ID": key_id}
