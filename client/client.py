@@ -2,7 +2,6 @@
 A DSKE client, or just client for short.
 """
 
-import traceback
 import asyncio
 from uuid import UUID
 from common import exceptions

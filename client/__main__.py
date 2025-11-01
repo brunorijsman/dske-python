@@ -157,7 +157,7 @@ def calling_sae_id(authorization_header: str | None) -> str:
 
 def main():
     """
-    Main entry point for the hub package.
+    Main entry point for the client package.
     """
     utils.create_pid_file("client", _CLIENT.name)
     config = uvicorn.Config(app=_APP, port=_ARGS.port)
