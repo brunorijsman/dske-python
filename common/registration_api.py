@@ -24,5 +24,4 @@ class APIPutRegistrationResponse(pydantic.BaseModel):
     hub_name: str
 
     def __init__(self, hub_name: str):
-        # TODO: Use this __init__ method somewhere
         super().__init__(hub_name=hub_name)
