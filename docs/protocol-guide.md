@@ -45,9 +45,12 @@ The following figure shows a typical example network topology:
 ![Example network topology](figures/topology.png)
 
 The topology consists of the following types of nodes:
-* Clients.
-* Hubs.
-* Encryptors.
+
+* **Clients**, also known as DSKE Clients or Key Management Enitities (KMEs).
+
+* **Hubs**, also known as DSKE Security Hubs.
+
+* **Encryptors**, also known as Secure Application Entities (SAEs).
 
 ### Clients
 
