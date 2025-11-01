@@ -312,7 +312,7 @@ class Manager:
         # N/A                                 Hub name
         #
         # In the code related to ETSI QKD 014, we use the ETSI terminology.
-
+        #
         master_sae_id = self._args.master_sae_id
         slave_sae_id = self._args.slave_sae_id
         master_kme_node = self.find_kme_node_for_sae_id(master_sae_id)
