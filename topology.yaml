@@ -12,9 +12,9 @@ clients:
     encryptors:
       - name: serena
   - name: cindy
-    encryptors:
-      - name: sia
   - name: connie
+    encryptors:
+      - name: sofia
   - name: curtis
     encryptors:
       - name: sunny
