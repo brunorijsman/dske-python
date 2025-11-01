@@ -64,3 +64,5 @@ TODO: Test case for: if signature validation fails, return fragment to pool
 TODO: Error message if --client or --hub does not exist in topology
 
 TODO: Check SAE IDs on GET share, just as we do for POST share
+
+TODO: Add LICENSE (decide which one)
