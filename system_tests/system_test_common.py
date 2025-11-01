@@ -218,8 +218,8 @@ def extract_key_id(output) -> None | str:
 
 
 def get_status(
-    master_client: str,
-    slave_client: str,
+    master_sae_id: str,
+    slave_sae_id: str,
     expected_status_code: int = 200,
     expected_output_lines: None | List[str] = None,
 ) -> None | str:
@@ -230,8 +230,8 @@ def get_status(
     args = [
         configuration.DEFAULT_CONFIGURATION_FILE,
         "etsi-qkd",
-        master_client,
-        slave_client,
+        master_sae_id,
+        slave_sae_id,
         "get-status",
     ]
     output = _run_manager(args)
@@ -239,8 +239,8 @@ def get_status(
 
 
 def get_key(
-    master_client: str,
-    slave_client: str,
+    master_sae_id: str,
+    slave_sae_id: str,
     expected_status_code: int = 200,
     expected_output_lines: None | List[str] = None,
 ) -> None | str:
@@ -251,8 +251,8 @@ def get_key(
     args = [
         configuration.DEFAULT_CONFIGURATION_FILE,
         "etsi-qkd",
-        master_client,
-        slave_client,
+        master_sae_id,
+        slave_sae_id,
         "get-key",
     ]
     output = _run_manager(args)
@@ -264,8 +264,8 @@ def get_key(
 
 
 def get_key_with_key_ids(
-    master_client: str,
-    slave_client: str,
+    master_sae_id: str,
+    slave_sae_id: str,
     key_id: str,
     expected_status_code: int = 200,
     expected_output_lines: None | List[str] = None,
@@ -276,8 +276,8 @@ def get_key_with_key_ids(
     args = [
         configuration.DEFAULT_CONFIGURATION_FILE,
         "etsi-qkd",
-        master_client,
-        slave_client,
+        master_sae_id,
+        slave_sae_id,
         "get-key-with-key-ids",
         key_id,
     ]
@@ -286,8 +286,8 @@ def get_key_with_key_ids(
 
 
 def get_key_pair(
-    master_client: str,
-    slave_client: str,
+    master_sae_id: str,
+    slave_sae_id: str,
     size: int | None = None,
 ) -> None:
     """
@@ -296,8 +296,8 @@ def get_key_pair(
     args = [
         configuration.DEFAULT_CONFIGURATION_FILE,
         "etsi-qkd",
-        master_client,
-        slave_client,
+        master_sae_id,
+        slave_sae_id,
         "get-key-pair",
     ]
     if size is not None:
