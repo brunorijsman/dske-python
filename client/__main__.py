@@ -11,7 +11,7 @@ import fastapi
 import uvicorn
 from common import configuration
 from common import utils
-from common.exceptions import DSKEException, EncryptorNotRegisteredForClientError
+from common.exceptions import DSKEException, MissingAuthorizationHeaderError
 from .client import Client
 
 
@@ -74,12 +74,12 @@ async def dske_exception_handler(_request: fastapi.Request, exc: DSKEException):
 @_APP.get(f"/client/{_CLIENT.name}/etsi/api/v1/keys/{{slave_sae_id}}/status")
 async def get_etsi_status(
     slave_sae_id: str,
-    authorization_header: Annotated[str | None, fastapi.Header()] = None,
+    authorization: Annotated[str | None, fastapi.Header()] = None,
 ):
     """
     ETSI QKD 014 API: Status.
     """
-    master_sae_id = calling_sae_id(authorization_header)
+    master_sae_id = calling_sae_id(authorization)
     return await _CLIENT.etsi_status(master_sae_id, slave_sae_id)
 
 
@@ -87,12 +87,12 @@ async def get_etsi_status(
 async def get_etsi_get_key(
     slave_sae_id: str,
     size: int | None = None,
-    authorization_header: Annotated[str | None, fastapi.Header()] = None,
+    authorization: Annotated[str | None, fastapi.Header()] = None,
 ):
     """
     ETSI QKD 014 API: Get Key.
     """
-    master_sae_id = calling_sae_id(authorization_header)
+    master_sae_id = calling_sae_id(authorization)
     return await _CLIENT.etsi_get_key(master_sae_id, slave_sae_id, size)
 
 
@@ -100,14 +100,14 @@ async def get_etsi_get_key(
 async def get_eti_get_key_with_key_ids(
     master_sae_id: str,
     key_ID: str,
-    authorization_header: Annotated[str | None, fastapi.Header()] = None,
+    authorization: Annotated[str | None, fastapi.Header()] = None,
 ):
     """
     ETSI QKD 014 API: Get Key with Key IDs.
     """
     # ETSI QKD 014 says that ID in key_ID has to be upper case, which lint doesn't like.
     # pylint: disable=invalid-name
-    slave_sae_id = calling_sae_id(authorization_header)
+    slave_sae_id = calling_sae_id(authorization)
     return await _CLIENT.etsi_get_key_with_key_ids(master_sae_id, slave_sae_id, key_ID)
 
 
@@ -140,9 +140,8 @@ def calling_sae_id(authorization_header: str | None) -> str:
             master_sae_id = _CLIENT.encryptor_names[0]
         else:
             # There is more than one encryptor, so we cannot guess which one is calling.
-            raise EncryptorNotRegisteredForClientError(
+            raise MissingAuthorizationHeaderError(
                 client_name=_CLIENT.name,
-                encryptor_name=authorization_header,
             )
     else:
         master_sae_id = authorization_header.strip()

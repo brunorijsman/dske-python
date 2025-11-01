@@ -333,3 +333,18 @@ class EncryptorNotRegisteredForClientError(DSKEException):
                 "encryptor_name": encryptor_name,
             },
         )
+
+
+class MissingAuthorizationHeaderError(DSKEException):
+    """
+    Exception raised when the Authorization header is missing.
+    """
+
+    def __init__(self, client_name: str):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Missing Authorization header",
+            details={
+                "client_name": client_name,
+            },
+        )
