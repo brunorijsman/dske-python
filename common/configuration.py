@@ -48,6 +48,7 @@ def parse_configuration_file(filename: str = DEFAULT_CONFIGURATION_FILE):
     """
     Parse the configuration file.
     """
+    # pylint: disable=too-many-locals
     hub_schema = {
         "type": "dict",
         "schema": {
@@ -64,12 +65,12 @@ def parse_configuration_file(filename: str = DEFAULT_CONFIGURATION_FILE):
         "type": "dict",
         "schema": {
             "name": {"type": "string"},
-            "encryptors": {"type": "list", "schema": encryptor_schema},
+            "encryptors": {"type": "list", "schema": encryptor_schema, "default": []},
         },
     }
     schema = {
-        "hubs": {"type": "list", "schema": hub_schema},
-        "clients": {"type": "list", "schema": client_schema},
+        "hubs": {"type": "list", "schema": hub_schema, "default": []},
+        "clients": {"type": "list", "schema": client_schema, "default": []},
     }
     try:
         with open(filename, "r", encoding="utf-8") as file:
@@ -93,9 +94,17 @@ def parse_configuration_file(filename: str = DEFAULT_CONFIGURATION_FILE):
     parsed_config = validator.normalized(parsed_config)
     nodes = []
     for parsed_hub_config in parsed_config["hubs"]:
-        node = Node(NodeType.HUB, parsed_hub_config["name"])
+        node_name = parsed_hub_config["name"]
+        encryptors = []
+        node = Node(NodeType.HUB, node_name, encryptors)
         nodes.append(node)
     for parsed_client_config in parsed_config["clients"]:
-        node = Node(NodeType.CLIENT, parsed_client_config["name"])
+        node_name = parsed_client_config["name"]
+        parsed_encryptors_config = parsed_client_config["encryptors"]
+        if parsed_client_config is None:
+            encryptor_names = []
+        else:
+            encryptor_names = [pec["name"] for pec in parsed_encryptors_config]
+        node = Node(NodeType.CLIENT, node_name, encryptor_names)
         nodes.append(node)
     return Configuration(nodes)

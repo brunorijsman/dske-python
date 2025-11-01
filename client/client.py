@@ -28,10 +28,12 @@ class Client:
     _max_keys_per_request = 1  # TODO: Allow more than one
 
     _name: str
+    _encryptors: list[str]
     _peer_hubs: list[PeerHub]
 
-    def __init__(self, name: str, peer_hub_urls: list[str]):
+    def __init__(self, name: str, encryptors: list[str], peer_hub_urls: list[str]):
         self._name = name
+        self._encryptors = encryptors
         self._peer_hubs = []
         for peer_hub_url in peer_hub_urls:
             peer_hub = PeerHub(self, peer_hub_url)
@@ -49,7 +51,11 @@ class Client:
         Get the management status.
         """
         peer_hubs_status = [peer_hub.to_mgmt() for peer_hub in self._peer_hubs]
-        return {"name": self._name, "peer_hubs": peer_hubs_status}
+        return {
+            "name": self._name,
+            "encryptors": self._encryptors,
+            "peer_hubs": peer_hubs_status,
+        }
 
     async def etsi_status(self, slave_sae_id: str):
         """

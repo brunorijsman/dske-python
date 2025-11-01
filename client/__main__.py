@@ -29,6 +29,12 @@ def parse_command_line_arguments():
         type=str,
         help=f"Base URLs for hubs (e.g., http://127.0.0.1:{configuration.DEFAULT_BASE_PORT})",
     )
+    parser.add_argument(
+        "--encryptors",
+        nargs="+",
+        type=str,
+        help="Names (SAE IDs) of encryptors consuming keys from this client (KME).",
+    )
     args = parser.parse_args()
     return args
 
@@ -37,7 +43,7 @@ _ARGS = parse_command_line_arguments()
 peer_hub_urls = _ARGS.hubs
 if peer_hub_urls is None:
     peer_hub_urls = []
-_CLIENT = Client(_ARGS.name, peer_hub_urls)
+_CLIENT = Client(_ARGS.name, _ARGS.encryptors, peer_hub_urls)
 
 
 @contextlib.asynccontextmanager

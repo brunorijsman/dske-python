@@ -188,6 +188,8 @@ class Manager:
         else:
             command = ["python", "-m"]
         command += [f"{node.type}", node.name, "--port", str(node.port)]
+        if node.encryptor_names:
+            command += ["--encryptors"] + node.encryptor_names
         if extra_args is not None:
             command += extra_args
         _process = subprocess.Popen(command, stdout=out_file, stderr=out_file)
