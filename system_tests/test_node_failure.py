@@ -13,7 +13,7 @@ def test_one_node_failure_before_get_key():
     """
     system_test_common.start_topology()
     system_test_common.stop_node("hub", "helen")
-    system_test_common.get_key_pair("celia", "curtis")
+    system_test_common.get_key_pair("serena", "susan")
     system_test_common.stop_topology(stopped_nodes=[("hub", "helen")])
 
 
@@ -26,7 +26,7 @@ def test_two_node_failures_before_get_key():
     system_test_common.start_topology()
     system_test_common.stop_node("hub", "helen")
     system_test_common.stop_node("hub", "hugo")
-    system_test_common.get_key_pair("carol", "connie")
+    system_test_common.get_key_pair("sam", "sofia")
     system_test_common.stop_topology(stopped_nodes=[("hub", "helen"), ("hub", "hugo")])
 
 
@@ -41,8 +41,8 @@ def test_three_node_failures_before_get_key():
     system_test_common.stop_node("hub", "helen")
     system_test_common.stop_node("hub", "hugo")
     system_test_common.get_key(
-        "celia",
-        "connie",
+        "serena",
+        "sofia",
         expected_status_code=503,
         expected_output_lines=[r"Could not scatter enough shares for key"],
     )
@@ -63,8 +63,8 @@ def test_three_node_failures_after_get_key():
     system_test_common.stop_node("hub", "helen")
     system_test_common.stop_node("hub", "hugo")
     system_test_common.get_key_with_key_ids(
-        "celia",
-        "connie",
+        "serena",
+        "sofia",
         key_id,
         expected_status_code=503,
         expected_output_lines=[r"Could not gather enough shares for key"],
