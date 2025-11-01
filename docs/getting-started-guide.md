@@ -80,10 +80,19 @@ hubs:
   - name: hugo
 clients:
   - name: carol
+    encryptors:
+      - name: sam
   - name: celia
+    encryptors:
+      - name: serena
   - name: cindy
   - name: connie
+    encryptors:
+      - name: sofia
   - name: curtis
+    encryptors:
+      - name: sunny
+      - name: susan
 ```
 
 This is a diagram of the topology:
@@ -155,28 +164,28 @@ To view the Swagger API documentation for hub hank open a browser and go to URL
 
 ![Swagger documentation for hub hank](figures/swagger-docs.png)
 
-## Create key pair between clients Carol and Connie
+## Create key pair between encryptors Sam and Sofia
 
-Use the `manager.py` script to create a key pair between clients Carol and Connie using the
+Use the `manager.py` script to create a key pair between encryptors Sam and Sofia using the
 ETSI QKD 014 interface.
 You will get different key IDs and key values, but they should match.
 
 
 ```
-$ ./manager.py topology.yaml etsi-qkd carol connie get-key-pair
-Invoke ETSI QKD Get Key API for client carol on port 8105
+$ ./manager.py topology.yaml etsi-qkd sam sofia get-key-pair
+Invoke ETSI QKD Get Key API on client (KME) carol port 8105 master encryptor (SAE) sam slave encryptor (SAE) sofia:
 {
   "keys": {
-    "key_ID": "565a2f78-b2ab-4494-b87b-11a49a3dc4a4",
-    "key": "+andEzVzqw3TKBf8QwSy9A=="
+    "key_ID": "39b64dd0-c22a-4f2a-b5a0-6061d399d311",
+    "key": "xVXO2xSlhSIrkpw5kfWPog=="
   }
 }
-Invoke ETSI QKD Get Key with Key IDs API for client connie on port 8108
+Invoke ETSI QKD Get Key with Key IDs API on client (KME) connie port 8108 master encryptor (SAE) sam slave encryptor (SAE) sofia:
 {
   "keys": [
     {
-      "key_ID": "565a2f78-b2ab-4494-b87b-11a49a3dc4a4",
-      "key": "+andEzVzqw3TKBf8QwSy9A=="
+      "key_ID": "39b64dd0-c22a-4f2a-b5a0-6061d399d311",
+      "key": "xVXO2xSlhSIrkpw5kfWPog=="
     }
   ]
 }
@@ -199,6 +208,9 @@ $ ./manager.py topology.yaml --client carol status
 Status for client carol on port 8105
 {
   "name": "carol",
+  "encryptor_names": [
+    "sam"
+  ],
   "peer_hubs": [
     {
       "hub_name": "hank",
@@ -206,7 +218,7 @@ Status for client carol on port 8105
       "local_pool": {
         "blocks": [
           {
-            "uuid": "a74c4d68-9c84-4d06-85a6-97e1519eb5b3",
+            "uuid": "8f4db917-1047-420f-bc95-f11ef030014d",
             "size": 2000,
             "data": "AAAAAAAAAAAAAA==...",
             "nr_used_bytes": 48,
@@ -218,7 +230,7 @@ Status for client carol on port 8105
       "peer_pool": {
         "blocks": [
           {
-            "uuid": "35571355-223a-47ac-a5b1-0d341951e78e",
+            "uuid": "aa983eb2-9ae6-4c1f-8be1-258dfa96bb2d",
             "size": 2000,
             "data": "AAAAAAAAAAAAAA==...",
             "nr_used_bytes": 32,
@@ -260,7 +272,7 @@ Your output may look different.
 
 ```
 $ cat client-carol.out
-INFO:     Started server process [2353]
+INFO:     Started server process [24907]
 INFO:     Waiting for application startup.
 INFO:     Begin register task for peer hub None
 INFO:     Begin register task for peer hub None
@@ -270,36 +282,34 @@ INFO:     Begin register task for peer hub None
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8105 (Press CTRL+C to quit)
 INFO:     Call PUT http://127.0.0.1:8100/hub/hank/dske/oob/v1/registration 200
-INFO:     Call PUT http://127.0.0.1:8101/hub/helen/dske/oob/v1/registration 200
+INFO:     Finish register task for peer hub None
 INFO:     Call PUT http://127.0.0.1:8103/hub/holly/dske/oob/v1/registration 200
-INFO:     Finish register task for peer hub None
-INFO:     Finish register task for peer hub None
-INFO:     Finish register task for peer hub None
 INFO:     Call PUT http://127.0.0.1:8102/hub/hilary/dske/oob/v1/registration 200
 INFO:     Call PUT http://127.0.0.1:8104/hub/hugo/dske/oob/v1/registration 200
+INFO:     Call PUT http://127.0.0.1:8101/hub/helen/dske/oob/v1/registration 200
 INFO:     Begin request PSRD task for peer hub hank and pool owner local
 INFO:     Begin request PSRD task for peer hub hank and pool owner peer
-INFO:     Begin request PSRD task for peer hub helen and pool owner local
-INFO:     Begin request PSRD task for peer hub helen and pool owner peer
+INFO:     Finish register task for peer hub None
+INFO:     Finish register task for peer hub None
+INFO:     Finish register task for peer hub None
+INFO:     Finish register task for peer hub None
 INFO:     Begin request PSRD task for peer hub holly and pool owner local
 INFO:     Begin request PSRD task for peer hub holly and pool owner peer
-INFO:     Finish register task for peer hub None
-INFO:     Finish register task for peer hub None
 INFO:     Begin request PSRD task for peer hub hilary and pool owner local
 INFO:     Begin request PSRD task for peer hub hilary and pool owner peer
 INFO:     Begin request PSRD task for peer hub hugo and pool owner local
 INFO:     Begin request PSRD task for peer hub hugo and pool owner peer
+INFO:     Begin request PSRD task for peer hub helen and pool owner local
+INFO:     Begin request PSRD task for peer hub helen and pool owner peer
 INFO:     Call GET http://127.0.0.1:8100/hub/hank/dske/oob/v1/psrd?client_name=carol&pool_owner=client&size=2000 200
 INFO:     Finish request PSRD task for peer hub hank and pool owner local
 INFO:     Call GET http://127.0.0.1:8100/hub/hank/dske/oob/v1/psrd?client_name=carol&pool_owner=hub&size=2000 200
-INFO:     Finish request PSRD task for peer hub hank and pool owner peer
 ...
-INFO:     Call POST http://127.0.0.1:8103/hub/holly/dske/api/v1/key-share 200
 INFO:     Call POST http://127.0.0.1:8104/hub/hugo/dske/api/v1/key-share 200
-INFO:     Successfully scattered 5 out of 5 shares for key ID 47487f0d-f164-4ba6-9113-1dfe079f70ac
-INFO:     127.0.0.1:49915 - "GET /client/carol/etsi/api/v1/keys/connie/enc_keys HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49926 - "POST /client/carol/mgmt/v1/stop HTTP/1.1" 200 OK
+INFO:     Successfully scattered 5 out of 5 shares for key ID 0aa99444-fddc-44d2-ac23-49657e5e6021
+INFO:     127.0.0.1:57301 - "GET /client/carol/etsi/api/v1/keys/sofia/enc_keys HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57318 - "POST /client/carol/mgmt/v1/stop HTTP/1.1" 200 OK
 INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [2353]```
+INFO:     Finished server process [24907]
