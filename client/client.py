@@ -28,10 +28,12 @@ class Client:
     _max_keys_per_request = 1  # TODO: Allow more than one
 
     _name: str
+    _encryptor_names: list[str]
     _peer_hubs: list[PeerHub]
 
-    def __init__(self, name: str, peer_hub_urls: list[str]):
+    def __init__(self, name: str, encryptor_names: list[str], peer_hub_urls: list[str]):
         self._name = name
+        self._encryptor_names = encryptor_names
         self._peer_hubs = []
         for peer_hub_url in peer_hub_urls:
             peer_hub = PeerHub(self, peer_hub_url)
@@ -44,22 +46,33 @@ class Client:
         """
         return self._name
 
+    @property
+    def encryptor_names(self):
+        """
+        Get the encryptor names.
+        """
+        return self._encryptor_names
+
     def to_mgmt(self):
         """
         Get the management status.
         """
         peer_hubs_status = [peer_hub.to_mgmt() for peer_hub in self._peer_hubs]
-        return {"name": self._name, "peer_hubs": peer_hubs_status}
+        return {
+            "name": self._name,
+            "encryptor_names": self._encryptor_names,
+            "peer_hubs": peer_hubs_status,
+        }
 
-    async def etsi_status(self, slave_sae_id: str):
+    async def etsi_status(self, master_sae_id: str, slave_sae_id: str):
         """
         ETSI QKD 014 V1.1.1 Status API.
         """
         # See remark about ETSI QKD API in file TODO
         return {
             "source_kme_id": self._name,
-            "target_kme_id": slave_sae_id,
-            "master_sae_id": self._name,
+            "target_kme_id": "TODO",  # TODO: Determine slave KME ID from slave SAE ID
+            "master_sae_id": master_sae_id,
             "slave_sae_id": slave_sae_id,
             "key_size": self._default_key_size_in_bits,
             "stored_key_count": 25000,  # TODO
@@ -70,7 +83,12 @@ class Client:
             "max_sae_id_count": 0,
         }
 
-    async def etsi_get_key(self, _slave_sae_id: str, size: int | None = None):
+    async def etsi_get_key(
+        self,
+        master_sae_id: str,
+        slave_sae_id: str,
+        size: int | None = None,
+    ):
         """
         ETSI QKD 014 V1.1.1 Get key API.
         """
@@ -89,7 +107,7 @@ class Client:
             )
         size_in_bytes = size // 8
         key = UserKey.create_random_key(size_in_bytes)
-        await self.scatter_key_amongst_peer_hubs(key)
+        await self.scatter_key_amongst_peer_hubs(master_sae_id, slave_sae_id, key)
         return {
             "keys": {
                 "key_ID": key.key_id,
@@ -97,17 +115,17 @@ class Client:
             }
         }
 
-    async def etsi_get_key_with_key_ids(self, _master_sae_id: str, key_id: str):
+    async def etsi_get_key_with_key_ids(
+        self, master_sae_id: str, slave_sae_id: str, key_id: str
+    ):
         """
         ETSI QKD 014 V1.1.1 Get key with key IDs API.
         """
-        # TODO: Pass the master SAE ID and the slave SAE ID along with the relayed shares
-        #       and check that they match here.
         try:
             key_id = UUID(key_id)
         except ValueError as exc:
             raise exceptions.InvalidKeyIDError(key_id) from exc
-        key = await self.gather_key_from_peer_hubs(key_id)
+        key = await self.gather_key_from_peer_hubs(master_sae_id, slave_sae_id, key_id)
         return {
             "keys": [
                 {
@@ -124,15 +142,22 @@ class Client:
         for peer_hub in self._peer_hubs:
             peer_hub.start_register_task()
 
-    async def scatter_key_amongst_peer_hubs(self, key: UserKey) -> None:
+    async def scatter_key_amongst_peer_hubs(
+        self,
+        master_sae_id: str,
+        slave_sae_id: str,
+        key: UserKey,
+    ) -> None:
         """
         Split the key into key shares, and send each key share to a peer hub.
         """
         nr_shares = len(self._peer_hubs)
-        shares = key.split_into_shares(nr_shares, _MIN_NR_SHARES)
+        shares = key.split_into_shares(
+            master_sae_id, slave_sae_id, nr_shares, _MIN_NR_SHARES
+        )
         assert len(shares) == nr_shares
         coroutines = [
-            peer_hub.post_share(share)
+            peer_hub.post_share(master_sae_id, slave_sae_id, share)
             for peer_hub, share in zip(self._peer_hubs, shares)
         ]
         results = await asyncio.gather(*coroutines, return_exceptions=True)
@@ -152,13 +177,21 @@ class Client:
                 key.key_id, nr_shares_successfully_scattered, _MIN_NR_SHARES, causes
             )
 
-    async def gather_key_from_peer_hubs(self, key_id: UUID) -> UserKey:
+    async def gather_key_from_peer_hubs(
+        self,
+        master_sae_id: str,
+        slave_sae_id: str,
+        key_id: UUID,
+    ) -> UserKey:
         """
         Gather key shares from the peer hubs, and reconstruct the key out of (a subset of)
         the key shares.
         """
         nr_shares_attempted_to_gather = len(self._peer_hubs)
-        coroutines = [peer_hub.get_share(key_id) for peer_hub in self._peer_hubs]
+        coroutines = [
+            peer_hub.get_share(master_sae_id, slave_sae_id, key_id)
+            for peer_hub in self._peer_hubs
+        ]
         results = await asyncio.gather(*coroutines, return_exceptions=True)
         shares = [result for result in results if not isinstance(result, Exception)]
         nr_shares_successfully_gathered = len(shares)

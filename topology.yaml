@@ -6,7 +6,16 @@ hubs:
   - name: hugo
 clients:
   - name: carol
+    encryptors:
+      - name: sam
   - name: celia
+    encryptors:
+      - name: serena
   - name: cindy
   - name: connie
+    encryptors:
+      - name: sofia
   - name: curtis
+    encryptors:
+      - name: sunny
+      - name: susan

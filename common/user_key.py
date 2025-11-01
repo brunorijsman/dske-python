@@ -1,10 +1,8 @@
 """
 A key that produced by the DSKE protocol, intended to be delivered to the user over a key delivery
-interface such as ETSI QKD 014.
-
-This key (intended to be delivery to the user) must not be confused with the keys that are used
-internally within the DSKE protocol to encrypt key shares and to authenticate DSKE protocol
-messages (see class InternalKeys).
+interface such as ETSI QKD 014. User keys must not be confused with the keys that are used
+internally within the DSKE protocol to encrypt key shares and to authenticate in-band DSKE protocol
+messages (see classes EncryptionKey and SigningKey).
 """
 
 import os
@@ -56,15 +54,15 @@ class UserKey:
 
     def split_into_shares(
         self,
+        master_sae_id: str,
+        slave_sae_id: str,
         nr_shares: int,
         min_nr_shares: int,
     ) -> list[Share]:
         """
-        Split a key into `nr_shares` shares. The minimum number of shares required to
-        reconstruct the key is `min_nr_shares`.
-
-        The shares do *not* yet have an encryption key or a signature key allocated. This is done
-        later when each share is associated with a peer node.
+        Split a key into `nr_shares` shares. The minimum number of shares required to reconstruct
+        the key is `min_nr_shares`. The shares do *not* yet have an encryption key or a signing key
+        allocated. This is done later when each share is associated with a peer node.
         """
         try:
             share_indexes_and_values = split_binary_secret_into_shares(
@@ -74,6 +72,12 @@ class UserKey:
             raise ShamirSplitError(self._key_id, str(exc)) from exc
         shares = []
         for share_index, share_value in share_indexes_and_values:
-            share = Share(self._key_id, share_index, value=share_value)
+            share = Share(
+                master_sae_id,
+                slave_sae_id,
+                self._key_id,
+                share_index,
+                value=share_value,
+            )
             shares.append(share)
         return shares

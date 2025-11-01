@@ -3,6 +3,7 @@ A DSKE security hub, or DSKE hub, or just hub for short.
 """
 
 import asyncio
+from typing import List
 import os
 import signal
 from uuid import UUID
@@ -12,6 +13,8 @@ from common import utils
 from common.allocation import Allocation
 from common.block import Block
 from common.encryption_key import EncryptionKey
+from common.exceptions import EncryptorNotRegisteredForClientError
+from common.logging import LOGGER
 from common.pool import Pool
 from common.share import Share
 from common.share_api import APIGetShareResponse, APIPostShareRequest
@@ -54,14 +57,16 @@ class Hub:
             "shares": [share.to_mgmt() for share in self._shares.values()],
         }
 
-    def register_client(self, client_name: str) -> PeerClient:
+    def register_client(
+        self, client_name: str, encryptor_names: List[str]
+    ) -> PeerClient:
         """
         Register a peer client.
         """
         # We don't check whether the client is already registered (this could happen when the
         # client restarts without unregistering first). The registration of the newly started
         # client will overwrite the existing client.
-        peer_client = PeerClient(client_name)
+        peer_client = PeerClient(client_name, encryptor_names)
         self._peer_clients[client_name] = peer_client
         return peer_client
 
@@ -72,6 +77,7 @@ class Hub:
         Generate a block of PSRD for a peer client.
         """
         if client_name not in self._peer_clients:
+            LOGGER.warning(f"Peer client '{client_name}' not found")
             raise exceptions.ClientNotRegisteredError(client_name)
         peer_client = self._peer_clients[client_name]
         match pool_owner_str.lower():
@@ -80,6 +86,9 @@ class Hub:
             case "hub":
                 pool_owner = Pool.Owner.LOCAL
             case _:
+                LOGGER.warning(
+                    f"Invalid pool owner {pool_owner_str} for peer client {client_name}"
+                )
                 raise exceptions.InvalidPoolOwnerError(pool_owner_str)
         block = peer_client.create_random_block(pool_owner, size)
         return block
@@ -93,11 +102,22 @@ class Hub:
         """
         Store a key share posted by a client.
         """
-        client_name = api_post_share_request.client_name
+        # Lookup the peer client
+        client_name = api_post_share_request.master_client_name
         if client_name not in self._peer_clients:
+            LOGGER.warning(f"Peer client {client_name} not found")
             raise exceptions.ClientNotRegisteredError(client_name)
         peer_client = self._peer_clients[client_name]
+        # Verify the request signature
         await peer_client.check_request_signature(raw_request)
+        # Check that the master encryptor (SAE) is one that was registered for the client
+        master_sae_id = api_post_share_request.master_sae_id
+        if master_sae_id not in peer_client.encryptor_names:
+            LOGGER.warning(
+                f"Encryptor {master_sae_id} not registered for client {client_name}"
+            )
+            raise EncryptorNotRegisteredForClientError(client_name, master_sae_id)
+        # Decrypt the share value
         encryption_key_allocation = Allocation.from_api(
             api_post_share_request.encryption_key_allocation, peer_client.peer_pool
         )
@@ -106,7 +126,10 @@ class Hub:
             api_post_share_request.encrypted_share_value
         )
         share_value = encryption_key.decrypt(encrypted_share_value)
+        # TODO: Check that master and slave client names match registered client
         share = Share(
+            master_sae_id=api_post_share_request.master_sae_id,
+            slave_sae_id=api_post_share_request.slave_sae_id,
             user_key_id=UUID(api_post_share_request.user_key_id),
             share_index=api_post_share_request.share_index,
             value=share_value,
@@ -114,6 +137,7 @@ class Hub:
         # TODO: Check if the key UUID is already present, and if so, do something sensible
         self._shares[share.user_key_id] = share
         peer_client.add_dske_signing_key_header_to_response(headers_temp_response)
+        # Clean up fully used blocks
         peer_client.delete_fully_used_blocks()
 
     async def get_share_requested_by_client(
@@ -126,25 +150,35 @@ class Hub:
         """
         Get a key share.
         """
+        # Lookup the peer client
+        if client_name not in self._peer_clients:
+            LOGGER.warning(f"Peer client {client_name} not found")
+            raise exceptions.ClientNotRegisteredError(client_name)
+        peer_client = self._peer_clients[client_name]
+        # Verify the request signature
+        await peer_client.check_request_signature(raw_request)
+        # Lookup the share
         try:
             key_id = UUID(key_id_str)
         except ValueError as exc:
+            LOGGER.warning(f"Invalid key ID {key_id_str}")
             raise exceptions.InvalidKeyIDError(key_id_str) from exc
-        # TODO: Error handling: share is not in the store
         try:
             share = self._shares[key_id]
         except KeyError as exc:
+            LOGGER.warning(f"No share for key ID {key_id_str}")
             raise exceptions.UnknownKeyIDError(key_id) from exc
-        peer_client = self._peer_clients[client_name]
-        await peer_client.check_request_signature(raw_request)
+        # Encrypt the share value
         encryption_key = EncryptionKey.from_pool(peer_client.local_pool, share.size)
         encrypted_share_value = encryption_key.encrypt(share.value)
+        # Prepare the response
         response = APIGetShareResponse(
             share_index=share.share_index,
             encryption_key_allocation=encryption_key.allocation.to_api(),
             encrypted_share_value=bytes_to_str(encrypted_share_value),
         )
         peer_client.add_dske_signing_key_header_to_response(headers_temp_response)
+        # Clean up fully used blocks
         peer_client.delete_fully_used_blocks()
         return response
 

@@ -4,12 +4,6 @@ TODO: Make dske.yaml the default configuration file, and add a --config option t
 
 TODO: Cleanup Shamir's Secret Sharing (SSS) code (no back-and-forth conversion to RawShare)
 
-TODO: Better error response if authentication key is bad (and return to pool if allocated)
-      - Bad block uuid
-      - Start and end of range
-      - Already allocated
-      - Etc.
-
 TODO: Move code coverage data files to subdirectory
 
 TODO: Stop all nodes after each test (to make sure they are stopped if test case fails)
@@ -18,22 +12,10 @@ TODO: Add a test cases with a netcat (nc) listener squatting the port
 
 TODO: Make sure key has unique key UUID
 
-TODO: Key initiator: Select N peer hub (initially: all peer hubs)
-
-TODO: Allow a client to register itself again (after a restart). Done; just need to test.
-
-TODO: Add statistics management API and topology command to query it.
-
-TODO: More unit test cases to get code coverage up
-
 TODO: Add Sphinx documentation
       Use https://github.com/tox-dev/sphinx-autodoc-typehints 
 
 TODO: Cleanup share after all clients have retrieved it, or after timeout.
-
-TODO: Request new PSRD blocks when they run low (have a threshold)
-
-TODO: Better way to avoid circular imports that then current # type: ignore
 
 TODO: Make the swagger docs also work off-line
 
@@ -49,17 +31,10 @@ TODO: Put .out files in a sub-directory
 
 TODO: OpenAPI (Swagger) documentation should show proper type for request and response data
 
-TODO: Error if get-key-with-key-ids if the API is invoked on client which is not actually one of the
-      slaves for that key.
-
 TODO: Use data (instead of value) in Fragment for consistency. Also in documentation (including
       figures)
 
 TODO: Avoid usage: __main__.py in --help output for client / hub
-
-TODO: Add site map to Google Search Console
-
-TODO: Consistently use httpx for client side (not requests for synchronous calls)
 
 TODO: Add test case: start hub later than client (registration retry logic in client)
 
@@ -71,12 +46,6 @@ TODO: Forbid extra query parameters for API calls
 TODO: Fix crash in shamir code when key size 8 is used (don't allow too small keys)
 
 TODO: Time-out shares on hubs and remove them if they have not been retrieved after the time-out
-
-TODO: When I ask for a 20,000 bytes key, it fails (as expected). But the attempted allocation for
-      the encryption key of each share is only 2,500 bytes which seems wrong:
-      5 hubs x 2,500 bytes per share = 12,500 bytes (I expected at least 20,000)
-      Note: it's because key size is in bits and pool size is in bytes. Add size_in_bits where
-      appropriate.
 
 TODO: Have an option to use PSRD data as the key instead of a random number generator.
       Explain pros and cons of each approach (forward secrecy if PSRD is compromised) in docs.
@@ -90,9 +59,6 @@ TODO: Testcase for invalid signature
       - Signature is incorrect
       - Make sure bytes taken from pool are returned (to defend against DOS attack)
 
-TODO: Do we need the owner field in class Block? We known the owner by virtue of which pool
-      it is in.
+TODO: Test case for: if signature validation fails, return fragment to pool
 
-TODO: If signature validation fails, return fragment to pool
-
-TODO: Test case for this
+TODO: Error message if --client or --hub does not exist in topology

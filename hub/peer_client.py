@@ -2,11 +2,12 @@
 A peer DSKE client.
 """
 
-import typing
+from typing import assert_never, List
 import fastapi
 from common.allocation import Allocation
 from common.block import Block
 from common.exceptions import InvalidSignatureError
+from common.logging import LOGGER
 from common.pool import Pool
 from common.signature import Signature
 from common.signing_key import SigningKey
@@ -18,14 +19,29 @@ class PeerClient:
     """
 
     _client_name: str
+    _encryptor_names: List[str]
     _local_pool: Pool
     _peer_pool: Pool
 
-    def __init__(self, client_name: str):
+    def __init__(self, client_name: str, encryptor_names: List[str]):
         self._client_name = client_name
+        self._encryptor_names = encryptor_names
         self._local_pool = Pool(client_name, Pool.Owner.LOCAL)
         self._peer_pool = Pool(client_name, Pool.Owner.PEER)
-        self._shares = {}
+
+    @property
+    def client_name(self) -> str:
+        """
+        Get the client name.
+        """
+        return self._client_name
+
+    @property
+    def encryptor_names(self) -> List[str]:
+        """
+        Get the list of encryptor names registered for this client.
+        """
+        return self._encryptor_names
 
     @property
     def local_pool(self) -> Pool:
@@ -47,6 +63,7 @@ class PeerClient:
         """
         return {
             "client_name": self._client_name,
+            "encryptor_names": self._encryptor_names,
             "local_pool": self._local_pool.to_mgmt(),
             "peer_pool": self._peer_pool.to_mgmt(),
         }
@@ -62,7 +79,7 @@ class PeerClient:
             case Pool.Owner.PEER:
                 pool = self._peer_pool
             case _:
-                typing.assert_never("Invalid pool owner")
+                assert_never("Invalid pool owner")
         pool.add_block(block)
         return block
 
@@ -90,6 +107,9 @@ class PeerClient:
         signature_ok = received_signature.same_as(computed_signature)
         if not signature_ok:
             # TODO: Give allocation back to pool
+            LOGGER.warning(
+                f"Invalid signature received from peer client '{self._client_name}'"
+            )
             raise InvalidSignatureError()
 
     def delete_fully_used_blocks(self) -> None:

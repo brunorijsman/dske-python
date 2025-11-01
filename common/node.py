@@ -44,6 +44,7 @@ class Node:
 
     type: NodeType
     name: str
+    encryptor_names: list[str]  # Only relevant for clients, empty list for hubs
     port: None | int = None
     base_url: None | str = None
 

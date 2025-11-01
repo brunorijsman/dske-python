@@ -41,6 +41,12 @@ class HttpClient:
             signature.add_to_headers(request.headers)
             response = yield request
             received_signature = Signature.from_headers(response.headers)
+            if received_signature is None:
+                # If the signature is missing on an error response, keep the original error response
+                # instead of raising an InvalidSignatureError which wipes out any useful error info.
+                if response.status_code < 400:
+                    raise InvalidSignatureError()
+                return
             allocation = Allocation.from_enc_str(
                 received_signature.signing_key_allocation_enc_str, self._peer_pool
             )
@@ -166,7 +172,12 @@ class HttpClient:
                     exception=str(exc),
                 ) from exc
             if response.status_code != 200:
-                LOGGER.error(f"Call {method} {url} {response.status_code}")
+                message = ""
+                try:
+                    message = " " + response.json().get("message")
+                except Exception:  # pylint: disable=broad-except
+                    pass
+                LOGGER.error(f"Call {method} {url} {response.status_code}{message}")
                 raise exceptions.HTTPError(
                     method=method,
                     url=url,
