@@ -137,6 +137,9 @@ def calling_sae_id(authorization_header: str | None) -> str:
         if len(_CLIENT.encryptor_names) == 1:
             # If the client has exactly one encryptor, we assume that this is the one.
             # This makes it easier for users to use curl for testing in simple topologies.
+            # It's okay because we only implement a subset of ETSI QKD 014: we are not really
+            # authenticating the clients, we are just using the Authorization header to
+            # determine which encryptor is calling.
             master_sae_id = _CLIENT.encryptor_names[0]
         else:
             # There is more than one encryptor, so we cannot guess which one is calling.
