@@ -336,11 +336,7 @@ Invoke ETSI QKD Get Key API for client carol on port 8105
 }
 </pre>
 
-Note 1: The master / slave terminology comes from ETSI QKD 014 version 1 and will be revised in 
-version 2.
-
-Note: At this point, the code assumes that there is exactly one SAE per client, and that the SAE-ID
-of the SAE is the same as the name of the client.
+The master / slave terminology comes from ETSI QKD 014 version 1 and will be revised in version 2.
 
 ## ETSI QKD 014 Get key with key IDs
 
