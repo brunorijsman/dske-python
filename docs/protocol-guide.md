@@ -172,11 +172,15 @@ The following table shows how the different terminologies map to each other:
 
 | DSKE term | ETSI term |
 |---|---|
-| Client <br> DSKE Client <br> DSKE Client Node | Key Management Entity (KME) |
+| Client <br> DSKE Client | Key Management Entity (KME) |
+| Client name | KME ID |
 | Hub <br> Security Hub <br> DSKE Security Hub | Trusted Relay Node (TRN) [1] |
 | Encryptor | Secure Application Entity (SAE) |
+| Encryptor name | SAE ID |
 
-[1] Note that ETSI does not have the concept of a Trusted Relay Node splitting a key into shares.
+[1] An ETSI Trusted Relay Node (TRN) is only very roughly equivalent to DSKE Security Hub;
+for example ETSI does not have the concept of splitting a key into shares or Pre-Shared Random Data
+(PSRD).
 
 ## High-level overview
 
