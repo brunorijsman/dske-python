@@ -889,6 +889,8 @@ Successful response body: None
 
 ### Authentication using signatures
 
+TODO: This is duplicate; merge with the section higher up.
+
 All in-band DSKE protocol messages are authenticated using the HTTP `DSKE-Signature` header.
 It contains two pieces of information:
 
