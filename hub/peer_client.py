@@ -68,18 +68,18 @@ class PeerClient:
             "peer_pool": self._peer_pool.to_mgmt(),
         }
 
-    def create_random_block(self, pool_owner: Pool.Owner, size: int) -> Block:
+    def create_random_block(self, owner: Pool.Owner, size: int) -> Block:
         """
         Create a block filled ith random data and add it to the specified pool.
         """
         block = Block.new_with_random_data(size)
-        match pool_owner:
+        match owner:
             case Pool.Owner.LOCAL:
                 pool = self._local_pool
             case Pool.Owner.PEER:
                 pool = self._peer_pool
             case _:
-                assert_never("Invalid pool owner")
+                assert_never("Invalid owner")
         pool.add_block(block)
         return block
 

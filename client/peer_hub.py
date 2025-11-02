@@ -195,12 +195,12 @@ class PeerHub:
         url = f"{self._base_url}/dske/oob/v1/psrd"
         match pool.owner:
             case Pool.Owner.LOCAL:
-                pool_owner_str = "client"
+                owner_str = "client"
             case Pool.Owner.PEER:
-                pool_owner_str = "hub"
+                owner_str = "hub"
         params = {
             "client_name": self._client.name,
-            "pool_owner": pool_owner_str,
+            "owner": owner_str,
             "size": GET_PSRD_BLOCK_SIZE,
         }
         try:

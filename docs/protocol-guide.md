@@ -186,29 +186,37 @@ for example ETSI does not have the concept of splitting a key into shares or Pre
 
 We start with a high-level overview of how the protocol works. 
 Our goal is try to avoid losing the forest for the trees later on when we dive into the details.
-We gloss over many important details and we use some terminology without defining it; these
-details and definitions will be filled in in the remainder of the chapter.
+We gloss over many important details which will be explained later.
 
 We have a network consisting of network nodes.
 These nodes are connected to each other using a normal IP network (i.e. using routers and switches).
 
 Some of these nodes want to exchange encrypted traffic with each other, and for this reason they
 need to agree on encryption keys.
-We refer to these nodes as DSKE client nodes, or simply clients.
-The clients are running the DSKE protocol as the key establishment protocol.
+We refer to these nodes as encryptors.
+
+Each encryptor is connected to a DSKE client, or client for short.
+The clients are responsible for producing the symmetric encryption keys and
+for delivering those encryption keys to the encryptors.
+
+The clients run the DSKE protocol as the key establishment protocol.
 
 The DSKE protocol relies heavily on using very large blocks of Pre-Shared Random Data (PSRD).
-Before two nodes can establish keys, they first need to exchange blocks of PSRD.
+
+Before a pair of clients can establish keys, they first need to exchange blocks of PSRD.
+
 The exchange of PSRD uses what we refer to as a secure out-of-band mechanism.
 Think, for example, of using armed guards to exchange tamper-proof disks full of random data,
 where the disks are destroyed after the same block of PSRD is delivered to each of a pair of nodes.
+
+Later, we will see that clients don't exchange PSRD directly with each other, but through
+a set of intermediate nodes called DSKE Security Hubs, or just hubs for short.
 
 Imagine, for now, that two clients Carol and Celia have exchanged blocks of PSRD.
 This means that Carol and Celia both have a identical copies of the PSRD blocks, and no-one else
 knows what these blocks of PSRD are.
 
-Carol and Celia can now agree on a Carol-Celia encryption key using a public
-conversation.
+Carol and Celia can now agree on a Carol-Celia encryption key using a public conversation.
 For example, Carol could announce that she will use bytes numbers 100 through 228 of PSRD block
 number 123 as the key.
 We refer to this as the meta-data for the encryption key.
@@ -227,6 +235,9 @@ the message itself to the receiver (say Celia).
 Celia uses the received key meta-data to extract the authentication key value from her copy of the
 PSRD and uses it to validate the received signature.
 
+Once Carol and Celia have established an encryption key, they deliver that encryption key to 
+the encryptors using a key delivery protocol such as ETSI QKD 014 or SKIP.
+
 The scheme that we have described thus far becomes impractical if we have a very large number of
 clients.
 Each client would have to pro-actively and a-priori exchange PSRD with each of the other clients
@@ -235,8 +246,8 @@ on the network that it could potentially wish to communicate with at some point 
 For this reason, we introduce a second type of node that we refer to as a DSKE security hub,
 or simply hub for short.
 
-Instead of establishing a key directly between a pair of clients, we use the hubs as trusted relay
-nodes.
+Instead of establishing a key directly between a pair of clients, we use the hubs as a sort of
+Trusted Relay Nodes (TRNs).
 The clients do not establish PSRD with directly with each other;
 instead, the clients establish PSRD with the hubs.
 
@@ -646,16 +657,31 @@ As a result, the client registration is idem-potent and it is not an error for a
 itself multiple times. This can happen, for example, when a client crashes and restarts.
 
 In the request, the client provides its own `client_name`.
+The client also provides a list of `encryptor_names` that are attached to the client.
+This is used by the hub to verify whether the client only produces or consumes keys for directly
+attached encryptors.
+
 In the response, the hub provides its `hub_name`.
 
 Method: `PUT`
 
 URL: `/hub/{hub_name}/dske/oob/v1/registration`
 
+Note that we include the node name (in this case `hub_name`) in the path of the URL;
+this allows deployments where all nodes run on a single server on a single port 
+behind a reverse proxy (e.g. 
+[NGINX](https://nginx.org/)
+)
+where the reverse proxy uses the node name in the URL to dispatch the request to the correct
+process.
+
 Request body:
 ```
 {
   "client_name": "string"   # The name of the client.
+  "encryptor_names": [      # List of encryptors attached to the client
+    "string", ...           # Name of one encryptor attached to the client
+  ] 
 }
 ```
 
@@ -665,14 +691,6 @@ Successful response body:
   "hub_name": "string"   # The name of the hub.
 }
 ```
-
-Note that we include the node name (in this case `hub_name`) in the path of the URL;
-this allows deployments where all nodes run on a single server on a single port 
-behind a reverse proxy (e.g. 
-[NGINX](https://nginx.org/)
-)
-where the reverse proxy uses the node name in the URL to dispatch the request to the correct
-process.
 
 ### Request Pre-Shared Random Data (PSRD)
 
@@ -819,14 +837,18 @@ TODO: Document `DSKE-Signature` header here
 Request body:
 ```
 {
-  "client_name": "string",            # The name of the client.
+  "master_client_name": "string",     # The name of the master client.
+  "master_sae_id": "string",          # The SAE ID (encryptor name) of the master SAE
+  "slave_sae_id": "string",           # The SAE ID (encryptor name) of the slave SAE
   "user_key_id": "string",            # The UUID of the user key.
   "share_index": "integer",           # The index of the share (0, 1, ..., n-1).
   "encryption_key_allocation": {      # The PSRD pool allocation for the share encryption key.
-    [                                 # List of allocation fragments
-      block_uuid: "string",           # The UUID of the PSRD block from which the fragment was allocated.
-      start_byte: "integer",          # The index of the start byte for the fragment within the block.
-      size: "integer"                 # The size of the fragment
+    "fragments": [                    # List of fragments in the allocation
+      {                               # One fragment in the allocation
+        block_uuid: "string",         # The UUID of the PSRD block from which the fragment was allocated.
+        start_byte: "integer",        # The index of the start byte for the fragment within the block.
+        size: "integer"               # The size of the fragment
+      }, ...                 
     ]
   },
   "encrypted_share_value": "string"   # Base64 encoded encrypted share value

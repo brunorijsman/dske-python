@@ -301,9 +301,9 @@ INFO:     Begin request PSRD task for peer hub hugo and pool owner local
 INFO:     Begin request PSRD task for peer hub hugo and pool owner peer
 INFO:     Begin request PSRD task for peer hub helen and pool owner local
 INFO:     Begin request PSRD task for peer hub helen and pool owner peer
-INFO:     Call GET http://127.0.0.1:8100/hub/hank/dske/oob/v1/psrd?client_name=carol&pool_owner=client&size=2000 200
+INFO:     Call GET http://127.0.0.1:8100/hub/hank/dske/oob/v1/psrd?client_name=carol&owner=client&size=2000 200
 INFO:     Finish request PSRD task for peer hub hank and pool owner local
-INFO:     Call GET http://127.0.0.1:8100/hub/hank/dske/oob/v1/psrd?client_name=carol&pool_owner=hub&size=2000 200
+INFO:     Call GET http://127.0.0.1:8100/hub/hank/dske/oob/v1/psrd?client_name=carol&owner=hub&size=2000 200
 ...
 INFO:     Call POST http://127.0.0.1:8104/hub/hugo/dske/api/v1/key-share 200
 INFO:     Successfully scattered 5 out of 5 shares for key ID 0aa99444-fddc-44d2-ac23-49657e5e6021

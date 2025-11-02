@@ -71,7 +71,7 @@ class Hub:
         return peer_client
 
     def generate_block_for_client(
-        self, client_name: str, pool_owner_str: str, size: int
+        self, client_name: str, owner_str: str, size: int
     ) -> Block:
         """
         Generate a block of PSRD for a peer client.
@@ -80,17 +80,17 @@ class Hub:
             LOGGER.warning(f"Peer client '{client_name}' not found")
             raise exceptions.ClientNotRegisteredError(client_name)
         peer_client = self._peer_clients[client_name]
-        match pool_owner_str.lower():
+        match owner_str.lower():
             case "client":
-                pool_owner = Pool.Owner.PEER
+                owner = Pool.Owner.PEER
             case "hub":
-                pool_owner = Pool.Owner.LOCAL
+                owner = Pool.Owner.LOCAL
             case _:
                 LOGGER.warning(
-                    f"Invalid pool owner {pool_owner_str} for peer client {client_name}"
+                    f"Invalid owner {owner_str} for peer client {client_name}"
                 )
-                raise exceptions.InvalidPoolOwnerError(pool_owner_str)
-        block = peer_client.create_random_block(pool_owner, size)
+                raise exceptions.InvalidOwnerError(owner_str)
+        block = peer_client.create_random_block(owner, size)
         return block
 
     async def store_share_received_from_client(

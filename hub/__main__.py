@@ -118,13 +118,13 @@ async def put_oob_client_registration(
 @_APP.get(f"/hub/{_HUB.name}/dske/oob/v1/psrd")
 async def get_oob_psrd(
     client_name: str,
-    pool_owner: str,
+    owner: str,
     size: pydantic.PositiveInt,
 ) -> APIBlock:
     """
     DSKE Out of band: Get a block of Pre-Shared Random Data (PSRD).
     """
-    block = _HUB.generate_block_for_client(client_name, pool_owner, size)
+    block = _HUB.generate_block_for_client(client_name, owner, size)
     return block.to_api()
 
 
