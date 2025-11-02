@@ -164,6 +164,20 @@ These lines are not intended to represent single-hop point-to-point physical con
 Instead they represent potentially multi-hop IP connectivity between the network nodes; each link
 may contain multiple switch or router hops.
 
+### DSKE vs ETSI terminology
+
+The DSKE IETF draft and arXiv papers use different terminology than the European Telecommunications
+Standardization Institute (ETSI).
+The following table shows how the different terminologies map to each other:
+
+| DSKE term | ETSI term |
+|---|---|
+| Client <br> DSKE Client <br> DSKE Client Node | Key Management Entity (KME) |
+| Hub <br> Security Hub <br> DSKE Security Hub | Trusted Relay Node (TRN) [1] |
+| Encryptor | Secure Application Entity (SAE) |
+
+[1] Note that ETSI does not have the concept of a Trusted Relay Node splitting a key into shares.
+
 ## High-level overview
 
 We start with a high-level overview of how the protocol works. 
