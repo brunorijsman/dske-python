@@ -733,12 +733,12 @@ The following ladder diagram shows the establishment of a new key:
 
 ### Initiator and responder roles
 
-In the example scenario shown in the above ladder diagram, encryptors Patrick and Porter establish
+In the example scenario shown in the above ladder diagram, encryptors Sam and Sofia establish
 a key.
 
-In each key establishment one of the two encryptors (Patrick in this example) is the initiator:
+In each key establishment one of the two encryptors (Sam in this example) is the initiator:
 he initiates the key establishment process.
-The other encryptor encryptor (Porter) is the responder: he follows the lead of the initiator.
+The other encryptor encryptor (Sofia) is the responder: she follows the lead of the initiator.
 
 [ETSI GS QKD 014 V1.1.1 (2019-02)](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf) still uses the terms master Secure Application Entity (SAE) and slave SAE.
 These terms master and slave will be updated to initiator and responder in version `v2` of the
@@ -746,7 +746,7 @@ API which is expected to be published soon.
 
 ### Initiator encryptor gets key
 
-The initiator encryptor (Patrick) the initiates the key establishment process by invoking the
+The initiator encryptor (Sam) the initiates the key establishment process by invoking the
 `Get key` API as defined in section 5.3 of
 [ETSI GS QKD 014 V1.1.1 (2019-02)](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf).
 
@@ -776,15 +776,39 @@ URL parameters:
 |---|---|---|
 | ```slave_SAE_ID``` | string | The identifier of the slave Secure Application Entity (SAE), i.e. the responder encryptor. |
 
-In this example, the slave SAE is encryptor Porter.
-However, to simplify the code and to avoid the need to configure locally attached SAEs on 
-the client nodes, our implementation expects that name of the slave SAE is equal to the name of
-the responder Key Management Entity (KME), i.e. the responder client node (Conny in this example).
+In this example, the slave SAE is encryptor Sofia.
 
-Query parameters: The ETSI QKD 014 specification defines two parameters `number` and `size` but
-those are not implemented in this repository.
+Query parameters:
+
+| Name | Type | Description |
+|---|---|---|
+| ```size``` | integer (optional) | The size in bits (not bytes) of the requested key. Must be a multiple of 8. |
+
+The `size` parameter is optional; if it is not specified, the default key size is used.
+(The ETSI QKD 014 Status API call can be used to find out what the default key size is.)
+
+The ETSI QKD 014 specification also define one more query parameter `number` for the number
+of requested keys, but this is not supported in our simplified implementation.
+
 
 Request body: None
+
+Headers:
+
+| Name | Type | Description |
+|---|---|---|
+| ```Authorization``` | string | The SAE ID (the encryptor name) of the master SAE |
+
+Note that the identity of the master SAE (i.e. the SAE ID of the encryptor invoking the Get Key
+API) is not included anywhere GET request URL, query parameters, or request content.
+In a real fully compliant implementation of the ETSI QKD 014 interface, we would use HTTPS instead
+of HTTP and the identity of the invoking SAE would be implicitly derived from the authentication
+mechanisms (i.e. from the certificates included in the TLS handshake).
+
+In our simplified implementation, we run over HTTP instead of HTTPS.
+We cannot use TLS authentication or certificates to determine the identity of the invoking SAE.
+For that reason, we use the `Authorization` header to contain the SAE ID of the invoking SAE.
+This follows the spirit of the ETSI QKD 014 specification if not the letter.
 
 Successful response body:
 ```
@@ -859,15 +883,15 @@ Successful response body: None
 
 ### Initiator encryptor sends key ID to responder encryptor
 
-Once the initiator encryptor (Patrick) has received the key ID and the key value from the initiator
+Once the initiator encryptor (Sam) has received the key ID and the key value from the initiator
 client (Carol),
-the initiator encryptor (Patrick) uses _some_ mechanism to send the key ID (but not the key value)
-to the responder encryptor (Porter).
+the initiator encryptor (Sam) uses _some_ mechanism to send the key ID (but not the key value)
+to the responder encryptor (Sofia).
 Note that (unlike the key value) the key ID is not a secret; it is perfectly okay to send it over
 a public channel.
 
 The exact mechanism that is used for sending the key ID depends on which encryption protocol the
-encryptors Patrick and Porter as using.
+encryptors Sam and Sofia as using.
 For example, if they are running
 [IPsec](https://en.wikipedia.org/wiki/IPsec) as the encryption protocol,
 the IPsec protocol uses some extensions defined in
@@ -885,8 +909,8 @@ the `manager.py` script.
 
 ### Responder encryptor gets key
 
-Once the responder encryptor (Porter) has received the key ID from the initiator encryptor
-(Patrick), he retrieves the key value from the responder client (Conny) by invoking the
+Once the responder encryptor (Sofia) has received the key ID from the initiator encryptor
+(Sam), he retrieves the key value from the responder client (Conny) by invoking the
 `Get key with key IDs` API as defined in section 5.4 of
 [ETSI GS QKD 014 V1.1.1 (2019-02)](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_qkd014v010101p.pdf).
 
