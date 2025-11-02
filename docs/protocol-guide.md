@@ -881,7 +881,7 @@ Headers:
 
 | Name | Type | Description |
 |---|---|---|
-| ```DSKE-Signature``` | string | The SAE ID (the encryptor name) of the master SAE |
+| ```DSKE-Signature``` | string | The authentication signature of the request. |
 
 This is explained in the next section.
 
@@ -1030,6 +1030,17 @@ Query parameters:
 |---|---|---|
 | ```key_ID``` | UUID | The UUID of the requested key (as receive from the master SAE). |
 
+
+Headers:
+
+| Name | Type | Description |
+|---|---|---|
+| ```Authorization``` | string | The SAE ID (the encryptor name) of the master SAE |
+
+See the `Authorization` header for the
+[`Get Key` API](#initiator-encryptor-gets-key)
+for details.
+
 Request body: None
 
 Successful response body:
@@ -1066,14 +1077,27 @@ Method: `GET`
 
 URL: `/hub/{hub_name}/dske/api/v1/key-share`
 
-TODO: Document `DSKE-Signature` header here
-
 Query parameters:
 
 | Name | Type | Description |
 |---|---|---|
 | ```client_name``` | string | The name of the client requesting the share. |
+| ```master_sae_id``` | string | The SAE ID (encryptor name) of the master SAE for the key establishment. |
+| ```slave_sae_id``` | string | The SAE ID (encryptor name) of the slave SAE for the key establishment. |
 | ```key_id``` | UUID | The UUID of the user key whose share is being requested. |
+
+TODO: Do we need to include the master SAE ID and the slave SAE ID in the request?
+This is stored with the Share data in the hub database, so we don't need it from the client.
+
+Headers:
+
+| Name | Type | Description |
+|---|---|---|
+| ```DSKE-Signature``` | string | The authentication signature of the request. |
+
+See the
+[authentication using signatures](#authentication-using-signatures)
+section for details.
 
 Request body: None.
 
@@ -1082,10 +1106,12 @@ Successful response body:
 {
   "share_index": "integer",           # The index of the share (0, 1, ..., n-1).
   "encryption_key_allocation": {      # The PSRD pool allocation for the share encryption key.
-    [                                 # List of allocation fragments
-      block_uuid: "string",           # The UUID of the PSRD block from which the fragment was allocated.
-      start_byte: "integer",          # The index of the start byte for the fragment within the block.
-      size: "integer"                 # The size of the fragment
+    "fragments": [                    # List of fragments in the allocation
+      {                               # One fragment in the allocation
+        block_uuid: "string",         # The UUID of the PSRD block from which the fragment was allocated.
+        start_byte: "integer",        # The index of the start byte for the fragment within the block.
+        size: "integer"               # The size of the fragment
+      }, ...                 
     ]
   },
   "encrypted_share_value": "string"   # Base64 encoded encrypted share value
