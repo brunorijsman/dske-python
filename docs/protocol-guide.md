@@ -36,7 +36,7 @@ We say "inspired by" because:
    Sometimes, we found it difficult to follow the details in the description.
    Other times, the description was clear enough, but we made a conscious decision to deviate.
    A list of differences between the draft/paper and this implementation is given
-   [below](#differences-between-the-ietf-draft-and-this-implementation).
+   [below](#differences-between-the-ietf-draft--arxiv-papers-and-this-implementation).
 
 ## Network topology
 
