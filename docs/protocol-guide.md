@@ -40,7 +40,8 @@ We say "inspired by" because:
 
 ## Network topology
 
-The following figure shows a typical example network topology:
+The following figure shows the topology that we use in all our examples and which is specified
+in topology file `topology.yaml`:
 
 ![Example network topology](figures/topology.png)
 
