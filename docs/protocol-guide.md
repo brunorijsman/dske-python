@@ -41,7 +41,7 @@ We say "inspired by" because:
 ## Network topology
 
 The following figure shows the topology that we use in all of our examples and which is specified
-in topology file `topology.yaml`:
+in file `topology.yaml`:
 
 ![Example network topology](figures/topology.png)
 
@@ -77,7 +77,7 @@ The clients are responsible for:
 Below, we describe the concepts of PSRD and key shares and each of these steps in more detail.
 
 In the example scenario, clients Carol and Conny are responsible for producing an encryption key
-and for delivering this key to encryptors Patrick and Porter respectively.
+and for delivering this key to encryptors Sam and Sofia respectively.
 The other clients are faded out because they play no role in our example.
 
 In our implementation, each client runs in a separate process, listening on a separate
@@ -93,6 +93,9 @@ uses the term security hub.
 
 There are five hubs in our example: Hank, Helen, Hilary, Holly, and Hugo.
 
+In our example, the number of clients happens to be equal to the number of hubs.
+This is a coincidence; typically there are more clients than hubs.
+
 The hubs are responsible for:
 
 1. Allowing clients to register themselves with the hubs.
@@ -104,7 +107,7 @@ The hubs are responsible for:
 Once again, we describe these steps in more detail below.
 
 In the example scenario, all five hubs are involved in relaying the key shares between clients Carol
-and Conny.
+and Conny to produce a key between encryptors Sam and Sofia.
 
 In our implementation, each hub also runs in a separate process, listening on a separate HTTP port.
 
@@ -127,7 +130,15 @@ Examples of encryptors include:
   [SSL](https://en.wikipedia.org/wiki/Secure_Sockets_Layer) encryptors, such as
   [F5 NGINX](https://www.f5.com/company/blog/nginx/nginx-ssl).
 
-There are two encryptors in our example: Patrick and Porter.
+There are five encryptors in our example topology: Sam, Serena, Sofia, Sunny and Susan.
+
+Each encryptor is connected to one client and each client can have zero or more encryptors
+connected to it.
+In the example, client Carol has one encryptor (Sam), client Celia has one encryptor (Serena),
+client Cindy has zero encryptors, client Connie has one encryptor (Sofia), and client Curtis
+has two encryptors (Sunny and Susan).
+
+The example scenarios use encryptors Sam and Sofia; the other encryptors are faded out.
 
 The encryptors are responsible for:
 
