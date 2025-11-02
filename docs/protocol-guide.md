@@ -550,7 +550,6 @@ of hub failures (i.e. _n_ - _k_ hubs can fail).
 
 ## Message authentication
 
-
 To protect against
 [Man-in-the-middle attacks](https://en.wikipedia.org/wiki/Man-in-the-middle_attack)
 all in-band DSKE protocol message must be
@@ -563,40 +562,95 @@ The above figure shows how messages sent from clients to hubs are authenticated
 
 Client Carol signs sent messages as follows:
 
- * Client Carol wants to authenticate an in-band DSKE protocol message for hub Hank.
-   This in-band DSKE message is an HTTP REST message that may contain query parameters and/or
-   a message body.
+ 1. Client Carol wants to authenticate an in-band DSKE protocol message for hub Hank.
+    This in-band DSKE message is an HTTP REST message that may contain query parameters and/or
+    a message body.
 
- * Client Carol allocates a signing key from the PSRD pool associated with hub Hank.
+ 2. Client Carol allocates a signing key from the PSRD pool associated with hub Hank.
 
- * Client Carol computes the signature for the message in the form of a
-   [Hashed Message Authentication Code (HMAC)](https://en.wikipedia.org/wiki/HMAC)
-   using the message to be signed and the allocated signing key as inputs.
-   The HMAC signature is computed over the query parameters and the body of the signed message.
+ 3. Client Carol computes the signature for the message in the form of a
+    [Hashed Message Authentication Code (HMAC)](https://en.wikipedia.org/wiki/HMAC)
+    using the message to be signed and the allocated signing key as inputs.
+    The HMAC signature is computed over the query parameters and the body of the signed message.
 
- * Client Carol attaches the computed singing key to the message using the HTTP
-   header `DSKE-Signature`.
-   This produces a signed message.
+ 4. Carol computes the signature for the request by computing the SHA256 
+    [Hashed Message Authentication Code (HMAC)](https://en.wikipedia.org/wiki/HMAC)
+    over the concatenation of
+    (a) the content of the request
+    (b) the query parameters of the request and 
+    (c) the signing key allocated in step 1.
 
- * The `DSKE-Signature` header does not only contain the signature itself (i.e. the HMAC code)
-   but also meta-data about the signature key.
+ 5. Carol encodes the meta-data of the signing key (but not the signing key value itself)
+    plus the computed signature into a string and puts this string in the `DSKE-Signature` header.
+    The encoding format is detailed below.
 
 Hub Hank validates the signature on received messages as follows:
 
- * Hub Hank extracts the following two piece of information from the `DSKE-Signature` header
-   on the received message: (a) the meta-data for the signing key and (b) the HMAC signature.
+ 1. Hub Hank extracts the following two piece of information from the `DSKE-Signature` header
+    on the received message: (a) the meta-data for the signing key and (b) the HMAC signature.
 
- * Hub Hank retrieves the signing key from the PSRD pool associated with client Carol using
-   the signing key meta-data extracted from the `DSKE-Signature` header.
+ 2. Hub Hank retrieves the signing key from the remote PSRD pool associated with client Carol using
+    the signing key meta-data extracted from the `DSKE-Signature` header.
 
- * Hub Hank performs its own local computation of the signature by computing the HMAC over
-   the message received from Client Carol and the singing key retrieved from its local PSRD pool.
+ 3. Hub Hank performs its own local computation of the signature by computing the HMAC over
+    the message received from Client Carol and the singing key retrieved from its local PSRD pool.
 
- * If the locally computed signature matches the received signature, the authentication succeeds.
+ 4. If the locally computed signature matches the received signature, the authentication succeeds.
 
 Note that we don't authenticate out-of-band DSKE messages because the out-of-band REST messages are
 only intended to simulated what would be a secure physical mechanism in real for automated testing
 purposes.
+
+The response to a DSKE request is usually also signed in the same way, using a different signing
+key freshly allocated from the local PSRD pool of the receiver.
+All success responses and most error responses are signed.
+In some errors (e.g. the node is out of PSRD data) the response cannot be signed and the error
+response is sent without a signature.
+
+The `DSKE-Signature` header is encoded as follows:
+
+* The meta-data of the singing key, followed by a semi-colon (;), followed by the signature
+   encoded using base64 encoding.
+
+ * The meta-data of the signing key is encoded as one or more encoded fragment meta-data strings,
+   separated by commas.
+
+ * Each fragment meta-data string is encoded as the block UUID, the start byte within the block,
+   and the size of the fragment, separated by colons.
+
+ * Note that the key data (fragment data) is not encoded into the meta-data.
+
+Example of an encoded signature:
+
+```
+9ad7f620-5a0c-4979-8a2d-66142e06fd79:0:20,cda527e9-5ca7-40d6-a842-0b606597611c:0:12;V12fwNZiooqE1x0beAdQ4fo2YXnOCTPbUgqG38eUQc4=
+```
+
+The part after the semi-colon is the base64-encoded signature:
+
+```
+V12fwNZiooqE1x0beAdQ4fo2YXnOCTPbUgqG38eUQc4=
+```
+
+The part before the semi-colon is the sequence of two fragments:
+
+```
+9ad7f620-5a0c-4979-8a2d-66142e06fd79:0:20,cda527e9-5ca7-40d6-a842-0b606597611c:0:12
+```
+
+The first fragment is bytes 0 through 19 of block 9ad7f620-5a0c-4979-8a2d-66142e06fd79:
+
+```
+9ad7f620-5a0c-4979-8a2d-66142e06fd79:0:20
+```
+
+And the second fragment is bytes 0 through 11 of block cda527e9-5ca7-40d6-a842-0b606597611c:
+
+```
+cda527e9-5ca7-40d6-a842-0b606597611c:0:12
+```
+
+
 
 ## Pool ownership
 
@@ -883,97 +937,10 @@ Headers:
 |---|---|---|
 | ```DSKE-Signature``` | string | The authentication signature of the request. |
 
-This is explained in the next section.
+See section
+[message authentication](#message-authentication).
 
 Successful response body: None
-
-### Authentication using signatures
-
-TODO: This is duplicate; merge with the section higher up.
-
-All in-band DSKE protocol messages are authenticated using the HTTP `DSKE-Signature` header.
-It contains two pieces of information:
-
- 1. The meta-data for the signing key.
-
- 2. The signature as a base64 encoded sequence of bytes.
-
-The sender of an in-band DSKE request signs the request as follows:
-
- 1. The sender allocates a signing key from the local PSRD pool associated with the receiver of
-    the request.
-
- 2. The sender computes the signature by computing the SHA256 HMAC over the concatenation of
-    (a) the content of the request
-    (b) the query parameters of the request and 
-    (c) the signing key allocated in step 1.
-
- 4. The sender encodes the meta-data of the signing key (but not the signing key value itself)
-    plus the signature into a string and puts this string in the `DSKE-Signature` header.
-    The encoding format is detailed below.
-
-The receiver of an in-band DSKE request signs the response as follows:
-
- 1. The receiver decodes the `DSKE-Signature` header and extracts the signing key meta-data and
-    the signature.
-
- 2. The receiver uses the signing key meta-data to allocate the same signing key from the remote
-    PSRD pool associated with the sender.
-
- 3. The receiver computes the signature in the same manner as the sender (see step 2 for the
-    sender).
-
- 4. The received compares the locally computed signature with the received signature.
-    If they match, the authentication succeeds.
-
-The response to a DSKE request is usually also signed in the same way, using a different signing
-key freshly allocated from the local PSRD pool of the receiver.
-All success responses and most error responses are signed.
-In some errors (e.g. the node is out of PSRD data) the response cannot be signed and the error
-response is sent without a signature.
-
-The `DSKE-Signature` header is encoded as follows:
-
-* The meta-data of the singing key, followed by a semi-colon (;), followed by the signature
-   encoded using base64 encoding.
-
- * The meta-data of the signing key is encoded as one or more encoded fragment meta-data strings,
-   separated by commas.
-
- * Each fragment meta-data string is encoded as the block UUID, the start byte within the block,
-   and the size of the fragment, separated by colons.
-
- * Note that the key data (fragment data) is not encoded into the meta-data.
-
-Example of an encoded signature:
-
-```
-9ad7f620-5a0c-4979-8a2d-66142e06fd79:0:20,cda527e9-5ca7-40d6-a842-0b606597611c:0:12;V12fwNZiooqE1x0beAdQ4fo2YXnOCTPbUgqG38eUQc4=
-```
-
-The part after the semi-colon is the base64-encoded signature:
-
-```
-V12fwNZiooqE1x0beAdQ4fo2YXnOCTPbUgqG38eUQc4=
-```
-
-The part before the semi-colon is the sequence of two fragments:
-
-```
-9ad7f620-5a0c-4979-8a2d-66142e06fd79:0:20,cda527e9-5ca7-40d6-a842-0b606597611c:0:12
-```
-
-The first fragment is bytes 0 through 19 of block 9ad7f620-5a0c-4979-8a2d-66142e06fd79:
-
-```
-9ad7f620-5a0c-4979-8a2d-66142e06fd79:0:20
-```
-
-And the second fragment is bytes 0 through 11 of block cda527e9-5ca7-40d6-a842-0b606597611c:
-
-```
-cda527e9-5ca7-40d6-a842-0b606597611c:0:12
-```
 
 ### Initiator encryptor sends key ID to responder encryptor
 
@@ -1097,9 +1064,8 @@ Headers:
 |---|---|---|
 | ```DSKE-Signature``` | string | The authentication signature of the request. |
 
-See the
-[authentication using signatures](#authentication-using-signatures)
-section for details.
+See section
+[message authentication](#message-authentication).
 
 Request body: None.
 
