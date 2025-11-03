@@ -1,6 +1,6 @@
-TODO: Add pool thresholds to configuration (and document this)
-
 TODO: Make dske.yaml the default configuration file, and add a --config option to change it
+
+TODO: Add pool thresholds to configuration (and document this)
 
 TODO: Cleanup Shamir's Secret Sharing (SSS) code (no back-and-forth conversion to RawShare)
 
