@@ -1,3 +1,9 @@
+TODO: Add LICENSE (decide which one)
+
+TODO: Tests get wrong key-id over ETSI QKD API
+
+TODO: Put .out files in a sub-directory
+
 TODO: Add pool thresholds to configuration (and document this)
 
 TODO: Cleanup Shamir's Secret Sharing (SSS) code (no back-and-forth conversion to RawShare)
@@ -19,13 +25,9 @@ TODO: Make the swagger docs also work off-line
 
 TODO: Type annotations everywhere
 
-TODO: Tests get wrong key-id over ETSI QKD API
-
 TODO: Test creation and deletion of PID file
 
 TODO: Figure out how to debug the code (set breakpoint from VSC and document that)
-
-TODO: Put .out files in a sub-directory
 
 TODO: OpenAPI (Swagger) documentation should show proper type for request and response data
 
@@ -62,5 +64,3 @@ TODO: Test case for: if signature validation fails, return fragment to pool
 TODO: Error message if --client or --hub does not exist in configuration
 
 TODO: Check SAE IDs on GET share, just as we do for POST share
-
-TODO: Add LICENSE (decide which one)
