@@ -1,7 +1,5 @@
 [Back to main page](/dske-python/)
 
-TODO: Update user guide for recent SAE ID changes
-
 # User guide
 
 This page contains detailed end-user documentation.
@@ -24,8 +22,11 @@ If you are a software developer and would like more details about the implementa
 ## Topology file
 
 We first need a topology YAML file which describes the topology of the network.
-It lists the names of the DSKE clients (clients for short) and the
-DSKE security hubs (hubs for short).
+It lists the names of 
+the DSKE security hubs (hubs for short),
+the DSKE clients (clients for short),
+and the encryptors.
+.
 
 The repository contains an example `topology.yaml` file:
 
@@ -39,10 +40,19 @@ hubs:
   - name: hugo
 clients:
   - name: carol
+    encryptors:
+      - name: sam
   - name: celia
+    encryptors:
+      - name: serena
   - name: cindy
   - name: connie
+    encryptors:
+      - name: sofia
   - name: curtis
+    encryptors:
+      - name: sunny
+      - name: susan
 </pre>
 
 ## The topology manager
@@ -150,16 +160,16 @@ You can see these processes using `ps` command:
 
 <pre>
  $ <b>ps | grep Python</b>
- 5818 ttys000    0:01.27 Python -m hub hank --port 8100
- 5819 ttys000    0:01.26 Python -m hub helen --port 8101
- 5820 ttys000    0:01.27 Python -m hub hilary --port 8102
- 5821 ttys000    0:01.26 Python -m hub holly --port 8103
- 5822 ttys000    0:01.25 Python -m hub hugo --port 8104
- 5823 ttys000    0:01.55 Python -m client carol --port 8105 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
- 5824 ttys000    0:01.55 Python -m client celia --port 8106 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
- 5825 ttys000    0:01.55 Python -m client cindy --port 8107 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
- 5826 ttys000    0:01.53 Python -m client connie --port 8108 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
- 5827 ttys000    0:01.52 Python -m client curtis --port 8109 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
+13614 ttys000    0:01.22 Python -m hub hank --port 8100
+13615 ttys000    0:01.22 Python -m hub helen --port 8101
+13616 ttys000    0:01.24 Python -m hub hilary --port 8102
+13617 ttys000    0:01.22 Python -m hub holly --port 8103
+13618 ttys000    0:01.22 Python -m hub hugo --port 8104
+13619 ttys000    0:01.60 Python -m client carol --port 8105 --encryptors sam --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
+13620 ttys000    0:01.60 Python -m client celia --port 8106 --encryptors serena --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
+13621 ttys000    0:01.61 Python -m client cindy --port 8107 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
+13622 ttys000    0:01.59 Python -m client connie --port 8108 --encryptors sofia --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
+13623 ttys000    0:01.60 Python -m client curtis --port 8109 --encryptors sunny susan --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
 ...
 </pre>
 
@@ -257,7 +267,7 @@ Use the `--help` option to see its usage:
 
 <pre>
 $ <b>python -m client --help</b>
-usage: __main__.py [-h] [--port PORT] [--hubs HUBS [HUBS ...]] name
+usage: __main__.py [-h] [--port PORT] [--hubs HUBS [HUBS ...]] [--encryptors ENCRYPTORS [ENCRYPTORS ...]] name
 
 DSKE Client
 
@@ -269,13 +279,15 @@ options:
   --port PORT           Port number
   --hubs HUBS [HUBS ...]
                         Base URLs for hubs (e.g., http://127.0.0.1:8100)
+  --encryptors ENCRYPTORS [ENCRYPTORS ...]
+                        Names (SAE IDs) of encryptors consuming keys from this client (KME).
 </pre>
 
-The typical usage is to provide the client name, the port number, and a list of base URLs for
-the hubs in the network. For example:
+The typical usage is to provide the client name, the port number, a list of base URLs for
+the hubs in the network, and a list of encryptors attached to the client: For example:
 
 <pre>
-$ <b>python -m client carol --port 8105 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo</b>
+$ <b>python -m client carol --port 8105 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo --encryptors sam</b>
 </pre>
 
 Similarly, the Python module `hub` implements the client node process.
@@ -316,7 +328,7 @@ Use the manager `get-key` sub-command under the `etsi-qkd` command to invoke the
 The `get-key` sub-command has the following command-line options:
 
 <pre>
-$ <b>./manager.py topology.yaml etsi-qkd carol curtis get-key --help</b>
+$ <b>./manager.py topology.yaml etsi-qkd sam sunny get-key --help</b>
 usage: manager.py configfile etsi-qkd master_sae_id slave_sae_id get-key [-h] [--size SIZE]
 
 options:
@@ -324,16 +336,16 @@ options:
   --size SIZE  Key size in bits
 </pre>
 
-
-In the following example we ask master SAE Carol for a key which is shared with slave SAE Celia:
+In the following example we invoke the Get Key API for the QKD link between master SAE Sam and
+slave SAE Serena:
 
 <pre>
- $ <b>./manager.py topology.yaml etsi-qkd carol celia get-key</b>
-Invoke ETSI QKD Get Key API for client carol on port 8105
+ $ <b>./manager.py topology.yaml etsi-qkd sam serena get-key</b>
+Invoke ETSI QKD Get Key API on client (KME) carol port 8105 master encryptor (SAE) sam slave encryptor (SAE) serena:
 {
   "keys": {
-    "key_ID": "f47f23d7-be01-41d3-a5bc-106b2335e652",
-    "key": "/j0FX08Tf9THPD0k1viX3g=="
+    "key_ID": "f1f2cf55-9569-4e8f-8805-f80c8f600d48",
+    "key": "+bXUKbPwVSdpS23JXGLSRA=="
   }
 }
 </pre>
@@ -348,7 +360,7 @@ ETSI QKD 014 "Get Key" API to retrieve a key for a pair of SAEs on the slave SAE
 The `get-key` sub-command has the following command-line options:
 
 <pre>
-$ <b>./manager.py topology.yaml etsi-qkd carol curtis get-key-with-key-ids --help</b>
+$ <b>./manager.py topology.yaml etsi-qkd sam serena get-key-with-key-ids --help</b>
 usage: manager.py configfile etsi-qkd master_sae_id slave_sae_id get-key-with-key-ids [-h] key_id
 
 positional arguments:
@@ -358,17 +370,18 @@ options:
   -h, --help  show this help message and exit
 </pre>
 
-In the following example we ask slave SAE Curtis for the key with key ID 
-f47f23d7-be01-41d3-a5bc-106b2335e652 which was established with master SAE Carol:
+In the following example we invoke the Get Key with Key IDs API for the QKD link between master 
+SAE Sam and slave SAE Serena, where the Key ID is d6a116f1-104e-4213-8cf1-0557cf33cb29 (this is the
+Key ID returned by the Get Key API call above):
 
 <pre>
-$ <b>./manager.py topology.yaml etsi-qkd carol celia get-key-with-key-ids f47f23d7-be01-41d3-a5bc-106b2335e652</b>
-Invoke ETSI QKD Get Key with Key IDs API for client celia on port 8105
+$ <b>./manager.py topology.yaml etsi-qkd sam serena get-key-with-key-ids 6a116f1-104e-4213-8cf1-0557cf33cb29</b>
+Invoke ETSI QKD Get Key with Key IDs API on client (KME) celia port 8106 master encryptor (SAE) sam slave encryptor (SAE) serena:
 {
   "keys": [
     {
-      "key_ID": "f47f23d7-be01-41d3-a5bc-106b2335e652",
-      "key": "/j0FX08Tf9THPD0k1viX3g=="
+      "key_ID": "f1f2cf55-9569-4e8f-8805-f80c8f600d48",
+      "key": "+bXUKbPwVSdpS23JXGLSRA=="
     }
   ]
 }
@@ -390,23 +403,23 @@ options:
   --size SIZE  Key size in bits
 </pre>
 
-In the following example, we ask for a key pair between master SAE Carol and slave SAE Celia:
+In the following example, we ask for a key pair between master SAE Sam and slave SAE Sunny:
 
 <pre>
-$ <b>./manager.py topology.yaml etsi-qkd carol celia get-key-pair</b>
-Invoke ETSI QKD Get Key API for client carol on port 8105
+$ <b>./manager.py topology.yaml etsi-qkd sam sunny get-key-pair</b>
+Invoke ETSI QKD Get Key API on client (KME) carol port 8105 master encryptor (SAE) sam slave encryptor (SAE) sunny:
 {
   "keys": {
-    "key_ID": "cc658ffe-8d54-414b-b91f-20b59b03f034",
-    "key": "jSOFUh56slAChUrzUExdbQ=="
+    "key_ID": "4b700076-9691-4935-9e9b-707c1425fd29",
+    "key": "JmaqM91DsWC/qlawABoVOw=="
   }
 }
-Invoke ETSI QKD Get Key with Key IDs API for client celia on port 8106
+Invoke ETSI QKD Get Key with Key IDs API on client (KME) curtis port 8109 master encryptor (SAE) sam slave encryptor (SAE) sunny:
 {
   "keys": [
     {
-      "key_ID": "cc658ffe-8d54-414b-b91f-20b59b03f034",
-      "key": "jSOFUh56slAChUrzUExdbQ=="
+      "key_ID": "4b700076-9691-4935-9e9b-707c1425fd29",
+      "key": "JmaqM91DsWC/qlawABoVOw=="
     }
   ]
 }
@@ -416,27 +429,27 @@ Key values match
 And, finally, there is a `status` subcommand to invoke the "Status" ETSI QKD 014 API:
 
 <pre>
-$ <b<>./manager.py topology.yaml etsi-qkd carol celia get-status</b>
-Invoke ETSI QKD Status API for client carol on port 8105
-master_sae_id='carol' slave_sae_id='celia'
+$ <b<>./manager.py topology.yaml etsi-qkd sam sunny get-status</b>
+Invoke ETSI QKD Status API on client (KME) carol port 8105 master encryptor (SAE) sam slave encryptor (SAE) sunny:
 {
   "source_kme_id": "carol",
-  "target_kme_id": "celia",
-  "master_sae_id": "carol",
-  "slave_sae_id": "celia",
+  "target_kme_id": "TODO",
+  "master_sae_id": "sam",
+  "slave_sae_id": "sunny",
   "key_size": 128,
   "stored_key_count": 25000,
   "max_key_count": 1000,
   "max_key_per_request": 1,
-  "max_key_size": 100000,
-  "min_key_size": 1,
+  "max_key_size": 16777216,
+  "min_key_size": 32,
   "max_sae_id_count": 0
 }
 </pre>
 
 ## Report the topology status
 
-Use the manager `status` command to report the status of each node in the topology:
+Use the manager `status` command (not to be confused with the `etsi-qkd status` command)
+to report the status of each node in the topology:
 
 <pre>
 $ <b>./manager.py topology.yaml status</b>
@@ -481,21 +494,23 @@ client or hub node, for example:
 
 <pre>
 $ <b>./manager.py topology.yaml --client celia status</b>
-Status for client celia on port 8106
+Status for hub hank on port 8100
 {
-  "name": "celia",
-  "peer_hubs": [
+  "name": "hank",
+  "peer_clients": [
     {
-      "hub_name": "hank",
-      "registered": true,
+      "client_name": "carol",
+      "encryptor_names": [
+        "sam"
+      ],
       "local_pool": {
         "blocks": [
           {
-            "uuid": "03478f57-a705-4c9c-940e-58ff5d9b52ea",
+            "uuid": "192c0144-ffec-4f95-9a9f-7d7a82310be7",
             "size": 2000,
             "data": "AAAAAAAAAAAAAA==...",
-            "nr_used_bytes": 32,
-            "nr_unused_bytes": 1968
+            "nr_used_bytes": 192,
+            "nr_unused_bytes": 1808
           }
         ],
         "owner": "local"
@@ -503,11 +518,11 @@ Status for client celia on port 8106
       "peer_pool": {
         "blocks": [
           {
-            "uuid": "b7f83d46-c982-41d9-ba35-4965471bb56a",
+            "uuid": "46627eb9-7e0d-4d40-8d67-8747f32a92f5",
             "size": 2000,
             "data": "AAAAAAAAAAAAAA==...",
-            "nr_used_bytes": 48,
-            "nr_unused_bytes": 1952
+            "nr_used_bytes": 288,
+            "nr_unused_bytes": 1712
           }
         ],
         "owner": "peer"
@@ -525,6 +540,9 @@ the remaining output (which is JSON) through the `jq` command to colorize the JS
 $ <b>./manager.py topology.yaml --client carol status | tail -n +2 | jq</b>
 {
   "name": "carol",
+  "encryptor_names": [
+    "sam"
+  ],
   "peer_hubs": [
     {
       "hub_name": "hank",
@@ -532,17 +550,29 @@ $ <b>./manager.py topology.yaml --client carol status | tail -n +2 | jq</b>
       "local_pool": {
         "blocks": [
           {
-            "uuid": "c142de3a-8464-440f-bbfd-78937481732a",
+            "uuid": "46627eb9-7e0d-4d40-8d67-8747f32a92f5",
             "size": 2000,
             "data": "AAAAAAAAAAAAAA==...",
-            "nr_used_bytes": 48,
-            "nr_unused_bytes": 1952
+            "nr_used_bytes": 288,
+            "nr_unused_bytes": 1712
           }
         ],
         "owner": "local"
       },
-      ... snip ...
-    }
+      "peer_pool": {
+        "blocks": [
+          {
+            "uuid": "192c0144-ffec-4f95-9a9f-7d7a82310be7",
+            "size": 2000,
+            "data": "AAAAAAAAAAAAAA==...",
+            "nr_used_bytes": 192,
+            "nr_unused_bytes": 1808
+          }
+        ],
+        "owner": "peer"
+      }
+    },
+    ... snip ...
   ]
 }
 </pre>
@@ -557,11 +587,11 @@ $ <b>./manager.py topology.yaml --client carol status | tail -n +2 | jq '(.peer_
 {
   "blocks": [
     {
-      "uuid": "c142de3a-8464-440f-bbfd-78937481732a",
+      "uuid": "46627eb9-7e0d-4d40-8d67-8747f32a92f5",
       "size": 2000,
       "data": "AAAAAAAAAAAAAA==...",
-      "nr_used_bytes": 48,
-      "nr_unused_bytes": 1952
+      "nr_used_bytes": 288,
+      "nr_unused_bytes": 1712
     }
   ],
   "owner": "local"
@@ -576,7 +606,7 @@ For example, the log file for client carol is `client-carol.out`:
 
 <pre>
 $ <b>cat client-carol.out</b>
-INFO:     Started server process [2353]
+INFO:     Started server process [24907]
 INFO:     Waiting for application startup.
 INFO:     Begin register task for peer hub None
 INFO:     Begin register task for peer hub None
@@ -586,23 +616,31 @@ INFO:     Begin register task for peer hub None
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8105 (Press CTRL+C to quit)
 INFO:     Call PUT http://127.0.0.1:8100/hub/hank/dske/oob/v1/registration 200
-INFO:     Call PUT http://127.0.0.1:8101/hub/helen/dske/oob/v1/registration 200
+INFO:     Finish register task for peer hub None
 INFO:     Call PUT http://127.0.0.1:8103/hub/holly/dske/oob/v1/registration 200
-INFO:     Finish register task for peer hub None
-INFO:     Finish register task for peer hub None
-INFO:     Finish register task for peer hub None
 INFO:     Call PUT http://127.0.0.1:8102/hub/hilary/dske/oob/v1/registration 200
 INFO:     Call PUT http://127.0.0.1:8104/hub/hugo/dske/oob/v1/registration 200
+INFO:     Call PUT http://127.0.0.1:8101/hub/helen/dske/oob/v1/registration 200
 INFO:     Begin request PSRD task for peer hub hank and pool owner local
 INFO:     Begin request PSRD task for peer hub hank and pool owner peer
-INFO:     Begin request PSRD task for peer hub helen and pool owner local
-INFO:     Begin request PSRD task for peer hub helen and pool owner peer
+INFO:     Finish register task for peer hub None
+INFO:     Finish register task for peer hub None
+INFO:     Finish register task for peer hub None
+INFO:     Finish register task for peer hub None
 INFO:     Begin request PSRD task for peer hub holly and pool owner local
 INFO:     Begin request PSRD task for peer hub holly and pool owner peer
-INFO:     Finish register task for peer hub None
-INFO:     Finish register task for peer hub None
 INFO:     Begin request PSRD task for peer hub hilary and pool owner local
 INFO:     Begin request PSRD task for peer hub hilary and pool owner peer
+INFO:     Begin request PSRD task for peer hub hugo and pool owner local
+INFO:     Begin request PSRD task for peer hub hugo and pool owner peer
+INFO:     Begin request PSRD task for peer hub helen and pool owner local
+INFO:     Begin request PSRD task for peer hub helen and pool owner peer
+INFO:     Call GET http://127.0.0.1:8100/hub/hank/dske/oob/v1/psrd?client_name=carol&pool_owner=client&size=2000 200
+INFO:     Finish request PSRD task for peer hub hank and pool owner local
+INFO:     Call GET http://127.0.0.1:8100/hub/hank/dske/oob/v1/psrd?client_name=carol&pool_owner=hub&size=2000 200
+INFO:     Finish request PSRD task for peer hub hank and pool owner peer
+INFO:     Call GET http://127.0.0.1:8104/hub/hugo/dske/oob/v1/psrd?client_name=carol&pool_owner=client&size=2000 200
+INFO:     Finish request PSRD task for peer hub hugo and pool owner local
 ... snip ...
 </pre>
 
@@ -672,28 +710,36 @@ $ <b>curl --silent http://127.0.0.1:8100/hub/hank/mgmt/v1/status | jq</b>
   "peer_clients": [
     {
       "client_name": "carol",
+      "encryptor_names": [
+        "sam"
+      ],
       "local_pool": {
         "blocks": [
           {
-            "uuid": "4cb97ab1-0e3f-4f48-a0d7-90de58e85d53",
+            "uuid": "192c0144-ffec-4f95-9a9f-7d7a82310be7",
             "size": 2000,
             "data": "AAAAAAAAAAAAAA==...",
-            "nr_used_bytes": 32,
-            "nr_unused_bytes": 1968
+            "nr_used_bytes": 192,
+            "nr_unused_bytes": 1808
           }
         ],
         "owner": "local"
       },
-      ... snip ...
-    }
-  ],
-  "shares": [
-    {
-      "key_id": "bc266858-9c0e-4d9b-8d48-b7f312b1aeb5",
-      "share_index": 0,
-      "value": "+xLr39AZfdNefw==..."
-    }
-  ]
+      "peer_pool": {
+        "blocks": [
+          {
+            "uuid": "46627eb9-7e0d-4d40-8d67-8747f32a92f5",
+            "size": 2000,
+            "data": "AAAAAAAAAAAAAA==...",
+            "nr_used_bytes": 288,
+            "nr_unused_bytes": 1712
+          }
+        ],
+        "owner": "peer"
+      }
+    },
+    ...snip...
+  }  
 }
 </pre>
 
@@ -703,5 +749,3 @@ information that should not be exposed in a production environment.
 Note 2: There is currently no authentication on any of the REST interfaces.
 It is my understanding (but I could be wrong) that the DSKE protocol does not require the API
 interfaces to be authenticated nor encrypted to be secure.
-
-
