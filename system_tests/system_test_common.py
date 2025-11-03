@@ -12,14 +12,17 @@ from common import configuration
 from common.node import NodeType
 
 
+TEST_CONFIGURATION_FILE = "dske-config.yaml"
+
+
 def start_topology():
     """
     Start a topology.
     """
-    args = [configuration.DEFAULT_CONFIGURATION_FILE, "start"]
+    args = ["--config", TEST_CONFIGURATION_FILE, "start"]
     output = _run_manager(args)
     check_wait_for_all_nodes_stopped_output(output)
-    config = configuration.parse_configuration_file()
+    config = configuration.parse_configuration_file(TEST_CONFIGURATION_FILE)
     for node in config.nodes:
         expected_line = rf"Starting {node.type} {node.name} on port {node.port}"
         assert next_output_matches(output, expected_line)
@@ -32,7 +35,7 @@ def start_topology_again():
     Start a topology again (after it has already been started).
     This is expected to fail: waiting for the nodes from the "previous run" to stop will time out.
     """
-    args = [configuration.DEFAULT_CONFIGURATION_FILE, "start"]
+    args = ["--config", TEST_CONFIGURATION_FILE, "start"]
     output = _run_manager(args)
     some_output_matches(output, r"Giving up on waiting for all nodes to be stopped")
 
@@ -46,9 +49,9 @@ def stop_topology(
     """
     print(f"{stopped_nodes=}", file=sys.stderr)
     # Initiate shutdown of each node
-    args = [configuration.DEFAULT_CONFIGURATION_FILE, "stop"]
+    args = [TEST_CONFIGURATION_FILE, "stop"]
     output = _run_manager(args)
-    config = configuration.parse_configuration_file()
+    config = configuration.parse_configuration_file(TEST_CONFIGURATION_FILE)
     for node in reversed(config.nodes):
         line = rf"Stopping {node.type} {node.name} on port {node.port}"
         assert next_output_matches(output, line)
@@ -76,7 +79,8 @@ def stop_node(node_type: str, node_name: str):
     Stop a node.
     """
     args = [
-        configuration.DEFAULT_CONFIGURATION_FILE,
+        "--config",
+        TEST_CONFIGURATION_FILE,
         f"--{node_type}",
         node_name,
         "stop",
@@ -164,7 +168,7 @@ def status_topology():
     Get status for a topology.
     """
     status = {}
-    config = configuration.parse_configuration_file()
+    config = configuration.parse_configuration_file(TEST_CONFIGURATION_FILE)
     for node in config.nodes:
         node_type = str(node.type)
         node_name = node.name
@@ -177,7 +181,7 @@ def status_node(node_type, node_name):
     Get status for a node.
     """
     args = [
-        configuration.DEFAULT_CONFIGURATION_FILE,
+        TEST_CONFIGURATION_FILE,
         f"--{node_type}",
         node_name,
         "status",
@@ -228,7 +232,7 @@ def get_status(
     Returns the key ID as a string on success or None on failure.
     """
     args = [
-        configuration.DEFAULT_CONFIGURATION_FILE,
+        TEST_CONFIGURATION_FILE,
         "etsi-qkd",
         master_sae_id,
         slave_sae_id,
@@ -249,7 +253,7 @@ def get_key(
     Returns the key ID as a string on success or None on failure.
     """
     args = [
-        configuration.DEFAULT_CONFIGURATION_FILE,
+        TEST_CONFIGURATION_FILE,
         "etsi-qkd",
         master_sae_id,
         slave_sae_id,
@@ -274,7 +278,7 @@ def get_key_with_key_ids(
     Get key with key IDs from a pair of DSKE clients using the ETSI QKD API.
     """
     args = [
-        configuration.DEFAULT_CONFIGURATION_FILE,
+        TEST_CONFIGURATION_FILE,
         "etsi-qkd",
         master_sae_id,
         slave_sae_id,
@@ -294,7 +298,7 @@ def get_key_pair(
     Get a key pair from a pair of DSKE clients using the ETSI QKD API.
     """
     args = [
-        configuration.DEFAULT_CONFIGURATION_FILE,
+        TEST_CONFIGURATION_FILE,
         "etsi-qkd",
         master_sae_id,
         slave_sae_id,

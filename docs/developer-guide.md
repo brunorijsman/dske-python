@@ -86,7 +86,7 @@ $ <b>open htmlcov/index.html</b>
 For full and up-to-date documentation of the API endpoints, each network node provides OpenAPI
 documentation.
 To view the documentation go to URL `http://localhost:PORT/docs` where PORT is the port number
-for the network node as reported when the topology is started.
+for the network node as reported when the network is started.
 
 Here we provide a summary of the API endpoints and their purpose.
 

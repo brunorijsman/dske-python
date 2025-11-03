@@ -66,12 +66,12 @@ Install de dependencies:
 pip install -r requirements.txt
 ```
 
-## The example topology
+## The default configuration
 
-View the example topology file `topology.yaml`:
+View the default configuration file `dske-config.yaml`:
 
 ```
-$ cat topology.yaml
+$ cat dske-config.yaml
 hubs:
   - name: hank
   - name: helen
@@ -95,7 +95,7 @@ clients:
       - name: susan
 ```
 
-This is a diagram of the topology:
+This is a diagram of the network topology::
 
 ![Topology diagram](figures/topology.png)
 
@@ -105,13 +105,12 @@ The `manager.py` is used to manage topologies.
 Use the `--help` option to see how it is used:
 
 ```
-$ ./manager.py topology.yaml --help
-usage: manager.py [-h] [--client CLIENT | --hub HUB] configfile {start,stop,status,etsi-qkd} ...
+$ ./manager.py --help
+usage: manager.py [-h] [--config CONFIG_FILE] [--client CLIENT] [--hub HUB] {start,stop,status,etsi-qkd} ...
 
 DSKE Manager
 
 positional arguments:
-  configfile            Configuration filename
   {start,stop,status,etsi-qkd}
     start               Start all hubs and clients
     stop                Stop all hubs and clients
@@ -120,6 +119,7 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
+  --config CONFIG_FILE  Configuration file name (default: dske-config.yaml)
   --client CLIENT       Filter on client name
   --hub HUB             Filter on hub name
 ```
@@ -138,7 +138,7 @@ Start a capture on loopback interface `lo0` and filter on HTTP messages.
 Use the `manager.py` script to start the topology:
 
 ```
-$ ./manager.py topology.yaml start
+$ ./manager.py start
 Waiting for all nodes to be stopped
 Starting hub hank on port 8100
 Starting hub helen on port 8101
@@ -172,7 +172,7 @@ You will get different key IDs and key values, but they should match.
 
 
 ```
-$ ./manager.py topology.yaml etsi-qkd sam sofia get-key-pair
+$ ./manager.py etsi-qkd sam sofia get-key-pair
 Invoke ETSI QKD Get Key API on client (KME) carol port 8105 master encryptor (SAE) sam slave encryptor (SAE) sofia:
 {
   "keys": {
@@ -204,7 +204,7 @@ The protocol is explained in the [protocol guide](protocol-guide.md).
 Use the `manager.py` script to view the internal state of a node, in this case client carol:
 
 ```
-$ ./manager.py topology.yaml --client carol status
+$ ./manager.py --client carol status
 Status for client carol on port 8105
 {
   "name": "carol",
@@ -250,7 +250,7 @@ Status for client carol on port 8105
 Use the `manager.py` script to stop the topology:
 
 ```
-$ ./manager.py topology.yaml stop
+$ ./manager.py stop
 Stopping client curtis on port 8109
 Stopping client connie on port 8108
 Stopping client cindy on port 8107

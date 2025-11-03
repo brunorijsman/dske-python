@@ -41,7 +41,7 @@ We say "inspired by" because:
 ## Network topology
 
 The following figure shows the topology that we use in all of our examples and which is specified
-in file `topology.yaml`:
+in file `dske-config.yaml`:
 
 ![Example network topology](figures/topology.png)
 

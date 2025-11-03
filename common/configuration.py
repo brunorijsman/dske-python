@@ -1,5 +1,5 @@
 """
-Configuration for a DSKE topology.
+Configuration for DSKE manager.
 """
 
 import pprint
@@ -9,12 +9,11 @@ import yaml
 from common.node import Node, NodeType
 
 DEFAULT_BASE_PORT = 8100
-DEFAULT_CONFIGURATION_FILE = "topology.yaml"
 
 
 class Configuration:
     """
-    Configuration for a DSKE topology.
+    Configuration for the DSKE manager.
     """
 
     _nodes: list[Node]
@@ -44,7 +43,7 @@ class Configuration:
             port += 1
 
 
-def parse_configuration_file(filename: str = DEFAULT_CONFIGURATION_FILE):
+def parse_configuration_file(filename: str):
     """
     Parse the configuration file.
     """

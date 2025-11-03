@@ -19,19 +19,19 @@ For a detailed description of the DSKE protocol, see the
 If you are a software developer and would like more details about the implementation, see the
 [developer guide](developer-guide.md).
 
-## Topology file
+## Configuration file
 
-We first need a topology YAML file which describes the topology of the network.
+We first need a configuration YAML file which describes the topology of the network.
 It lists the names of 
 the DSKE security hubs (hubs for short),
 the DSKE clients (clients for short),
 and the encryptors.
 .
 
-The repository contains an example `topology.yaml` file:
+The repository contains an example `dske-config.yaml` file, which is the default configuration:
 
 <pre>
-$ <b>cat topology.yaml</b>
+$ <b>cat dske-config.yaml</b>
 hubs:
   - name: hank
   - name: helen
@@ -88,7 +88,7 @@ options:
 You can also use the `--help` option to see the command line parameters for a specific sub-command:
 
 <pre>
-$ <b>./manager.py topology.yaml etsi-qkd --help</b>
+$ <b>./manager.py etsi-qkd --help</b>
 usage: manager.py configfile etsi-qkd [-h] master_sae_id slave_sae_id {get-status,get-key,get-key-with-key-ids,get-key-pair} ...
 
 positional arguments:
@@ -110,7 +110,7 @@ options:
 To start all nodes in the DSKE topology, use the manager `start` command:
 
 <pre>
-$ <b>./manager.py topology.yaml start</b>
+$ <b>./manager.py start</b>
 Waiting for all nodes to be stopped
 Starting hub hank on port 8100
 Starting hub helen on port 8101
@@ -125,9 +125,6 @@ Starting client curtis on port 8109
 Waiting for all nodes to be started
 </pre>
 
-`topology.yaml` is the topology file that specifies the names of the hubs and clients that
-are part of the topology.
-
 The output reports that 10 nodes are started in total: 5 hub nodes (hank, helen, hilary, holly,
 and hugo) and 5 client nodes (carol, celia, cindy, connie, and curtis).
 
@@ -139,7 +136,7 @@ each node.
 To stop all nodes in the topology, use the manager `stop` command:
 
 <pre>
-$ <b>./manager.py topology.yaml stop</b>
+$ <b>./manager.py stop</b>
 Stopping client curtis on port 8109
 Stopping client connie on port 8108
 Stopping client cindy on port 8107
@@ -182,7 +179,7 @@ This is why the `start` command explicitly waits for all nodes to be started (it
 reports `Waiting for all nodes to be started` at the end):
 
 <pre>
-$ <b>./manager.py topology.yaml start</b>
+$ <b>./manager.py start</b>
 Waiting for all nodes to be stopped
 Starting hub hank on port 8100
 ...
@@ -200,7 +197,7 @@ This is why the `start` command explicitly waits for all needed TCP ports to be 
 (it reports `Waiting for all nodes to be stopped` at the beginning).
 
 <pre>
-$ <b>./manager.py topology.yaml start</b>
+$ <b>./manager.py start</b>
 <b>Waiting for all nodes to be stopped</b>
 Starting hub hank on port 8100
 ...
@@ -213,7 +210,7 @@ If it takes longer than expected for a node to stop and for the TCP port to beco
 waiting (this should not take longer than 60 seconds):
 
 <pre>
-$ <b>./manager.py topology.yaml stop</b>
+$ <b>./manager.py stop</b>
 Stopping client curtis on port 8109
 ...
 Stopping hub hank on port 8100
@@ -230,7 +227,7 @@ client node.
 For example, to start one individual client carol:
 
 <pre>
-$ <b>./manager.py topology.yaml --client carol start</b>
+$ <b>./manager.py --client carol start</b>
 Waiting for client carol to be stopped
 Starting client carol on port 8105
 Waiting for client carol to be started
@@ -241,7 +238,7 @@ hub node.
 For example, to stop one individual hub hugo:
 
 <pre>
-$ <b>./manager.py topology.yaml --hub hugo stop</b>
+$ <b>./manager.py --hub hugo stop</b>
 Stopping hub hugo on port 8104
 Waiting for hub hugo to be stopped
 </pre>
@@ -249,7 +246,7 @@ Waiting for hub hugo to be stopped
 You can use the `--client` and `--hub` command line options multiple times.
 For example:
 
-<pre>$ <b>./manager.py topology.yaml --client carol --client corrie --hub hank start</b>
+<pre>$ <b>./manager.py --client carol --client corrie --hub hank start</b>
 Waiting for client carol, client corrie, hub hank to be stopped
 Starting hub hank on port 8100
 Starting client carol on port 8105
@@ -328,7 +325,7 @@ Use the manager `get-key` sub-command under the `etsi-qkd` command to invoke the
 The `get-key` sub-command has the following command-line options:
 
 <pre>
-$ <b>./manager.py topology.yaml etsi-qkd sam sunny get-key --help</b>
+$ <b>./manager.py etsi-qkd sam sunny get-key --help</b>
 usage: manager.py configfile etsi-qkd master_sae_id slave_sae_id get-key [-h] [--size SIZE]
 
 options:
@@ -340,7 +337,7 @@ In the following example we invoke the Get Key API for the QKD link between mast
 slave SAE Serena:
 
 <pre>
- $ <b>./manager.py topology.yaml etsi-qkd sam serena get-key</b>
+ $ <b>./manager.py etsi-qkd sam serena get-key</b>
 Invoke ETSI QKD Get Key API on client (KME) carol port 8105 master encryptor (SAE) sam slave encryptor (SAE) serena:
 {
   "keys": {
@@ -360,7 +357,7 @@ ETSI QKD 014 "Get Key" API to retrieve a key for a pair of SAEs on the slave SAE
 The `get-key` sub-command has the following command-line options:
 
 <pre>
-$ <b>./manager.py topology.yaml etsi-qkd sam serena get-key-with-key-ids --help</b>
+$ <b>./manager.py etsi-qkd sam serena get-key-with-key-ids --help</b>
 usage: manager.py configfile etsi-qkd master_sae_id slave_sae_id get-key-with-key-ids [-h] key_id
 
 positional arguments:
@@ -375,7 +372,7 @@ SAE Sam and slave SAE Serena, where the Key ID is d6a116f1-104e-4213-8cf1-0557cf
 Key ID returned by the Get Key API call above):
 
 <pre>
-$ <b>./manager.py topology.yaml etsi-qkd sam serena get-key-with-key-ids 6a116f1-104e-4213-8cf1-0557cf33cb29</b>
+$ <b>./manager.py etsi-qkd sam serena get-key-with-key-ids 6a116f1-104e-4213-8cf1-0557cf33cb29</b>
 Invoke ETSI QKD Get Key with Key IDs API on client (KME) celia port 8106 master encryptor (SAE) sam slave encryptor (SAE) serena:
 {
   "keys": [
@@ -395,7 +392,7 @@ As a matter of convenience, there is also a `get-key-pair` sub-command to combin
 The `get-key-pair` sub-command has the following command-line options:
 
 <pre>
-$ <b>./manager.py topology.yaml etsi-qkd carol curtis get-key-pair --help</b>
+$ <b>./manager.py etsi-qkd carol curtis get-key-pair --help</b>
 usage: manager.py configfile etsi-qkd master_sae_id slave_sae_id get-key-pair [-h] [--size SIZE]
 
 options:
@@ -406,7 +403,7 @@ options:
 In the following example, we ask for a key pair between master SAE Sam and slave SAE Sunny:
 
 <pre>
-$ <b>./manager.py topology.yaml etsi-qkd sam sunny get-key-pair</b>
+$ <b>./manager.py etsi-qkd sam sunny get-key-pair</b>
 Invoke ETSI QKD Get Key API on client (KME) carol port 8105 master encryptor (SAE) sam slave encryptor (SAE) sunny:
 {
   "keys": {
@@ -429,7 +426,7 @@ Key values match
 And, finally, there is a `status` subcommand to invoke the "Status" ETSI QKD 014 API:
 
 <pre>
-$ <b<>./manager.py topology.yaml etsi-qkd sam sunny get-status</b>
+$ <b<>./manager.py etsi-qkd sam sunny get-status</b>
 Invoke ETSI QKD Status API on client (KME) carol port 8105 master encryptor (SAE) sam slave encryptor (SAE) sunny:
 {
   "source_kme_id": "carol",
@@ -452,7 +449,7 @@ Use the manager `status` command (not to be confused with the `etsi-qkd status` 
 to report the status of each node in the topology:
 
 <pre>
-$ <b>./manager.py topology.yaml status</b>
+$ <b>./manager.py status</b>
 Status for hub hank on port 8100
 {
   "name": "hank",
@@ -493,7 +490,7 @@ You can also use the `--client` or `--hub` command-line option to only report th
 client or hub node, for example:
 
 <pre>
-$ <b>./manager.py topology.yaml --client celia status</b>
+$ <b>./manager.py --client celia status</b>
 Status for hub hank on port 8100
 {
   "name": "hank",
@@ -537,7 +534,7 @@ A useful trick is to use the `tail -n +2` command to skip the first line of outp
 the remaining output (which is JSON) through the `jq` command to colorize the JSON output:
 
 <pre>
-$ <b>./manager.py topology.yaml --client carol status | tail -n +2 | jq</b>
+$ <b>./manager.py --client carol status | tail -n +2 | jq</b>
 {
   "name": "carol",
   "encryptor_names": [
@@ -583,7 +580,7 @@ In the following example we display the information about the local pool for pee
 on client carol:
 
 <pre>
-$ <b>./manager.py topology.yaml --client carol status | tail -n +2 | jq '(.peer_hubs[] | select(.hub_name == "hank") .local_pool)'</b>
+$ <b>./manager.py --client carol status | tail -n +2 | jq '(.peer_hubs[] | select(.hub_name == "hank") .local_pool)'</b>
 {
   "blocks": [
     {

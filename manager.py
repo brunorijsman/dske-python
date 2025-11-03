@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Main entry point for the topology package.
+The DSKE manager.
 """
 
 import argparse
@@ -38,11 +38,11 @@ class Manager:
         self.parse_configuration()
         match self._args.command:
             case "start":
-                self.start_topology()
+                self.start()
             case "stop":
-                self.stop_topology()
+                self.stop()
             case "status":
-                self.status_topology()
+                self.status()
             case "etsi-qkd":
                 self.etsi_qkd()
 
@@ -128,7 +128,7 @@ class Manager:
 
     def selected_nodes(self, reverse_order=False) -> list[Node]:
         """
-        Return a list of all nodes in the topology (except those that are filtered).
+        Return a list of all selected nodes (i.e. all nodes except those that are filtered).
         """
         selected_nodes = []
         for node in self._nodes:
@@ -155,14 +155,12 @@ class Manager:
                 return node.name in self._args.hub
         assert False, "Unreachable"
 
-    def start_topology(self):
+    def start(self):
         """
         Start all nodes.
         """
         if not self.wait_for_selected_nodes_stopped():
-            print(
-                "Not starting topology since nodes from previous topology run were not stopped"
-            )
+            print("Not starting since some nodes from previous run were not stopped")
             return
         client_extra_args = []
         for node in self.selected_nodes():
@@ -201,7 +199,7 @@ class Manager:
             command += extra_args
         _process = subprocess.Popen(command, stdout=out_file, stderr=out_file)
 
-    def stop_topology(self):
+    def stop(self):
         """
         Stop all nodes.
         """
@@ -288,7 +286,7 @@ class Manager:
             lambda node: node.is_stopped(), "stopped"
         )
 
-    def status_topology(self):
+    def status(self):
         """
         Report status for all hubs and clients.
         """
@@ -350,9 +348,7 @@ class Manager:
         for node in self._nodes:
             if node.type == NodeType.CLIENT and sae_id in node.encryptor_names:
                 return node
-        self.fatal_error(
-            f"There is no encryptor (SAE) in the topology with name (SAE ID) {sae_id}"
-        )
+        self.fatal_error(f"There is no encryptor (SAE) with name (SAE ID) {sae_id}")
 
     # In the following ETSI QKD 014 API calls, the master SAE ID neither passed in a request query
     # parameter nor passed as a JSON attribute in the request body. In real life, the KME would
