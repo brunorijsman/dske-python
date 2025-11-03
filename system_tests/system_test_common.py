@@ -49,7 +49,7 @@ def stop_topology(
     """
     print(f"{stopped_nodes=}", file=sys.stderr)
     # Initiate shutdown of each node
-    args = [TEST_CONFIGURATION_FILE, "stop"]
+    args = ["--config", TEST_CONFIGURATION_FILE, "stop"]
     output = _run_manager(args)
     config = configuration.parse_configuration_file(TEST_CONFIGURATION_FILE)
     for node in reversed(config.nodes):
@@ -181,6 +181,7 @@ def status_node(node_type, node_name):
     Get status for a node.
     """
     args = [
+        "--config",
         TEST_CONFIGURATION_FILE,
         f"--{node_type}",
         node_name,
@@ -232,6 +233,7 @@ def get_status(
     Returns the key ID as a string on success or None on failure.
     """
     args = [
+        "--config",
         TEST_CONFIGURATION_FILE,
         "etsi-qkd",
         master_sae_id,
@@ -253,6 +255,7 @@ def get_key(
     Returns the key ID as a string on success or None on failure.
     """
     args = [
+        "--config",
         TEST_CONFIGURATION_FILE,
         "etsi-qkd",
         master_sae_id,
@@ -278,6 +281,7 @@ def get_key_with_key_ids(
     Get key with key IDs from a pair of DSKE clients using the ETSI QKD API.
     """
     args = [
+        "--config",
         TEST_CONFIGURATION_FILE,
         "etsi-qkd",
         master_sae_id,
@@ -298,6 +302,7 @@ def get_key_pair(
     Get a key pair from a pair of DSKE clients using the ETSI QKD API.
     """
     args = [
+        "--config",
         TEST_CONFIGURATION_FILE,
         "etsi-qkd",
         master_sae_id,
