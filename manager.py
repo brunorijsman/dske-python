@@ -21,6 +21,8 @@ class Manager:
     DSKE manager.
     """
 
+    DEFAULT_CONFIG_FILE = "dske-config.yaml"
+
     _args: None | argparse.Namespace
     _nodes: None | list[Node]
 
@@ -64,7 +66,12 @@ class Manager:
         Parse command line arguments.
         """
         parser = argparse.ArgumentParser(description="DSKE Manager")
-        parser.add_argument("configfile", help="Configuration filename")
+        parser.add_argument(
+            "--config",
+            metavar="CONFIG_FILE",
+            default=Manager.DEFAULT_CONFIG_FILE,
+            help=f"Configuration file name (default: {Manager.DEFAULT_CONFIG_FILE})",
+        )
         parser.add_argument("--client", help="Filter on client name", action="append")
         parser.add_argument("--hub", help="Filter on hub name", action="append")
         subparsers = parser.add_subparsers(dest="command")
@@ -116,7 +123,7 @@ class Manager:
         """
         Parse the configuration file.
         """
-        config = configuration.parse_configuration_file(self._args.configfile)
+        config = configuration.parse_configuration_file(self._args.config)
         self._nodes = config.nodes
 
     def selected_nodes(self, reverse_order=False) -> list[Node]:
