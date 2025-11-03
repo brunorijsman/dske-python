@@ -1055,9 +1055,6 @@ Query parameters:
 | ```slave_sae_id``` | string | The SAE ID (encryptor name) of the slave SAE for the key establishment. |
 | ```key_id``` | UUID | The UUID of the user key whose share is being requested. |
 
-TODO: Do we need to include the master SAE ID and the slave SAE ID in the request?
-This is stored with the Share data in the hub database, so we don't need it from the client.
-
 Headers:
 
 | Name | Type | Description |
