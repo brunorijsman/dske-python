@@ -23,11 +23,11 @@ class Client:
     A DSKE client, or just client for short.
     """
 
-    _min_key_size_in_bits = 32  # Shamir secret sharing needs at least 4 bytes.
-    _max_key_size_in_bits = 16_777_216  # TODO: Pick a value (make it a power of 2)
-    _default_key_size_in_bits = 128
-    _max_stored_key_count = 1000  # TODO: What is a sensible value?
-    _max_keys_per_request = 1  # TODO: Allow more than one
+    _MIN_KEY_SIZE_IN_BITS = 32  # Shamir secret sharing needs at least 4 bytes.
+    _MAX_KEY_SIZE_IN_BITS = 16_777_216  # Arbitrary large value
+    _DEFAULT_KEY_SIZE_IN_BITS = 128
+    _MAX_STORED_KEY_COUNT = 1_000  # Arbitrary large value
+    _MAX_KEYS_PER_REQUEST = 1  # We don't support the number parameter for Get Key calls
 
     _name: str
     _encryptor_names: list[str]
@@ -70,18 +70,31 @@ class Client:
         """
         ETSI QKD 014 V1.1.1 Status API.
         """
-        # See remark about ETSI QKD API in file TODO
+        # Given a slave SAE ID, we have no easy way to know the target KME ID. This would
+        # either require each KME (client) knowing the full topology or require each KME
+        # known which QKD links exist. The current implementation does not require pre-configuration
+        # of QKD links. Instead the master KME accepts every key request for any slave SAE ID.
+        # The master KME doesn't know or care who the target KME is - it just generates a key,
+        # splits it into shares, and scatters the shares to the peer hubs. The target KME, whoever
+        # it is, will later gather the shares from the peer hubs. For that reason, we currently
+        # return an empty string as the target KME ID.
+        #
+        # Similarly, we don't really have a concept of "stored keys" in this implementation.
+        # How many keys can be "gotten" depends on many factors, including the PSRD pool sizes
+        # at the source KME, each of the hubs, and the target KME (which we don't even know who
+        # it is). For that reason, we return an arbitrary number as the stored key count.
+        #
         return {
             "source_kme_id": self._name,
-            "target_kme_id": "TODO",  # TODO: Determine slave KME ID from slave SAE ID
+            "target_kme_id": "",  # See comment above
             "master_sae_id": master_sae_id,
             "slave_sae_id": slave_sae_id,
-            "key_size": self._default_key_size_in_bits,
-            "stored_key_count": 25000,  # TODO
-            "max_key_count": self._max_stored_key_count,
-            "max_key_per_request": self._max_keys_per_request,
-            "max_key_size": self._max_key_size_in_bits,
-            "min_key_size": self._min_key_size_in_bits,
+            "key_size": self._DEFAULT_KEY_SIZE_IN_BITS,
+            "stored_key_count": 100,  # See comment above
+            "max_key_count": self._MAX_STORED_KEY_COUNT,
+            "max_key_per_request": self._MAX_KEYS_PER_REQUEST,
+            "max_key_size": self._MAX_KEY_SIZE_IN_BITS,
+            "min_key_size": self._MIN_KEY_SIZE_IN_BITS,
             "max_sae_id_count": 0,
         }
 
@@ -100,12 +113,12 @@ class Client:
         #       to retrieve the key on the other side by calling Get Key with Key IDs.
         #       Perhaps also store the master_sae_id to keep track of who the initiator/master is.
         if size is None:
-            size = self._default_key_size_in_bits
+            size = self._DEFAULT_KEY_SIZE_IN_BITS
         if size % 8 != 0:
             raise exceptions.KeySizeIsNotMultipleOfEightBitsError(size)
-        if size < self._min_key_size_in_bits or size > self._max_key_size_in_bits:
+        if size < self._MIN_KEY_SIZE_IN_BITS or size > self._MAX_KEY_SIZE_IN_BITS:
             raise exceptions.KeySizeOutOfRangeError(
-                size, self._min_key_size_in_bits, self._max_key_size_in_bits
+                size, self._MIN_KEY_SIZE_IN_BITS, self._MAX_KEY_SIZE_IN_BITS
             )
         size_in_bytes = size // 8
         key = UserKey.create_random_key(size_in_bytes)
