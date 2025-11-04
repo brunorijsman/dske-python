@@ -13,10 +13,6 @@ from common.logging import LOGGER
 from common.user_key import UserKey
 from .peer_hub import PeerHub
 
-# TODO: Make this configurable
-# TODO: The Shamir code also has a max (is that really needed?)
-_MIN_NR_SHARES = 3  # The minimum number of key shares required to reconstruct the key.
-
 
 class Client:
     """
@@ -29,40 +25,42 @@ class Client:
     _MAX_STORED_KEY_COUNT = 1_000  # Arbitrary large value
     _MAX_KEYS_PER_REQUEST = 1  # We don't support the number parameter for Get Key calls
 
-    _name: str
-    _encryptor_names: list[str]
-    _peer_hubs: list[PeerHub]
+    name: str
+    encryptor_names: list[str]
+    peer_hubs: list[PeerHub]
 
-    def __init__(self, name: str, encryptor_names: list[str], peer_hub_urls: list[str]):
-        self._name = name
-        self._encryptor_names = encryptor_names
-        self._peer_hubs = []
+    def __init__(
+        self,
+        name: str,
+        start_request_psrd_threshold: int,
+        stop_request_psrd_threshold: int,
+        get_psrd_block_size: int,
+        min_nr_shares: int,
+        encryptor_names: list[str],
+        peer_hub_urls: list[str],
+    ):
+        self.name = name
+        self.start_request_psrd_threshold = start_request_psrd_threshold
+        self.stop_request_psrd_threshold = stop_request_psrd_threshold
+        self.get_psrd_block_size = get_psrd_block_size
+        self.min_nr_shares = min_nr_shares
+        self.encryptor_names = encryptor_names
+        self.peer_hubs = []
         for peer_hub_url in peer_hub_urls:
             peer_hub = PeerHub(self, peer_hub_url)
-            self._peer_hubs.append(peer_hub)
-
-    @property
-    def name(self):
-        """
-        Get the name.
-        """
-        return self._name
-
-    @property
-    def encryptor_names(self):
-        """
-        Get the encryptor names.
-        """
-        return self._encryptor_names
+            self.peer_hubs.append(peer_hub)
 
     def to_mgmt(self):
         """
         Get the management status.
         """
-        peer_hubs_status = [peer_hub.to_mgmt() for peer_hub in self._peer_hubs]
+        peer_hubs_status = [peer_hub.to_mgmt() for peer_hub in self.peer_hubs]
         return {
-            "name": self._name,
-            "encryptor_names": self._encryptor_names,
+            "name": self.name,
+            "start_request_psrd_threshold": self.start_request_psrd_threshold,
+            "stop_request_psrd_threshold": self.stop_request_psrd_threshold,
+            "get_psrd_block_size": self.get_psrd_block_size,
+            "encryptor_names": self.encryptor_names,
             "peer_hubs": peer_hubs_status,
         }
 
@@ -85,7 +83,7 @@ class Client:
         # it is). For that reason, we return an arbitrary number as the stored key count.
         #
         return {
-            "source_kme_id": self._name,
+            "source_kme_id": self.name,
             "target_kme_id": "",  # See comment above
             "master_sae_id": master_sae_id,
             "slave_sae_id": slave_sae_id,
@@ -154,7 +152,7 @@ class Client:
         """
         Start all peer hubs.
         """
-        for peer_hub in self._peer_hubs:
+        for peer_hub in self.peer_hubs:
             peer_hub.start_register_task()
 
     async def scatter_key_amongst_peer_hubs(
@@ -166,14 +164,14 @@ class Client:
         """
         Split the key into key shares, and send each key share to a peer hub.
         """
-        nr_shares = len(self._peer_hubs)
+        nr_shares = len(self.peer_hubs)
         shares = key.split_into_shares(
-            master_sae_id, slave_sae_id, nr_shares, _MIN_NR_SHARES
+            master_sae_id, slave_sae_id, nr_shares, self.min_nr_shares
         )
         assert len(shares) == nr_shares
         coroutines = [
             peer_hub.post_share(master_sae_id, slave_sae_id, share)
-            for peer_hub, share in zip(self._peer_hubs, shares)
+            for peer_hub, share in zip(self.peer_hubs, shares)
         ]
         results = await asyncio.gather(*coroutines, return_exceptions=True)
         success_results = [
@@ -184,12 +182,12 @@ class Client:
             f"Successfully scattered {nr_shares_successfully_scattered} out of {nr_shares} shares "
             f"for key ID {key.key_id}"
         )
-        if nr_shares_successfully_scattered < _MIN_NR_SHARES:
+        if nr_shares_successfully_scattered < self.min_nr_shares:
             causes, status_code = self.summarize_failure(results)
             raise exceptions.CouldNotScatterEnoughSharesError(
                 key.key_id,
                 nr_shares_successfully_scattered,
-                _MIN_NR_SHARES,
+                self.min_nr_shares,
                 status_code,
                 causes,
             )
@@ -204,10 +202,10 @@ class Client:
         Gather key shares from the peer hubs, and reconstruct the key out of (a subset of)
         the key shares.
         """
-        nr_shares_attempted_to_gather = len(self._peer_hubs)
+        nr_shares_attempted_to_gather = len(self.peer_hubs)
         coroutines = [
             peer_hub.get_share(master_sae_id, slave_sae_id, key_id)
-            for peer_hub in self._peer_hubs
+            for peer_hub in self.peer_hubs
         ]
         results = await asyncio.gather(*coroutines, return_exceptions=True)
         shares = [result for result in results if not isinstance(result, Exception)]
@@ -217,19 +215,19 @@ class Client:
             f"out of {nr_shares_attempted_to_gather} attempted "
             f"for key ID {key_id}"
         )
-        if nr_shares_successfully_gathered < _MIN_NR_SHARES:
+        if nr_shares_successfully_gathered < self.min_nr_shares:
             causes, status_code = self.summarize_failure(results)
             raise exceptions.CouldNotGatherEnoughSharesError(
                 key_id,
                 nr_shares_successfully_gathered,
-                _MIN_NR_SHARES,
+                self.min_nr_shares,
                 status_code,
                 causes,
             )
         shamir_input = [(share.share_index, share.value) for share in shares]
         try:
             key_value = shamir.reconstruct_binary_secret_from_shares(
-                _MIN_NR_SHARES, shamir_input
+                self.min_nr_shares, shamir_input
             )
         except ValueError as exc:
             raise exceptions.ShamirReconstructError(key_id, str(exc)) from exc

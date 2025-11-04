@@ -2,11 +2,9 @@
 Main module for a DSKE security hub.
 """
 
-import argparse
 import fastapi
 import pydantic
 import uvicorn
-from common import configuration
 from common import utils
 from common.block import APIBlock
 from common.exceptions import DSKEException
@@ -16,24 +14,8 @@ from common.registration_api import (
     APIPutRegistrationRequest,
     APIPutRegistrationResponse,
 )
+from .cli import parse_command_line_arguments
 from .hub import Hub
-
-
-def parse_command_line_arguments():
-    """
-    Parse command line arguments.
-    """
-    parser = argparse.ArgumentParser(description="DSKE Hub")
-    parser.add_argument("name", type=str, help="Hub name")
-    parser.add_argument(
-        "-p",
-        "--port",
-        type=int,
-        default=configuration._DEFAULT_BASE_PORT,
-        help="Port number",
-    )
-    args = parser.parse_args()
-    return args
 
 
 _ARGS = parse_command_line_arguments()

@@ -24,10 +24,12 @@ class Manager:
     DEFAULT_CONFIG_FILE = "dske-config.yaml"
 
     _args: None | argparse.Namespace
+    _config: configuration.Configuration | None
     _nodes: None | list[Node]
 
     def __init__(self):
         self._args = None
+        self._config = None
         self._nodes = None
 
     def main(self):
@@ -35,7 +37,8 @@ class Manager:
         Main entry point for the manager.
         """
         self.parse_command_line_arguments()
-        self.parse_configuration()
+        self._config = configuration.parse_configuration_file(self._args.config)
+        self._nodes = self._config.nodes
         match self._args.command:
             case "start":
                 self.start()
@@ -119,13 +122,6 @@ class Manager:
         )
         self._args = parser.parse_args()
 
-    def parse_configuration(self):
-        """
-        Parse the configuration file.
-        """
-        config = configuration.parse_configuration_file(self._args.config)
-        self._nodes = config.nodes
-
     def selected_nodes(self, reverse_order=False) -> list[Node]:
         """
         Return a list of all selected nodes (i.e. all nodes except those that are filtered).
@@ -191,8 +187,38 @@ class Manager:
         else:
             command = ["python", "-m"]
         command += [f"{node.type}", node.name, "--port", str(node.port)]
-        if node.encryptor_names:
-            command += ["--encryptors"] + node.encryptor_names
+        if node.type == NodeType.CLIENT:
+            if (
+                self._config.start_request_psrd_threshold
+                != configuration.DEFAULT_START_REQUEST_PSRD_THRESHOLD
+            ):
+                command += [
+                    "--start-request-psrd-threshold",
+                    str(self._config.start_request_psrd_threshold),
+                ]
+            if (
+                self._config.stop_request_psrd_threshold
+                != configuration.DEFAULT_STOP_REQUEST_PSRD_THRESHOLD
+            ):
+                command += [
+                    "--stop-request-psrd-threshold",
+                    str(self._config.stop_request_psrd_threshold),
+                ]
+            if (
+                self._config.get_psrd_block_size
+                != configuration.DEFAULT_GET_PSRD_BLOCK_SIZE
+            ):
+                command += [
+                    "--get-psrd-block-size",
+                    str(self._config.get_psrd_block_size),
+                ]
+            if self._config.min_nr_shares != configuration.DEFAULT_MIN_NR_SHARES:
+                command += [
+                    "--min-nr-shares",
+                    str(self._config.min_nr_shares),
+                ]
+            if node.encryptor_names:
+                command += ["--encryptors"] + node.encryptor_names
         if extra_args is not None:
             command += extra_args
         _process = subprocess.Popen(command, stdout=out_file, stderr=out_file)

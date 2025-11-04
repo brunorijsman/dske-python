@@ -6,16 +6,16 @@ from time import sleep
 from typing import List
 import pytest
 from common.signing_key import SIGNING_KEY_SIZE
-from client.peer_hub import START_REQUEST_PSRD_THRESHOLD
+from common.configuration import DEFAULT_START_REQUEST_PSRD_THRESHOLD
 from . import system_test_common
 
 
 # The test cases here assume the following parameters defined in client/peer_hub.py. If these
 # values are changed significantly, the test cases here may have to be updated accordingly.
 #
-# START_REQUEST_PSRD_THRESHOLD = 500
-# STOP_REQUEST_PSRD_THRESHOLD = 2000
-# GET_PSRD_BLOCK_SIZE = 2000
+# DEFAULT_START_REQUEST_PSRD_THRESHOLD = 500
+# DEFAULT_STOP_REQUEST_PSRD_THRESHOLD = 2000
+# DEFAULT_GET_PSRD_BLOCK_SIZE = 2000
 
 
 _CLIENTS = ["carol", "celia", "cindy", "connie", "curtis"]
@@ -193,8 +193,8 @@ def test_psrd_usage_refresh():
     # Check PSRD consumption on master client Carol
     sign_size = SIGNING_KEY_SIZE
     sign_and_encrypt_size = SIGNING_KEY_SIZE + key_size_in_bytes
-    assert sign_size < START_REQUEST_PSRD_THRESHOLD
-    assert sign_and_encrypt_size > START_REQUEST_PSRD_THRESHOLD
+    assert sign_size < DEFAULT_START_REQUEST_PSRD_THRESHOLD
+    assert sign_and_encrypt_size > DEFAULT_START_REQUEST_PSRD_THRESHOLD
     _check_client_psrd_consumption("curtis", "*", "local", [sign_and_encrypt_size, 0])
     _check_client_psrd_consumption("curtis", "*", "peer", [sign_size])
 

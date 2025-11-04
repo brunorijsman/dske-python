@@ -78,6 +78,9 @@ Shamir Secret Sharing (SSS).
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+
+# TODO: The Shamir code also has a max (is that really needed?)
+
 import hmac
 import secrets  # TODO: Use secrets everywhere instead of os.urandom
 from typing import List, NamedTuple, Sequence, Tuple

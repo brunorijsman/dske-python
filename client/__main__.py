@@ -2,42 +2,16 @@
 Main module for a DSKE client.
 """
 
-import argparse
 import contextlib
 import os
 import signal
 from typing import Annotated
 import fastapi
 import uvicorn
-from common import configuration
 from common import utils
 from common.exceptions import DSKEException, MissingAuthorizationHeaderError
+from .cli import parse_command_line_arguments
 from .client import Client
-
-
-def parse_command_line_arguments():
-    """
-    Parse command line arguments.
-    """
-    parser = argparse.ArgumentParser(description="DSKE Client")
-    parser.add_argument("name", type=str, help="Client name")
-    parser.add_argument(
-        "--port", type=int, default=configuration._DEFAULT_BASE_PORT, help="Port number"
-    )
-    parser.add_argument(
-        "--hubs",
-        nargs="+",
-        type=str,
-        help=f"Base URLs for hubs (e.g., http://127.0.0.1:{configuration._DEFAULT_BASE_PORT})",
-    )
-    parser.add_argument(
-        "--encryptors",
-        nargs="+",
-        type=str,
-        help="Names (SAE IDs) of encryptors consuming keys from this client (KME).",
-    )
-    args = parser.parse_args()
-    return args
 
 
 _ARGS = parse_command_line_arguments()
@@ -48,7 +22,15 @@ if _ARGS.encryptors is None:
     encryptor_names = []
 else:
     encryptor_names = _ARGS.encryptors
-_CLIENT = Client(_ARGS.name, encryptor_names, peer_hub_urls)
+_CLIENT = Client(
+    _ARGS.name,
+    _ARGS.start_request_psrd_threshold,
+    _ARGS.stop_request_psrd_threshold,
+    _ARGS.get_psrd_block_size,
+    _ARGS.min_nr_shares,
+    encryptor_names,
+    peer_hub_urls,
+)
 
 
 @contextlib.asynccontextmanager

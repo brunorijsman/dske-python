@@ -19,28 +19,6 @@ from common.share_api import APIPostShareRequest, APIGetShareResponse
 from common.utils import bytes_to_str, str_to_bytes
 from .http_client import HttpClient
 
-# TODO: Make the following configurable.
-
-# In real life, the thresholds and the block size defined below would be much larger, perhaps
-# gigabytes. For testing purposes, we use much smaller values.
-
-START_REQUEST_PSRD_THRESHOLD = 500
-"""
-Start requesting more PSRD blocks from the hub when the amount of PSRD in the pool falls below this
-threshold.
-"""
-
-STOP_REQUEST_PSRD_THRESHOLD = 2000
-"""
-Stop requesting more PSRD blocks from the hub when the amount of PSRD in the pool rises above or
-equal to this threshold.
-"""
-
-GET_PSRD_BLOCK_SIZE = 2000
-"""
-When requesting more PSRD blocks from the hub, request blocks of this size.
-"""
-
 _GET_PSRD_RETRY_DELAY = 1.0
 """
 If a get PSRD request to the hub fails, wait this many seconds before retrying.
@@ -155,12 +133,18 @@ class PeerHub:
         Start request PSRD task(s) if needed.
         """
         if self._local_pool_request_psrd_task is None:
-            if self._local_pool.nr_unused_bytes < START_REQUEST_PSRD_THRESHOLD:
+            if (
+                self._local_pool.nr_unused_bytes
+                < self._client.start_request_psrd_threshold
+            ):
                 self._local_pool_request_psrd_task = asyncio.create_task(
                     self.request_psrd_task(self._local_pool)
                 )
         if self._peer_pool_request_psrd_task is None:
-            if self._peer_pool.nr_unused_bytes < START_REQUEST_PSRD_THRESHOLD:
+            if (
+                self._peer_pool.nr_unused_bytes
+                < self._client.start_request_psrd_threshold
+            ):
                 self._peer_pool_request_psrd_task = asyncio.create_task(
                     self.request_psrd_task(self._peer_pool)
                 )
@@ -172,7 +156,7 @@ class PeerHub:
         task_name = f"request PSRD task for peer hub {self._hub_name} and pool owner {pool.owner}"
         LOGGER.info(f"Begin {task_name}")
         try:
-            while pool.nr_unused_bytes < STOP_REQUEST_PSRD_THRESHOLD:
+            while pool.nr_unused_bytes < self._client.stop_request_psrd_threshold:
                 if not await self.attempt_request_psrd(pool):
                     await asyncio.sleep(_GET_PSRD_RETRY_DELAY)
         except asyncio.CancelledError:
@@ -201,7 +185,7 @@ class PeerHub:
         params = {
             "client_name": self._client.name,
             "owner": owner_str,
-            "size": GET_PSRD_BLOCK_SIZE,
+            "size": self._client.get_psrd_block_size,
         }
         try:
             api_block = await self._http_client.get(url, params, APIBlock)
