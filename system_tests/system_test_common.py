@@ -214,11 +214,10 @@ def extract_key_id(output) -> None | str:
     Extract the key ID from the output of a Get Key request.
     """
     for line in output:
-        print(f"Searching for key ID in line: <{line}>", file=sys.stderr)  ### DEBUG
         match = re.search(r'"key_ID": "(\S+)"', line)
-        print(f"{match=}", file=sys.stderr)  ### DEBUG
         if match:
-            return match.group(1)
+            key_id = match.group(1)
+            return key_id
     return None
 
 

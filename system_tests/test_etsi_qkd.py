@@ -2,6 +2,7 @@
 System test for the ETSI QKD API.
 """
 
+import uuid
 import pytest
 from . import system_test_common
 
@@ -43,4 +44,16 @@ def test_key_id_not_uuid():
     """
     system_test_common.get_key_with_key_ids(
         "sam", "sofia", "not-a-uuid", expected_status_code=400
+    )
+
+
+def test_wrong_key_id():
+    """
+    ETSI QKD Get key with key IDs, using a key ID that was not returned by Get Key (expect error).
+    """
+    key_id = system_test_common.get_key("sam", "sofia")
+    assert key_id is not None
+    wrong_uuid = str(uuid.uuid4())
+    system_test_common.get_key_with_key_ids(
+        "sam", "sofia", wrong_uuid, expected_status_code=400
     )

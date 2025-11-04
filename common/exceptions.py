@@ -2,6 +2,7 @@
 Exceptions.
 """
 
+import json
 from typing import List
 from uuid import UUID
 from fastapi import status
@@ -61,7 +62,6 @@ class HTTPError(DSKEException):
         response: str | None = None,
         exception: str | None = None,
     ):
-        message = "HTTP request failed."
         details = {}
         details["method"] = method
         details["url"] = url
@@ -77,8 +77,17 @@ class HTTPError(DSKEException):
             details["response"] = response
         if exception is not None:
             details["exception"] = exception
+        explain = ""
+        if response is not None:
+            try:
+                response_json = json.loads(response)  # type: ignore
+                if "message" in response_json:
+                    explain = f" - {response_json['message']}"
+            except Exception:  # pylint: disable=broad-except
+                pass
+        message = f"HTTP request failed ({method} {url}: {status_code}{explain})."
         super().__init__(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status_code or status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=message,
             details=details,
         )
@@ -129,11 +138,11 @@ class UnknownKeyIDError(DSKEException):
     Exception raised when an unknown key ID is provided.
     """
 
-    def __init__(self, key_id: str):
+    def __init__(self, key_id: UUID):
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
             message="Unknown key ID",
-            details={"key_ID": key_id},
+            details={"key_ID": str(key_id)},
         )
 
 
@@ -147,6 +156,7 @@ class CouldNotScatterEnoughSharesError(DSKEException):
         key_id: UUID,
         nr_successful_shares: int,
         nr_required_shares: int,
+        status_code: int,
         causes=List[str],
     ):
         details = {
@@ -157,7 +167,7 @@ class CouldNotScatterEnoughSharesError(DSKEException):
         if causes:
             details["causes"] = causes
         super().__init__(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            status_code=status_code,
             message="Could not scatter enough shares for key.",
             details=details,
         )
@@ -173,6 +183,7 @@ class CouldNotGatherEnoughSharesError(DSKEException):
         key_id: UUID,
         nr_successful_shares: int,
         nr_required_shares: int,
+        status_code: int,
         causes=List[str],
     ):
         details = {
@@ -183,7 +194,7 @@ class CouldNotGatherEnoughSharesError(DSKEException):
         if causes:
             details["causes"] = causes
         super().__init__(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            status_code=status_code,
             message="Could not gather enough shares for key.",
             details=details,
         )

@@ -94,10 +94,11 @@ async def dske_exception_handler(_request: fastapi.Request, exc: DSKEException):
     Handle DSKE exceptions.
     """
     # Error responses are not signed.
-    return fastapi.responses.JSONResponse(
+    response = fastapi.responses.JSONResponse(
         status_code=exc.status_code,
         content={"message": exc.message, "details": exc.details},
     )
+    return response
 
 
 @_APP.put(f"/hub/{_HUB.name}/dske/oob/v1/registration")

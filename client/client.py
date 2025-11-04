@@ -3,7 +3,9 @@ A DSKE client, or just client for short.
 """
 
 import asyncio
+from typing import Any, List, Tuple
 from uuid import UUID
+from fastapi import status
 from common import exceptions
 from common import shamir
 from common import utils
@@ -170,11 +172,13 @@ class Client:
             f"for key ID {key.key_id}"
         )
         if nr_shares_successfully_scattered < _MIN_NR_SHARES:
-            causes = [
-                str(result) for result in results if isinstance(result, Exception)
-            ]
+            causes, status_code = self.summarize_failure(results)
             raise exceptions.CouldNotScatterEnoughSharesError(
-                key.key_id, nr_shares_successfully_scattered, _MIN_NR_SHARES, causes
+                key.key_id,
+                nr_shares_successfully_scattered,
+                _MIN_NR_SHARES,
+                status_code,
+                causes,
             )
 
     async def gather_key_from_peer_hubs(
@@ -201,11 +205,13 @@ class Client:
             f"for key ID {key_id}"
         )
         if nr_shares_successfully_gathered < _MIN_NR_SHARES:
-            causes = [
-                str(result) for result in results if isinstance(result, Exception)
-            ]
+            causes, status_code = self.summarize_failure(results)
             raise exceptions.CouldNotGatherEnoughSharesError(
-                key_id, nr_shares_successfully_gathered, _MIN_NR_SHARES, causes
+                key_id,
+                nr_shares_successfully_gathered,
+                _MIN_NR_SHARES,
+                status_code,
+                causes,
             )
         shamir_input = [(share.share_index, share.value) for share in shares]
         try:
@@ -216,3 +222,22 @@ class Client:
             raise exceptions.ShamirReconstructError(key_id, str(exc)) from exc
         key = UserKey(key_id, key_value)
         return key
+
+    @staticmethod
+    def summarize_failure(hub_results: List[Any]) -> Tuple[List[str], int]:
+        """
+        Map multiple peer hub failures to a single summary ETSI failure.
+        - A list of cause strings (included in the details of the ETSI exception)
+        - The status code to be used in the ETSI exception, the worst of the peer status codes.
+        """
+        status_code = None
+        causes = []
+        for hub_result in hub_results:
+            if isinstance(hub_result, Exception):
+                causes.append(str(hub_result))
+            if isinstance(hub_result, exceptions.DSKEException):
+                if status_code is None or hub_result.status_code > status_code:
+                    status_code = hub_result.status_code
+        if status_code is None:
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return (causes, status_code)
