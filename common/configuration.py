@@ -8,7 +8,7 @@ import cerberus
 import yaml
 from common.node import Node, NodeType
 
-DEFAULT_BASE_PORT = 8100
+_DEFAULT_BASE_PORT = 8100
 
 
 class Configuration:
@@ -17,8 +17,9 @@ class Configuration:
     """
 
     _nodes: list[Node]
+    _base_port: int
 
-    def __init__(self, nodes, base_port=DEFAULT_BASE_PORT):
+    def __init__(self, nodes, base_port):
         # Sort nodes by type and name, so that clients are always before hubs (the order matters
         # for startup and shutdown).
         self._nodes = sorted(nodes)
@@ -68,6 +69,7 @@ def parse_configuration_file(filename: str):
         },
     }
     schema = {
+        "base_port": {"type": "integer", "default": _DEFAULT_BASE_PORT},
         "hubs": {"type": "list", "schema": hub_schema, "default": []},
         "clients": {"type": "list", "schema": client_schema, "default": []},
     }
@@ -106,4 +108,5 @@ def parse_configuration_file(filename: str):
             encryptor_names = [pec["name"] for pec in parsed_encryptors_config]
         node = Node(NodeType.CLIENT, node_name, encryptor_names)
         nodes.append(node)
-    return Configuration(nodes)
+    base_port = parsed_config["base_port"]
+    return Configuration(nodes, base_port)

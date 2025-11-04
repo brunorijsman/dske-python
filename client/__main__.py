@@ -22,13 +22,13 @@ def parse_command_line_arguments():
     parser = argparse.ArgumentParser(description="DSKE Client")
     parser.add_argument("name", type=str, help="Client name")
     parser.add_argument(
-        "--port", type=int, default=configuration.DEFAULT_BASE_PORT, help="Port number"
+        "--port", type=int, default=configuration._DEFAULT_BASE_PORT, help="Port number"
     )
     parser.add_argument(
         "--hubs",
         nargs="+",
         type=str,
-        help=f"Base URLs for hubs (e.g., http://127.0.0.1:{configuration.DEFAULT_BASE_PORT})",
+        help=f"Base URLs for hubs (e.g., http://127.0.0.1:{configuration._DEFAULT_BASE_PORT})",
     )
     parser.add_argument(
         "--encryptors",
