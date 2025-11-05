@@ -67,7 +67,10 @@ def delete_pid_file(node_type: str, node_name: str) -> None:
     """
     Delete the process ID file for the node.
     """
-    os.remove(pid_file_name(node_type, node_name))
+    try:
+        os.remove(pid_file_name(node_type, node_name))
+    except FileNotFoundError:
+        pass
 
 
 def pid_file_exists(node_type: str, node_name: str) -> bool:

@@ -17,6 +17,8 @@ TODO: Make the swagger docs also work off-line
 
 TODO: Type annotations everywhere
 
+TODO: Check type annotations (in check script and in VSC)
+
 TODO: Test creation and deletion of PID file
 
 TODO: Figure out how to debug the code (set breakpoint from VSC and document that)
