@@ -16,7 +16,7 @@ class Share:
     _slave_sae_id: str
     _user_key_id: UUID
     _share_index: int
-    _value: bytes  # TODO: Rename to data
+    _value: bytes
 
     def __init__(
         self,
