@@ -3,6 +3,7 @@ The signature for a DSKE in-band protocol message.
 """
 
 from typing import Optional
+from .exceptions import InvalidEncodedSignatureError
 from .utils import bytes_to_str, str_to_bytes
 
 HEADER_NAME = "DSKE-Signature"
@@ -51,7 +52,7 @@ class Signature:
         """
         split_str = enc_str.split(_ENCODING_SEPARATOR)
         if len(split_str) != 2:
-            assert False  # TODO: Raise an exception instead
+            raise InvalidEncodedSignatureError(enc_str)
         allocation_enc_str = split_str[0]
         signature_data_str = split_str[1]
         signature_data = str_to_bytes(signature_data_str)
