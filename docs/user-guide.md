@@ -29,30 +29,56 @@ and the encryptors.
 .
 
 The repository contains an example `dske-config.yaml` file, which is the default configuration.
-In this example output, we have removed all the comments, showing only the active parts of the
-configuration:
+The comments in this file explain all the configurable attributes in the configuration file.
 
 <pre>
 $ <b>cat dske-config.yaml</b>
-hubs:
-  - name: hank
+# Configuration file for DSKE topology.
+
+# base_port: 8100       # Base TCP port for the DSKE topology.
+                        # The first hub uses TCP port base_port.
+                        # The second hub uses TCP port base_port + 1, and so on.
+                        # The first client uses TCP port base_port + N, etc.
+                        # (where N is the number of hubs).
+                        # Optional; default value is 8100.
+
+# start_request_psrd_threshold: 500     # Threshold for starting PSRD requests.
+                                        # If the pool size drops below this threshold, start
+                                        # sending PSRD requests to replenish the pool.
+                                        # Optional; default value is 500.
+
+# stop_request_psrd_threshold: 2000     # Threshold for stopping PSRD requests.
+                                        # If the pool size exceeds this threshold, stop
+                                        # sending PSRD requests.
+                                        # Optional; default value is 2000.
+
+# get_psrd_block_size: 1000             # Block size for PSRD requests.
+                                        # Optional; default value is 1000.
+
+# min_nr_shares: 3                      # Minimum number of shares needed to reconstruct a key
+                                        # from the key shares using Shamir's Secret Sharing (SSS).
+                                        # Optional; default value is 3.
+
+hubs:                   # List of hubs (aka DSKE security hubs) in the DSKE topology.
+  - name: hank          # Name of the hub.
   - name: helen
   - name: hilary
   - name: holly
   - name: hugo
-clients:
-  - name: carol
-    encryptors:
-      - name: sam
+
+clients:                # List of client (aka DSKE clients) in the DSKE topology.`
+  - name: carol         # Name of the client node.
+    encryptors:         # List of encryptors (aka Secure Application Entity SAE) directly connected to this client (carol).
+      - name: sam       # Name of the encryptor.
   - name: celia
     encryptors:
       - name: serena
-  - name: cindy
+  - name: cindy         # A client with zero directly connected encryptors.
   - name: connie
     encryptors:
       - name: sofia
   - name: curtis
-    encryptors:
+    encryptors:         # A client with more than one (namely two) directly connected encryptors.
       - name: sunny
       - name: susan
 </pre>
