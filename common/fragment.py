@@ -133,7 +133,6 @@ class Fragment:
         Create a Fragment from an encoded string as used in an HTTP header or URL parameter.
         The format of the string is: <block_uuid>:<start_byte>:<size>
         """
-        # TODO: Add expected_max_size parameter to avoid insane large sizes.
         parts = enc_str.split(":")
         if len(parts) != 3:
             raise InvalidEncodedFragment(encoded_fragment=enc_str)
