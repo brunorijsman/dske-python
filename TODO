@@ -1,5 +1,3 @@
-TODO: Update docs for new configurable items in config file and in client CLI
-
 TODO: Put .out files in a sub-directory
 
 TODO: Error message if --client or --hub does not exist in configuration
