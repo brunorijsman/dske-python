@@ -192,11 +192,16 @@ The `Block` class has the following attributes:
 | data | bytes | The bytes in the block. |
 | used | bitarray | A bit for each byte in the block to indicate whether the byte is used (allocated). |
 
+Once data is used (allocated), it is copied to a `Fragment` object;
+the original data is zeroed out in the `Block`.
+In some rare circumstances (having to do with error handling) a `Fragment` object
+can be put back into a `Block` in which case the data is copied back.
+
+
 ### Class `Pool` ###
 
 The class `Pool` represents a pool of Pre-Shared Random Data (PSRD) from which the DSKE code
 make do allocations (see class `Allocation` below).
-Once data is allocated, it is zeroed out in the `Pool`.
 Each pool has an owner (local or remote); the concept of pool ownership is explained below.
 The pools implemented as a sequence of PSRD blocks (`Block` objects).
 
@@ -207,7 +212,6 @@ The `Pool` class has the following attributes:
 | name | str | The name of the pool (for debugging purposes). |
 | blocks | List[Block] | A list of blocks in the pool. |
 | owner | local or remote | The owner of the pool (explained below). |
-
 
 ### Class `Fragment`
 
@@ -238,7 +242,6 @@ the `Allocation` class has the following attributes:
 |-|-|-|
 | fragments | List[Fragment] | The list of fragments that the allocation is composed of. |
 
-
 ### The concept of block ownership
 
 When a hub and a client share a block of Pre-Shared Random Data (PSRD) there is a `Block` object
@@ -246,12 +249,31 @@ on the hub side and a `Block` object with the same random data on the client sid
 The hub and the client use their blocks to allocate secrets that are shared with their peer.
 These shared secrets are used for encryption and authentication of DSKE protocol messages.
 
-In the code, allocating a shared secret means creating an `Allocation` object.
-This marks some bytes in some blocks as being allocated and consumed.
-Sharing a secret means sending the some information about the `Allocation` object to the peer:
-which bytes in which blocks have been allocated, but not the byte values themselves.
-The peer then uses this information to create a corresponding `Allocation` object with
-identical byte values.
+Both the client-side and the hub-side do allocate `Allocation` objects from `Pool` objects for
+the purpose of authenticating messages (HTTP requests and responses) and for encrypting key share
+data.
+
+When one party sends a message to another party, the sender makes an allocation from it's local
+pool of PSRD.
+The sender uses the allocation to sign and possibly encrypt part of the message.
+The sender also sends the meta-data of the allocation to the receiver.
+does the allocation and sends
+When the receiver receives the meta-data, it allocates the exact same bytes from the
+receiver's copy of the PSRD.
+The receiver then uses the allocation to verify the signature and potentially decrypt part of
+the message.
+
+In certain scenarios, there can be a race condition where the client and the hub both try to
+send a message at roughly the same time.
+Typically, the client sends a new HTTP request when the hub is still sending a response for
+the previous HTTP request.
+In such a race condition there is a risk of the client and the hub trying to allocate the exact
+same byte in the PSRD for two different purposes.
+
+We introduced the concent of pool ownership to solve this problem.
+Each node has _two_ pools: a locally owned pool and a pool owned by the peer.
+Each node always makes allocations from the locally owned pool for sent messages.
+And each node always makes allocations from the pool owned by the peer for received messages.
 
 ## Message authentication
 
@@ -260,9 +282,9 @@ it uses its own authentication and encryption mechanisms instead of relying on T
 
 In-band DSKE protocol messages are signed using PSRD data for authentication.
 
-The client signs outgoing HTTP request messages and the hub verifies the signature on incoming
+The _client_ signs outgoing HTTP request messages and the hub verifies the signature on incoming
 HTTP request messages.
-The hub signs outgoing HTTP response message and the client verifies the signature on incoming
+The _hub_ signs outgoing HTTP response message and the client verifies the signature on incoming
 HTTP response messages.
 
 The sender of an HTTP message signs outgoing HTTP messages as follows:
