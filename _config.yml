@@ -1,7 +1,7 @@
-theme: jekyll-theme-slate
+remote_theme: pages-themes/cayman@v0.2.0
 title: Distributed Symmetric Key Exchange (DSKE)
 description: An open source implementation of the Distributed Symmetric Key Exchange (DSKE) protocol in Python.
 author: Bruno Rijsman
 plugins:
-  - jekyll-seo-tag
+  - jekyll-remote-theme
 google_analytics: UA-31532124-6
