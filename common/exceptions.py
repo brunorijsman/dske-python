@@ -314,7 +314,7 @@ class InvalidPSRDDataError(DSKEException):
         )
 
 
-class InvalidEncodedFragment(DSKEException):
+class InvalidEncodedFragmentError(DSKEException):
     """
     Exception raised when trying to parse an encoded fragment string that is invalid.
     """
@@ -327,7 +327,7 @@ class InvalidEncodedFragment(DSKEException):
         )
 
 
-class InvalidEncodedSignature(DSKEException):
+class InvalidEncodedSignatureError(DSKEException):
     """
     Exception raised when trying to parse an encoded signature string that is invalid.
     """

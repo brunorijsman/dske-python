@@ -4,7 +4,7 @@ A Pre-Shared Random Data (PSRD) fragment.
 
 from uuid import UUID
 import pydantic
-from common.exceptions import InvalidBlockUUIDError, InvalidEncodedFragment
+from common.exceptions import InvalidBlockUUIDError, InvalidEncodedFragmentError
 from . import utils
 
 
@@ -135,7 +135,7 @@ class Fragment:
         """
         parts = enc_str.split(":")
         if len(parts) != 3:
-            raise InvalidEncodedFragment(encoded_fragment=enc_str)
+            raise InvalidEncodedFragmentError(encoded_fragment=enc_str)
         block_uuid_str, start_byte_str, size_str = parts
         try:
             block_uuid = UUID(block_uuid_str)
@@ -145,10 +145,10 @@ class Fragment:
         try:
             start = int(start_byte_str)
         except ValueError as exc:
-            raise InvalidEncodedFragment(encoded_fragment=enc_str) from exc
+            raise InvalidEncodedFragmentError(encoded_fragment=enc_str) from exc
         try:
             size = int(size_str)
         except ValueError as exc:
-            raise InvalidEncodedFragment(encoded_fragment=enc_str) from exc
+            raise InvalidEncodedFragmentError(encoded_fragment=enc_str) from exc
         data = block.take_data(start, size)
         return Fragment(block=block, start=start, size=size, data=data)

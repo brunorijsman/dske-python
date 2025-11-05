@@ -4,7 +4,7 @@ Unit tests for the Fragment class.
 
 from uuid import uuid4
 import pytest
-from common.exceptions import InvalidBlockUUIDError, InvalidEncodedFragment
+from common.exceptions import InvalidBlockUUIDError, InvalidEncodedFragmentError
 from common.fragment import APIFragment, Fragment
 from common.utils import bytes_to_str
 from .unit_test_common import create_test_block, create_test_pool_and_blocks
@@ -151,16 +151,16 @@ def test_from_enc_str_bad_str():
     # pylint: disable=protected-access
     (pool, blocks) = create_test_pool_and_blocks([10])
     # No colons
-    with pytest.raises(InvalidEncodedFragment):
+    with pytest.raises(InvalidEncodedFragmentError):
         _fragment = Fragment.from_enc_str("not-an-encoded-str", pool)
     # Only one colon
-    with pytest.raises(InvalidEncodedFragment):
+    with pytest.raises(InvalidEncodedFragmentError):
         _fragment = Fragment.from_enc_str(f"{blocks[0].uuid}:only-one-colon", pool)
     # Start is not a number
-    with pytest.raises(InvalidEncodedFragment):
+    with pytest.raises(InvalidEncodedFragmentError):
         _fragment = Fragment.from_enc_str(f"{blocks[0].uuid}:not-a-number:5", pool)
     # Size is not a number
-    with pytest.raises(InvalidEncodedFragment):
+    with pytest.raises(InvalidEncodedFragmentError):
         _fragment = Fragment.from_enc_str(f"{blocks[0].uuid}:0:not-a-number", pool)
 
 

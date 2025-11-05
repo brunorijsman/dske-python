@@ -6,7 +6,7 @@ import pytest
 from common.allocation import Allocation, APIAllocation
 from common.exceptions import (
     InvalidBlockUUIDError,
-    InvalidEncodedFragment,
+    InvalidEncodedFragmentError,
     InvalidPSRDIndex,
 )
 from common.fragment import APIFragment, Fragment
@@ -194,7 +194,7 @@ def test_from_enc_str_bad_no_fragments():
     Attempt to create an Allocation from a bad encoded string (no fragments).
     """
     pool, _blocks = create_test_pool_and_blocks([10])
-    with pytest.raises(InvalidEncodedFragment):
+    with pytest.raises(InvalidEncodedFragmentError):
         _allocation = Allocation.from_enc_str("", pool)
 
 
