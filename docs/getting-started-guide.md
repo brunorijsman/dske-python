@@ -75,7 +75,7 @@ In this example output, we have removed all the comments, showing only the activ
 configuration:
 
 ```
-$ <b>cat dske-config.yaml</b>
+$ cat dske-config.yaml
 hubs:
   - name: hank
   - name: helen
