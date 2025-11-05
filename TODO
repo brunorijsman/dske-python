@@ -47,3 +47,5 @@ TODO: Testcase for invalid signature
 TODO: Test case for: if signature validation fails, return fragment to pool
 
 TODO: Check SAE IDs on GET share, just as we do for POST share
+
+TODO: Proper documentation for all possible error responses in Swagger

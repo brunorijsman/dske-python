@@ -246,6 +246,5 @@ class Client:
                 if status_code is None or hub_result.status_code > status_code:
                     status_code = hub_result.status_code
         if status_code is None:
-            print
             status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         return (causes, status_code)
