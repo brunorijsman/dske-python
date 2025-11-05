@@ -3,7 +3,6 @@ A DSKE client, or just client for short.
 """
 
 import asyncio
-import sys
 from typing import Any, List, Tuple
 from uuid import UUID
 from fastapi import status
@@ -242,7 +241,6 @@ class Client:
         - A list of cause strings (included in the details of the ETSI exception)
         - The status code to be used in the ETSI exception, the worst of the peer status codes.
         """
-        print("Summarizing failures from hub results:", file=sys.stderr)  ### DEBUG
         status_code = None
         causes = []
         for hub_result in hub_results:
@@ -250,15 +248,8 @@ class Client:
                 causes.append(str(hub_result))
             if isinstance(hub_result, exceptions.DSKEException):
                 if status_code is None or hub_result.status_code > status_code:
-                    print(
-                        f"New worst status code: {hub_result.status_code} from hub result: {hub_result}",
-                        file=sys.stderr,
-                    )  ### DEBUG
                     status_code = hub_result.status_code
         if status_code is None:
             print
             status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-        print(
-            f"Final summarized status code: {status_code}", file=sys.stderr
-        )  ### DEBUG
         return (causes, status_code)
