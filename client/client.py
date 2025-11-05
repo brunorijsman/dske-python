@@ -106,10 +106,6 @@ class Client:
         ETSI QKD 014 V1.1.1 Get key API.
         """
         # TODO: Make sure that this client is actually the initiator
-        # TODO: Use the Slave SAE ID?
-        # TODO: Store the _slave_sae_id somewhere. It should be used to determine who is allowed
-        #       to retrieve the key on the other side by calling Get Key with Key IDs.
-        #       Perhaps also store the master_sae_id to keep track of who the initiator/master is.
         if size is None:
             size = self._DEFAULT_KEY_SIZE_IN_BITS
         if size % 8 != 0:
