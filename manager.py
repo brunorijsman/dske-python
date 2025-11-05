@@ -182,7 +182,6 @@ class Manager:
         out_filename = f"{node.type}-{node.name}.out"
         # pylint: disable=consider-using-with
         out_file = open(out_filename, "a", encoding="utf-8")
-        # TODO: Error handling (e.g., if the process fails to start)
         if os.getenv("DSKE_COVERAGE"):
             command = ["python", "-m", "coverage", "run", "-m"]
         else:
