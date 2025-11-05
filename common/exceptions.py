@@ -62,6 +62,8 @@ class HTTPError(DSKEException):
         response: str | None = None,
         exception: str | None = None,
     ):
+        if status_code is None:
+            status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         details = {}
         details["method"] = method
         details["url"] = url
@@ -71,8 +73,7 @@ class HTTPError(DSKEException):
             details["params"] = params
         if data is not None:
             details["data"] = data
-        if status_code is not None:
-            details["status_code"] = status_code
+        details["status_code"] = status_code
         if response is not None:
             details["response"] = response
         if exception is not None:
@@ -86,11 +87,7 @@ class HTTPError(DSKEException):
             except Exception:  # pylint: disable=broad-except
                 pass
         message = f"HTTP request failed ({method} {url}: {status_code}{explain})."
-        super().__init__(
-            status_code=status_code or status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=message,
-            details=details,
-        )
+        super().__init__(status_code=status_code, message=message, details=details)
 
 
 class InvalidKeyIDError(DSKEException):
