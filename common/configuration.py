@@ -41,6 +41,14 @@ MIN_MIN_NR_SHARES = 1
 MAX_MIN_NR_SHARES = 128
 
 
+def fatal_error(message: str):
+    """
+    Print a fatal error message and exit.
+    """
+    print(message, file=sys.stderr)
+    sys.exit(1)
+
+
 class Configuration:
     """
     Configuration for the DSKE manager.
@@ -158,18 +166,15 @@ def parse_configuration_file(filename: str) -> Configuration:
             try:
                 parsed_config = yaml.safe_load(file)
             except yaml.YAMLError as err:
-                print(
-                    f"Could not load configuration file {filename}: {str(err)}",
-                    file=sys.stderr,
+                fatal_error(
+                    f"Could not parse configuration file {filename}: {str(err)}"
                 )
-                sys.exit(1)
     except (OSError, IOError) as err:
-        print(f"Could not open configuration file {filename} ({err})", file=sys.stderr)
-        sys.exit(1)
+        fatal_error(f"Could not open configuration file {filename}: {err}")
     validator = cerberus.Validator()
     if not validator.validate(parsed_config, SCHEMA):
-        print(f"Could not parse configuration file {filename}", file=sys.stderr)
-        pretty_printer = pprint.PrettyPrinter()
+        print(f"Could not validate configuration file {filename}", file=sys.stderr)
+        pretty_printer = pprint.PrettyPrinter(stream=sys.stderr)
         pretty_printer.pprint(validator.errors)
         sys.exit(1)
     parsed_config = validator.normalized(parsed_config)

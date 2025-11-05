@@ -39,6 +39,7 @@ class Manager:
         self.parse_command_line_arguments()
         self._config = configuration.parse_configuration_file(self._args.config)
         self._nodes = self._config.nodes
+        self.check_clients_and_hubs_exist()
         match self._args.command:
             case "start":
                 self.start()
@@ -260,6 +261,31 @@ class Manager:
                     description += ", "
                 description += f"hub {hub_name}"
         return description
+
+    def check_clients_and_hubs_exist(self):
+        """
+        Check that all clients and hubs selected in the command-line arguments exist in the
+        configuration.
+        """
+        print("HEY")
+        if self._args.client is not None:
+            for client_name in self._args.client:
+                found = False
+                for node in self._nodes:
+                    if node.type == NodeType.CLIENT and node.name == client_name:
+                        found = True
+                        break
+                if not found:
+                    self.fatal_error(f"There is no client with name {client_name}")
+        if self._args.hub is not None:
+            for hub_name in self._args.hub:
+                found = False
+                for node in self._nodes:
+                    if node.type == NodeType.HUB and node.name == hub_name:
+                        found = True
+                        break
+                if not found:
+                    self.fatal_error(f"There is no hub with name {hub_name}")
 
     def wait_for_selected_nodes_condition(
         self, condition_func: typing.Callable[[Node], bool], condition_description: str
