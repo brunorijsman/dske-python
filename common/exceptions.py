@@ -321,7 +321,7 @@ class InvalidEncodedFragment(DSKEException):
 
     def __init__(self, encoded_fragment: str):
         super().__init__(
-            status_code=status.HTTP_400_BAD_REQUEST
+            status_code=status.HTTP_400_BAD_REQUEST,
             message="Invalid encoded fragment.",
             details={"encoded_fragment": encoded_fragment},
         )
@@ -334,7 +334,7 @@ class InvalidEncodedSignature(DSKEException):
 
     def __init__(self, encoded_signature: str):
         super().__init__(
-            status_code=status.HTTP_400_BAD_REQUEST
+            status_code=status.HTTP_400_BAD_REQUEST,
             message="Invalid encoded fragment.",
             details={"encoded_signature": encoded_signature},
         )
