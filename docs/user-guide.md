@@ -28,7 +28,9 @@ the DSKE clients (clients for short),
 and the encryptors.
 .
 
-The repository contains an example `dske-config.yaml` file, which is the default configuration:
+The repository contains an example `dske-config.yaml` file, which is the default configuration.
+In this example output, we have removed all the comments, showing only the active parts of the
+configuration:
 
 <pre>
 $ <b>cat dske-config.yaml</b>
@@ -67,12 +69,11 @@ Use the `--help` option to see the command line parameters:
 
 <pre>
 $ <b>./manager.py --help</b>
-usage: manager.py [-h] [--client CLIENT | --hub HUB] configfile {start,stop,status,etsi-qkd} ...
+usage: manager.py [-h] [--config CONFIG_FILE] [--client CLIENT] [--hub HUB] {start,stop,status,etsi-qkd} ...
 
 DSKE Manager
 
 positional arguments:
-  configfile            Configuration filename
   {start,stop,status,etsi-qkd}
     start               Start all hubs and clients
     stop                Stop all hubs and clients
@@ -81,28 +82,9 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
+  --config CONFIG_FILE  Configuration file name (default: dske-config.yaml)
   --client CLIENT       Filter on client name
   --hub HUB             Filter on hub name
-</pre>
-
-You can also use the `--help` option to see the command line parameters for a specific sub-command:
-
-<pre>
-$ <b>./manager.py etsi-qkd --help</b>
-usage: manager.py configfile etsi-qkd [-h] master_sae_id slave_sae_id {get-status,get-key,get-key-with-key-ids,get-key-pair} ...
-
-positional arguments:
-  master_sae_id         Master SAE ID
-  slave_sae_id          Slave SAE ID
-  {status,get-key,get-key-with-key-ids,get-key-pair}
-    get-status          Invoke ETSI QKD Get status API
-    get-key             Invoke ETSI QKD Get Key API
-    get-key-with-key-ids
-                        Invoke ETSI QKD Get Key with Key IDs API
-    get-key-pair        Invoke ETSI QKD Get Key and Get Key with Key IDs APIs
-
-options:
-  -h, --help            show this help message and exit
 </pre>
 
 ## Start the topology
@@ -157,16 +139,16 @@ You can see these processes using `ps` command:
 
 <pre>
  $ <b>ps | grep Python</b>
-13614 ttys000    0:01.22 Python -m hub hank --port 8100
-13615 ttys000    0:01.22 Python -m hub helen --port 8101
-13616 ttys000    0:01.24 Python -m hub hilary --port 8102
-13617 ttys000    0:01.22 Python -m hub holly --port 8103
-13618 ttys000    0:01.22 Python -m hub hugo --port 8104
-13619 ttys000    0:01.60 Python -m client carol --port 8105 --encryptors sam --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
-13620 ttys000    0:01.60 Python -m client celia --port 8106 --encryptors serena --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
-13621 ttys000    0:01.61 Python -m client cindy --port 8107 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
-13622 ttys000    0:01.59 Python -m client connie --port 8108 --encryptors sofia --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
-13623 ttys000    0:01.60 Python -m client curtis --port 8109 --encryptors sunny susan --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
+42176 ttys000    0:01.28 Python -m hub hank --port 8100
+42177 ttys000    0:01.27 Python -m hub helen --port 8101
+42178 ttys000    0:01.27 Python -m hub hilary --port 8102
+42179 ttys000    0:01.26 Python -m hub holly --port 8103
+42180 ttys000    0:01.26 Python -m hub hugo --port 8104
+42181 ttys000    0:01.67 Python -m client carol --port 8105 --encryptors sam --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
+42182 ttys000    0:01.65 Python -m client celia --port 8106 --encryptors serena --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
+42183 ttys000    0:01.65 Python -m client cindy --port 8107 --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
+42184 ttys000    0:01.65 Python -m client connie --port 8108 --encryptors sofia --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
+42185 ttys000    0:01.64 Python -m client curtis --port 8109 --encryptors sunny susan --hubs http://127.0.0.1:8100/hub/hank http://127.0.0.1:8101/hub/helen http://127.0.0.1:8102/hub/hilary http://127.0.0.1:8103/hub/holly http://127.0.0.1:8104/hub/hugo
 ...
 </pre>
 
@@ -264,7 +246,9 @@ Use the `--help` option to see its usage:
 
 <pre>
 $ <b>python -m client --help</b>
-usage: __main__.py [-h] [--port PORT] [--hubs HUBS [HUBS ...]] [--encryptors ENCRYPTORS [ENCRYPTORS ...]] name
+usage: client [-h] [--port PORT] [--start-request-psrd_threshold START_REQUEST_PSRD_THRESHOLD] [--stop-request-psrd-threshold STOP_REQUEST_PSRD_THRESHOLD]
+              [--get-psrd-block-size GET_PSRD_BLOCK_SIZE] [--min-nr-shares MIN_NR_SHARES] [--hubs HUBS [HUBS ...]] [--encryptors ENCRYPTORS [ENCRYPTORS ...]]
+              name
 
 DSKE Client
 
@@ -274,6 +258,14 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   --port PORT           Port number
+  --start-request-psrd_threshold START_REQUEST_PSRD_THRESHOLD
+                        Start request PSRD threshold (default: 500)
+  --stop-request-psrd-threshold STOP_REQUEST_PSRD_THRESHOLD
+                        Stop request PSRD threshold (default: 2000)
+  --get-psrd-block-size GET_PSRD_BLOCK_SIZE
+                        Request PSRD block size (default: 2000)
+  --min-nr-shares MIN_NR_SHARES
+                        Minimum number of shares (default: 3)
   --hubs HUBS [HUBS ...]
                         Base URLs for hubs (e.g., http://127.0.0.1:8100)
   --encryptors ENCRYPTORS [ENCRYPTORS ...]
@@ -292,8 +284,7 @@ Use the `--help` option to see its usage:
 
 <pre>
 $ <b>python -m hub --help</b>
-
-usage: __main__.py [-h] [-p PORT] name
+usage: hub [-h] [-p PORT] name
 
 DSKE Hub
 
@@ -426,15 +417,15 @@ Key values match
 And, finally, there is a `status` subcommand to invoke the "Status" ETSI QKD 014 API:
 
 <pre>
-$ <b<>./manager.py etsi-qkd sam sunny get-status</b>
+$ <b>./manager.py etsi-qkd sam sunny get-status</b>
 Invoke ETSI QKD Status API on client (KME) carol port 8105 master encryptor (SAE) sam slave encryptor (SAE) sunny:
 {
   "source_kme_id": "carol",
-  "target_kme_id": "TODO",
+  "target_kme_id": "",
   "master_sae_id": "sam",
   "slave_sae_id": "sunny",
   "key_size": 128,
-  "stored_key_count": 25000,
+  "stored_key_count": 100,
   "max_key_count": 1000,
   "max_key_per_request": 1,
   "max_key_size": 16777216,
