@@ -24,8 +24,6 @@ TODO: Forbid extra query parameters for API calls
       curl 'http://127.0.0.1:8105/client/carol/etsi/api/v1/keys/curtis/enc_keys?foobar=256'
       See https://fastapi.tiangolo.com/tutorial/query-param-models/#forbid-extra-query-parameters
 
-TODO: Fix crash in shamir code when key size 8 is used (don't allow too small keys)
-
 TODO: Time-out shares on hubs and remove them if they have not been retrieved after the time-out
 
 TODO: Have an option to use PSRD data as the key instead of a random number generator.
