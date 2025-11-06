@@ -171,71 +171,8 @@ def _interpolate(shares: Sequence[RawShare], x: int) -> bytes:
     return result
 
 
-def _create_digest(random_data: bytes, shared_secret: bytes) -> bytes:
-    return hmac.new(random_data, shared_secret, "sha256").digest()[:DIGEST_LENGTH_BYTES]
-
-
-def _split_secret(
-    threshold: int, share_count: int, shared_secret: bytes
-) -> List[RawShare]:
-    if len(shared_secret) < MIN_KEY_LENGTH:
-        raise ValueError(
-            f"The shared secret must be at least {MIN_KEY_LENGTH} bytes long."
-        )
-
-    if threshold < 1:
-        raise ValueError("The requested threshold must be a positive integer.")
-
-    if threshold > share_count:
-        raise ValueError(
-            "The requested threshold must not exceed the number of shares."
-        )
-
-    if share_count > MAX_SHARE_COUNT:
-        raise ValueError(
-            f"The requested number of shares must not exceed {MAX_SHARE_COUNT}."
-        )
-
-    # TODO: We won't allow a threshold of 1; we will require at least 2 (or even 3?)
-    # If the threshold is 1, then the digest of the shared secret is not used.
-    if threshold == 1:
-        return [RawShare(i, shared_secret) for i in range(share_count)]
-
-    random_share_count = threshold - 2
-
-    shares = [
-        RawShare(i, RANDOM_BYTES(len(shared_secret))) for i in range(random_share_count)
-    ]
-
-    random_part = RANDOM_BYTES(len(shared_secret) - DIGEST_LENGTH_BYTES)
-    digest = _create_digest(random_part, shared_secret)
-
-    base_shares = shares + [
-        RawShare(DIGEST_INDEX, digest + random_part),
-        RawShare(SECRET_INDEX, shared_secret),
-    ]
-
-    for i in range(random_share_count, share_count):
-        shares.append(RawShare(i, _interpolate(base_shares, i)))
-
-    return shares
-
-
-def _recover_secret(threshold: int, shares: Sequence[RawShare]) -> bytes:
-    # If the threshold is 1, then the digest of the shared secret is not used.
-    # TODO: Disallow threshold of 1
-    if threshold == 1:
-        return next(iter(shares)).data
-
-    shared_secret = _interpolate(shares, SECRET_INDEX)
-    digest_share = _interpolate(shares, DIGEST_INDEX)
-    digest = digest_share[:DIGEST_LENGTH_BYTES]
-    random_part = digest_share[DIGEST_LENGTH_BYTES:]
-
-    if digest != _create_digest(random_part, shared_secret):
-        raise ValueError("Invalid digest of the shared secret.")
-
-    return shared_secret
+def _create_digest(random_data: bytes, secret: bytes) -> bytes:
+    return hmac.new(random_data, secret, "sha256").digest()[:DIGEST_LENGTH_BYTES]
 
 
 def split_binary_secret_into_shares(
@@ -244,11 +181,51 @@ def split_binary_secret_into_shares(
     min_nr_shares: int,
 ) -> list[(int, bytes)]:
     """
-    Split a binary secret into `nr_shares` shares. The minimum number of shares required to
-    reconstruct the binary is `min_nr_shares`.
+    Split a secret into nr_shares shares. The minimum number of shares required to
+    reconstruct the secret is min_nr_shares.
     """
+    if len(secret) < MIN_KEY_LENGTH:
+        raise ValueError(
+            f"The shared secret must be at least {MIN_KEY_LENGTH} bytes long."
+        )
+
+    if min_nr_shares < 1:
+        raise ValueError("The requested min_nr_shares must be a positive integer.")
+
+    if min_nr_shares > nr_shares:
+        raise ValueError(
+            "The requested min_nr_shares must not exceed the number of shares."
+        )
+
+    if nr_shares > MAX_SHARE_COUNT:
+        raise ValueError(
+            f"The requested number of shares must not exceed {MAX_SHARE_COUNT}."
+        )
+
+    if min_nr_shares == 1:
+        # If the min_nr_shares is 1, then the digest of the shared secret is not used.
+        raw_shares = [RawShare(i, secret) for i in range(nr_shares)]
+
+    else:
+
+        random_share_count = min_nr_shares - 2
+
+        raw_shares = [
+            RawShare(i, RANDOM_BYTES(len(secret))) for i in range(random_share_count)
+        ]
+
+        random_part = RANDOM_BYTES(len(secret) - DIGEST_LENGTH_BYTES)
+        digest = _create_digest(random_part, secret)
+
+        base_shares = raw_shares + [
+            RawShare(DIGEST_INDEX, digest + random_part),
+            RawShare(SECRET_INDEX, secret),
+        ]
+
+        for i in range(random_share_count, nr_shares):
+            raw_shares.append(RawShare(i, _interpolate(base_shares, i)))
+
     # TODO: Remove this back-and-forth conversion between our tuple and RawShare
-    raw_shares = _split_secret(min_nr_shares, nr_shares, secret)
     return [(share.x, share.data) for share in raw_shares]
 
 
@@ -259,4 +236,16 @@ def reconstruct_binary_secret_from_shares(
     Reconstruct a binary secret from shares.
     """
     raw_shares = [RawShare(x, data) for (x, data) in shares]
-    return _recover_secret(min_nr_shares, raw_shares)
+
+    if min_nr_shares == 1:
+        return next(iter(raw_shares)).data
+
+    secret = _interpolate(raw_shares, SECRET_INDEX)
+    digest_share = _interpolate(raw_shares, DIGEST_INDEX)
+    digest = digest_share[:DIGEST_LENGTH_BYTES]
+    random_part = digest_share[DIGEST_LENGTH_BYTES:]
+
+    if digest != _create_digest(random_part, secret):
+        raise ValueError("Invalid digest of the shared secret.")
+
+    return secret
