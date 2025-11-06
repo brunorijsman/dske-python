@@ -48,8 +48,11 @@ def pid_file_name(node_type: str, node_name: str) -> str:
     """
     The name of the file that is used to store the process ID.
     """
-    # TODO: Use a better choice for the temp directory than /tmp
-    return f"/tmp/dske-{node_type}-{node_name}.pid"
+    file_name = f"dske-{node_type}-{node_name}.pid"
+    dir_name = "/var/run"
+    if os.path.exists(dir_name) and os.access(dir_name, os.W_OK):
+        return f"{dir_name}/{file_name}"
+    return file_name
 
 
 def create_pid_file(node_type: str, node_name: str) -> None:
