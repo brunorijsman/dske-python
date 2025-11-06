@@ -61,7 +61,7 @@ Shamir Secret Sharing (SSS).
 
 import hmac
 import secrets
-from typing import List, NamedTuple, Sequence, Tuple
+from typing import List, Sequence, Tuple
 
 
 # The length of the digest of the shared secret in bytes.
@@ -78,17 +78,6 @@ SECRET_INDEX = 255
 
 # The index of the share containing the digest of the shared secret.
 DIGEST_INDEX = 254
-
-
-class RawShare(NamedTuple):
-    """
-    A raw Shamir share.
-    """
-
-    # TODO: Use a similar structure in the rest of my code
-
-    x: int
-    data: bytes
 
 
 # Source of random bytes. Can be overridden for deterministic testing.
@@ -113,31 +102,31 @@ def _precompute_exp_log() -> Tuple[List[int], List[int]]:
 EXP_TABLE, LOG_TABLE = _precompute_exp_log()
 
 
-def _interpolate(shares: Sequence[RawShare], x: int) -> bytes:
+def _interpolate(shares: Sequence[Tuple[int, bytes]], x: int) -> bytes:
     """
     Returns f(x) given the Shamir shares (x_1, f(x_1)), ... , (x_k, f(x_k)).
     """
-    x_coordinates = set(share.x for share in shares)
+    x_coordinates = set(share[0] for share in shares)
     if len(x_coordinates) != len(shares):
         raise ValueError("Invalid set of shares. Share indices must be unique.")
-    share_value_lengths = set(len(share.data) for share in shares)
+    share_value_lengths = set(len(share[1]) for share in shares)
     if len(share_value_lengths) != 1:
         raise ValueError(
             "Invalid set of shares. All share values must have the same length."
         )
     if x in x_coordinates:
         for share in shares:
-            if share.x == x:
-                return share.data
+            if share[0] == x:
+                return share[1]
     # Logarithm of the product of (x_i - x) for i = 1, ... , k.
-    log_prod = sum(LOG_TABLE[share.x ^ x] for share in shares)
+    log_prod = sum(LOG_TABLE[share[0] ^ x] for share in shares)
     result = bytes(share_value_lengths.pop())
     for share in shares:
         # The logarithm of the Lagrange basis polynomial evaluated at x.
         log_basis_eval = (
             log_prod
-            - LOG_TABLE[share.x ^ x]
-            - sum(LOG_TABLE[share.x ^ other.x] for other in shares)
+            - LOG_TABLE[share[0] ^ x]
+            - sum(LOG_TABLE[share[0] ^ other[0]] for other in shares)
         ) % 255
         result = bytes(
             intermediate_sum
@@ -146,7 +135,7 @@ def _interpolate(shares: Sequence[RawShare], x: int) -> bytes:
                 if share_val != 0
                 else 0
             )
-            for share_val, intermediate_sum in zip(share.data, result)
+            for share_val, intermediate_sum in zip(share[1], result)
         )
     return result
 
@@ -179,23 +168,20 @@ def split_binary_secret_into_shares(
             f"The requested number of shares must not exceed {MAX_SHARE_COUNT}."
         )
     if min_nr_shares == 1:
-        # If the min_nr_shares is 1, then the digest of the shared secret is not used.
-        raw_shares = [RawShare(i, secret) for i in range(nr_shares)]
-    else:
-        random_share_count = min_nr_shares - 2
-        raw_shares = [
-            RawShare(i, RANDOM_BYTES(len(secret))) for i in range(random_share_count)
-        ]
-        random_part = RANDOM_BYTES(len(secret) - DIGEST_LENGTH_BYTES)
-        digest = _create_digest(random_part, secret)
-        base_shares = raw_shares + [
-            RawShare(DIGEST_INDEX, digest + random_part),
-            RawShare(SECRET_INDEX, secret),
-        ]
-        for i in range(random_share_count, nr_shares):
-            raw_shares.append(RawShare(i, _interpolate(base_shares, i)))
-    # TODO: Remove this back-and-forth conversion between our tuple and RawShare
-    return [(share.x, share.data) for share in raw_shares]
+        # If the min_nr_shares is 1, then the digest of the secret is not used.
+        return [(i, secret) for i in range(nr_shares)]
+    random_share_count = min_nr_shares - 2
+    shares = [(i, RANDOM_BYTES(len(secret))) for i in range(random_share_count)]
+    digest_random_bytes = RANDOM_BYTES(len(secret) - DIGEST_LENGTH_BYTES)
+    digest = _create_digest(digest_random_bytes, secret)
+    digest_share_data = digest + digest_random_bytes
+    interpolation_shares = shares + [
+        (DIGEST_INDEX, digest_share_data),
+        (SECRET_INDEX, secret),
+    ]
+    for i in range(random_share_count, nr_shares):
+        shares.append((i, _interpolate(interpolation_shares, i)))
+    return shares
 
 
 def reconstruct_binary_secret_from_shares(
@@ -204,13 +190,14 @@ def reconstruct_binary_secret_from_shares(
     """
     Reconstruct a binary secret from shares.
     """
-    raw_shares = [RawShare(x, data) for (x, data) in shares]
     if min_nr_shares == 1:
-        return next(iter(raw_shares)).data
-    secret = _interpolate(raw_shares, SECRET_INDEX)
-    digest_share = _interpolate(raw_shares, DIGEST_INDEX)
+        first_share = next(iter(shares))
+        first_share_data = first_share[1]
+        return first_share_data
+    secret = _interpolate(shares, SECRET_INDEX)
+    digest_share = _interpolate(shares, DIGEST_INDEX)
     digest = digest_share[:DIGEST_LENGTH_BYTES]
-    random_part = digest_share[DIGEST_LENGTH_BYTES:]
-    if digest != _create_digest(random_part, secret):
+    digest_random_bytes = digest_share[DIGEST_LENGTH_BYTES:]
+    if digest != _create_digest(digest_random_bytes, secret):
         raise ValueError("Invalid digest of the shared secret.")
     return secret
