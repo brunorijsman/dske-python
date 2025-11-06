@@ -36,6 +36,7 @@ class HttpClient:
             self._peer_pool = peer_pool
 
         async def async_auth_flow(self, request):
+            # Add signature to outgoing request.
             signing_key = SigningKey.from_pool(self._local_pool)
             signature = signing_key.sign([request.url.query, request.content])
             signature.add_to_headers(request.headers)
@@ -51,7 +52,9 @@ class HttpClient:
                 received_signature.signing_key_allocation_enc_str, self._peer_pool
             )
             signing_key = SigningKey(allocation)
+            # Wait for response.
             await response.aread()
+            # Verify signature on incoming response.
             content = response.content
             computed_signature = signing_key.sign([content])
             signature_ok = received_signature.same_as(computed_signature)
