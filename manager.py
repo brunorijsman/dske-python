@@ -266,7 +266,6 @@ class Manager:
         Check that all clients and hubs selected in the command-line arguments exist in the
         configuration.
         """
-        print("HEY")
         if self._args.client is not None:
             for client_name in self._args.client:
                 found = False
