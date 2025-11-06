@@ -62,7 +62,7 @@ Shamir Secret Sharing (SSS).
 # TODO: The Shamir code also has a max (is that really needed?)
 
 import hmac
-import secrets  # TODO: Use secrets everywhere instead of os.urandom
+import secrets
 from typing import List, NamedTuple, Sequence, Tuple
 
 
@@ -122,12 +122,6 @@ EXP_TABLE, LOG_TABLE = _precompute_exp_log()
 def _interpolate(shares: Sequence[RawShare], x: int) -> bytes:
     """
     Returns f(x) given the Shamir shares (x_1, f(x_1)), ... , (x_k, f(x_k)).
-    :param shares: The Shamir shares.
-    :type shares: A list of pairs (x_i, y_i), where x_i is an integer and y_i is an array of
-        bytes representing the evaluations of the polynomials in x_i.
-    :param int x: The x coordinate of the result.
-    :return: Evaluations of the polynomials in x.
-    :rtype: Array of bytes.
     """
 
     x_coordinates = set(share.x for share in shares)
