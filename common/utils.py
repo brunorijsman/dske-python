@@ -49,9 +49,10 @@ def pid_file_name(node_type: str, node_name: str) -> str:
     The name of the file that is used to store the process ID.
     """
     file_name = f"dske-{node_type}-{node_name}.pid"
-    dir_name = "/var/run"
-    if os.path.exists(dir_name) and os.access(dir_name, os.W_OK):
+    dir_name = "/tmp"  # /var/run would be better, but typically needs root access
+    if os.access(dir_name, os.W_OK):
         return f"{dir_name}/{file_name}"
+    # /tmp does not exist or is not writable, use current directory
     return file_name
 
 
