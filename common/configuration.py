@@ -37,7 +37,7 @@ MAX_GET_PSRD_BLOCK_SIZE = 10_000_000
 # Minimum number of shares needed to reconstruct a a key from the key shares using Shamir's Secret
 # Sharing (SSS).
 DEFAULT_MIN_NR_SHARES = 3
-MIN_MIN_NR_SHARES = 1
+MIN_MIN_NR_SHARES = 1  # We allow 1, which really means the secret is not split at all.
 MAX_MIN_NR_SHARES = 128
 
 
