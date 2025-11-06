@@ -5,6 +5,7 @@ The key that is used to sign and to verify the signature on DSKE in-band protoco
 import hashlib
 import hmac
 from .allocation import Allocation
+from .exceptions import InvalidEncodedSigningKeyError
 from .pool import Pool
 from .signature import Signature
 from .utils import bytes_to_str, str_to_bytes
@@ -98,7 +99,7 @@ class MiddlewareSigningKey:
         """
         split_str = enc_str.split(_ENCODING_SEPARATOR)
         if len(split_str) != 2:
-            assert False  # TODO: Raise an exception instead
+            raise InvalidEncodedSigningKeyError(enc_str)
         allocation_enc_str = split_str[0]
         key_data_str = split_str[1]
         key_data = str_to_bytes(key_data_str)

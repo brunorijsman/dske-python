@@ -335,8 +335,21 @@ class InvalidEncodedSignatureError(DSKEException):
     def __init__(self, encoded_signature: str):
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
-            message="Invalid encoded fragment.",
+            message="Invalid encoded signature.",
             details={"encoded_signature": encoded_signature},
+        )
+
+
+class InvalidEncodedSigningKeyError(DSKEException):
+    """
+    Exception raised when trying to parse an encoded signing key string that is invalid.
+    """
+
+    def __init__(self, encoded_signing_key: str):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Invalid encoded signing key.",
+            details={"encoded_signing_key": encoded_signing_key},
         )
 
 
