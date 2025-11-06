@@ -1,5 +1,3 @@
-TODO: Cleanup Shamir's Secret Sharing (SSS) code (no back-and-forth conversion to RawShare)
-
 TODO: Stop all nodes after each test (to make sure they are stopped if test case fails)
 
 TODO: Add Sphinx documentation
