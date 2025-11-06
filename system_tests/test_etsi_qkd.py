@@ -3,6 +3,7 @@ System test for the ETSI QKD API.
 """
 
 import uuid
+import httpx
 import pytest
 from . import system_test_common
 
@@ -57,3 +58,38 @@ def test_wrong_key_id():
     system_test_common.get_key_with_key_ids(
         "sam", "sofia", wrong_uuid, expected_status_code=400
     )
+
+
+def test_wrong_master_sae_id():
+    """
+    ETSI QKD Get ey with key IDs, using a master SAE ID that does not match the master SAE ID
+    that was used in the Get key call (expect error).
+    """
+    key_id = system_test_common.get_key("sam", "sofia")
+    assert key_id is not None
+    connie_port = 8108
+    url = (
+        f"http://127.0.0.1:{connie_port}"
+        f"/client/connie/etsi/api/v1/keys/wrong_master_sae_id/dec_keys?"
+        f"key_ID={key_id}"
+    )
+    result = httpx.get(url, headers={"Authorization": "sofia"})
+    assert result.status_code == 400
+    assert "Master SAE ID does not match" in result.text
+
+
+# def test_wrong_slave_sae_id():
+#     """
+#     ETSI QKD Get ey with key IDs, using a master SAE ID that does not match the master SAE ID
+#     that was used in the Get key call (expect error).
+#     """
+#     key_id = system_test_common.get_key("sam", "sofia")
+#     assert key_id is not None
+#     connie_port = 8108
+#     url = (
+#         f"http://127.0.0.1:{connie_port}/client/connie/etsi/api/v1/keys/sunny/dec_keys?"
+#         f"key_ID={key_id}"
+#     )
+#     result = httpx.get(url)
+#     assert result.status_code == 400
+#     assert "Master SAE ID does not match" in result.text

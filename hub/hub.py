@@ -13,7 +13,10 @@ from common import utils
 from common.allocation import Allocation
 from common.block import Block
 from common.encryption_key import EncryptionKey
-from common.exceptions import EncryptorNotRegisteredForClientError
+from common.exceptions import (
+    EncryptorNotRegisteredForClientError,
+    WrongMasterSAEIDError,
+)
 from common.logging import LOGGER
 from common.pool import Pool
 from common.share import Share
@@ -144,6 +147,8 @@ class Hub:
         self,
         client_name: str,
         key_id_str: str,
+        master_sae_id: str,
+        slave_sae_id: str,
         raw_request: fastapi.Request,
         headers_temp_response: fastapi.Response,
     ) -> APIGetShareResponse:
@@ -168,6 +173,22 @@ class Hub:
         except KeyError as exc:
             LOGGER.warning(f"No share for key ID {key_id_str}")
             raise exceptions.UnknownKeyIDError(key_id) from exc
+        # Check that master and slave SAE IDs in the Get key with key IDs request match those in the
+        # original Get key request.
+        if master_sae_id != share.master_sae_id:
+            LOGGER.warning(
+                f"Requested master SAE ID {master_sae_id} does not match stored master SAE ID "
+                f"{share.master_sae_id} for key ID {key_id_str}"
+            )
+            raise exceptions.WrongMasterSAEIDError(
+                client_name, master_sae_id, key_id_str
+            )
+        if slave_sae_id != share.slave_sae_id:
+            LOGGER.warning(
+                f"Requested slave SAE ID {slave_sae_id} does not match stored slave SAE ID "
+                f"{share.slave_sae_id} for key ID {key_id_str}"
+            )
+            raise WrongMasterSAEIDError(client_name, slave_sae_id, key_id_str)
         # Encrypt the share value
         encryption_key = EncryptionKey.from_pool(peer_client.local_pool, share.size)
         encrypted_share_value = encryption_key.encrypt(share.value)

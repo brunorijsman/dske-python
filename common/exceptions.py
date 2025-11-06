@@ -382,3 +382,39 @@ class MissingAuthorizationHeaderError(DSKEException):
                 "client_name": client_name,
             },
         )
+
+
+class WrongMasterSAEIDError(DSKEException):
+    """
+    Exception raised when the master SAE ID in a Get key with key IDs request does not match
+    the master SAE ID used in the original Get key request.
+    """
+
+    def __init__(self, client_name: str, master_sae_id: str, key_id: str):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Master SAE ID does not match the one used in the original Get key request.",
+            details={
+                "client_name": client_name,
+                "master_sae_id": master_sae_id,
+                "key_id": key_id,
+            },
+        )
+
+
+class WrongSlaveSAEIDError(DSKEException):
+    """
+    Exception raised when the slave SAE ID in a Get key with key IDs request does not match
+    the slave SAE ID used in the original Get key request.
+    """
+
+    def __init__(self, client_name: str, slave_sae_id: str, key_id: str):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Slave SAE ID does not match the one used in the original Get key request.",
+            details={
+                "client_name": client_name,
+                "slave_sae_id": slave_sae_id,
+                "key_id": key_id,
+            },
+        )
