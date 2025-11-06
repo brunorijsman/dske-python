@@ -59,7 +59,10 @@ class HttpClient:
             computed_signature = signing_key.sign([content])
             signature_ok = received_signature.same_as(computed_signature)
             if not signature_ok:
-                # TODO: Give allocation back to pool
+                # If the signature validation fails, we give the allocation for the signing key
+                # back to the pool. This is to prevent an attacker exhausting the pool (denial of
+                # service) by sending lots of badly signed messages.
+                allocation.give_back()
                 raise InvalidSignatureError()
 
     def __init__(self, local_pool: Pool, peer_pool: Pool):
