@@ -59,8 +59,6 @@ Shamir Secret Sharing (SSS).
 # --- End original shamir.py file license ---------------------------------------------------------
 
 
-# TODO: The Shamir code also has a max (is that really needed?)
-
 import hmac
 import secrets
 from typing import List, NamedTuple, Sequence, Tuple
