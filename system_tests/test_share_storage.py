@@ -21,6 +21,8 @@ def test_shares_on_hubs():
     """
     Test that getting a key on the master client results in shares being created on the hubs.
     """
+    # Pylint complains this looks too much like test_etsi_qkd
+    # pylint: disable=duplicate-code
     # Get key on master client
     key_id = system_test_common.get_key("sam", "sunny")
     # There should be a share stored one each hub (we only check hank)
