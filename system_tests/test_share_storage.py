@@ -2,7 +2,6 @@
 Test share storage at hubs.
 """
 
-import sys
 import pytest
 from . import system_test_common
 
