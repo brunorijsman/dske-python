@@ -140,6 +140,7 @@ class Hub:
         share = self.get_share(key_id)
         share.check_master_sae(master_sae_id)
         share.check_slave_sae(slave_sae_id)
+        del self._shares[key_id]
         encryption_key = EncryptionKey.from_pool(peer_client.local_pool, share.size)
         encrypted_share_value = encryption_key.encrypt(share.value)
         response = APIGetShareResponse(
