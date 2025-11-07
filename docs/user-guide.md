@@ -59,6 +59,12 @@ $ <b>cat dske-config.yaml</b>
                                         # from the key shares using Shamir's Secret Sharing (SSS).
                                         # Optional; default value is 3.
 
+# share_timeout_secs: 60                # Timeout for shares in seconds. Shares stored on hubs are
+                                        # deleted if the responder SAE does not retrieve them by
+                                        # invoking the Get key with key IDs API call within this
+                                        # timeout.
+                                        # Optional; default value is 60 seconds.
+                                        
 hubs:                   # List of hubs (aka DSKE security hubs) in the DSKE topology.
   - name: hank          # Name of the hub.
   - name: helen
@@ -310,16 +316,18 @@ Use the `--help` option to see its usage:
 
 <pre>
 $ <b>python -m hub --help</b>
-usage: hub [-h] [-p PORT] name
+usage: hub [-h] [-p PORT] [--share-timeout-secs SHARE_TIMEOUT_SECS] name
 
 DSKE Hub
 
 positional arguments:
-  name             Hub name
+  name                  Hub name
 
 options:
-  -h, --help       show this help message and exit
-  -p, --port PORT  Port number
+  -h, --help            show this help message and exit
+  -p, --port PORT       Port number
+  --share-timeout-secs SHARE_TIMEOUT_SECS
+                        Share timeout in seconds (default: 60)
 </pre>
 
 The typical usage is to provide the hub name and the port number.

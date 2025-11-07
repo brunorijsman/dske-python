@@ -40,6 +40,12 @@ DEFAULT_MIN_NR_SHARES = 3
 MIN_MIN_NR_SHARES = 1  # We allow 1, which really means the secret is not split at all.
 MAX_MIN_NR_SHARES = 128
 
+# Timeout for shares in seconds. Shares stored on hubs will be deleted if the responder SAE does
+# not retrieve them by invoking the Get key with key IDs API call within this timeout.
+DEFAULT_SHARE_TIMEOUT_SECS = 60  # 1 minute
+MIN_SHARE_TIMEOUT_SECS = 1
+MAX_SHARE_TIMEOUT_SECS = 86_400  # 1 day
+
 
 def fatal_error(message: str):
     """
@@ -60,6 +66,7 @@ class Configuration:
     stop_request_psrd_threshold: int
     get_psrd_block_size: int
     min_nr_shares: int
+    share_timeout_secs: int
 
     def __init__(
         self,
@@ -68,6 +75,7 @@ class Configuration:
         stop_request_psrd_threshold,
         get_psrd_block_size,
         min_nr_shares,
+        share_timeout_secs,
         nodes,
     ):
         self.base_port = base_port
@@ -75,6 +83,7 @@ class Configuration:
         self.stop_request_psrd_threshold = stop_request_psrd_threshold
         self.get_psrd_block_size = get_psrd_block_size
         self.min_nr_shares = min_nr_shares
+        self.share_timeout_secs = share_timeout_secs
         # Sort nodes by type and name, so that clients are always before hubs (the order matters
         # for startup and shutdown).
         self.nodes = sorted(nodes)
@@ -144,6 +153,12 @@ SCHEMA = {
         "min": MIN_MIN_NR_SHARES,
         "max": MAX_MIN_NR_SHARES,
     },
+    "share_timeout_secs": {
+        "type": "integer",
+        "default": DEFAULT_SHARE_TIMEOUT_SECS,
+        "min": MIN_SHARE_TIMEOUT_SECS,
+        "max": MAX_SHARE_TIMEOUT_SECS,
+    },
     "hubs": {
         "type": "list",
         "schema": HUB_SCHEMA,
@@ -199,5 +214,6 @@ def parse_configuration_file(filename: str) -> Configuration:
         parsed_config["stop_request_psrd_threshold"],
         parsed_config["get_psrd_block_size"],
         parsed_config["min_nr_shares"],
+        parsed_config["share_timeout_secs"],
         nodes,
     )

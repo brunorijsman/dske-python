@@ -24,6 +24,16 @@
                                         # from the key shares using Shamir's Secret Sharing (SSS).
                                         # Optional; default value is 3.
 
+# share_timeout_secs: 60                # Timeout for shares in seconds. Shares stored on hubs are
+                                        # deleted if the responder SAE does not retrieve them by
+                                        # invoking the Get key with key IDs API call within this
+                                        # timeout.
+                                        # Optional; default value is 60 seconds.
+
+# Timeout for shares in seconds. Shares stored on hubs will be deleted if the responder SAE does
+# not retrieve them by invoking the Get key with key IDs API call within this timeout.
+
+
 hubs:                   # List of hubs (aka DSKE security hubs) in the DSKE topology.
   - name: hank          # Name of the hub.
   - name: helen

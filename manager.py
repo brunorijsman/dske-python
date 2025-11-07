@@ -219,6 +219,15 @@ class Manager:
                 ]
             if node.encryptor_names:
                 command += ["--encryptors"] + node.encryptor_names
+        else:
+            if (
+                self._config.share_timeout_secs
+                != configuration.DEFAULT_SHARE_TIMEOUT_SECS
+            ):
+                command += [
+                    "--share-timeout-secs",
+                    str(self._config.share_timeout_secs),
+                ]
         if extra_args is not None:
             command += extra_args
         _process = subprocess.Popen(command, stdout=out_file, stderr=out_file)
