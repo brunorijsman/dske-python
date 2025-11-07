@@ -30,6 +30,7 @@ class Hub:
     _share_timeout_secs: int
     _peer_clients: dict[str, PeerClient]  # Indexed by client name
     _shares: dict[UUID, Share]  # Indexed by key UUID
+    _share_timeout_tasks: dict[UUID, asyncio.Task]  # Indexed by key UUID
     _stop_task: asyncio.Task | None
 
     def __init__(self, name: str, share_timeout_secs: int):
@@ -162,6 +163,8 @@ class Hub:
         if share.user_key_id in self._shares:
             LOGGER.error(f"Overwriting existing share for key ID {share.user_key_id}")
         self._shares[share.user_key_id] = share
+        task = asyncio.create_task(self.delete_share_after_timeout(share.user_key_id))
+        self._share_timeout_tasks[share.user_key_id] = task
 
     def get_share(self, key_id: UUID) -> Share:
         """
@@ -177,10 +180,12 @@ class Hub:
         """
         Delete a share by key ID.
         """
-        try:
+        if key_id in self._share_timeout_tasks:
+            task = self._share_timeout_tasks[key_id]
+            task.cancel()
+            del self._share_timeout_tasks[key_id]
+        if key_id in self._shares:
             del self._shares[key_id]
-        except KeyError as exc:
-            raise exceptions.UnknownKeyIDError(key_id) from exc
 
     def initiate_stop(self):
         """
@@ -196,3 +201,14 @@ class Hub:
         await asyncio.sleep(0.5)
         utils.delete_pid_file("hub", self._name)
         os.kill(os.getpid(), signal.SIGTERM)
+
+    async def delete_share_after_timeout(self, key_id: UUID):
+        """
+        Delete a share after the share timeout.
+        """
+        await asyncio.sleep(self._share_timeout_secs)
+        try:
+            self.delete_share(key_id)
+            LOGGER.info(f"Deleted share for key ID {key_id} after timeout")
+        except exceptions.UnknownKeyIDError:
+            LOGGER.error(f"Share for key ID {key_id} not found after timeout")
