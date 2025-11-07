@@ -7,7 +7,6 @@ from pydantic import PositiveInt
 from .allocation import Allocation
 from .block import Block
 from .exceptions import OutOfPreSharedRandomDataError, InvalidBlockUUIDError
-from .logging import LOGGER
 from .owner import Owner
 
 
@@ -68,7 +67,6 @@ class Pool:
         for block in self._blocks:
             if block.uuid == block_uuid:
                 return block
-        LOGGER.error(f"Block UUID not found in {str(self.owner)} pool: {block_uuid}")
         raise InvalidBlockUUIDError(block_uuid=str(block_uuid))
 
     def allocate(self, size: PositiveInt, purpose: str) -> Allocation:
@@ -79,10 +77,6 @@ class Pool:
         """
         available = self.nr_unused_bytes
         if available < size:
-            LOGGER.error(
-                f"PSRD allocation failed: pool={self._name} owner={self._owner} purpose={purpose} "
-                f"size={size} available={available}"
-            )
             raise OutOfPreSharedRandomDataError(
                 f"{self._name} {self._owner}", purpose, size, available
             )

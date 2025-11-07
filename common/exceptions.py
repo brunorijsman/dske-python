@@ -6,6 +6,7 @@ import json
 from typing import List
 from uuid import UUID
 from fastapi import status
+from .logging import LOGGER
 
 
 class DSKEException(Exception):
@@ -18,6 +19,13 @@ class DSKEException(Exception):
         self.status_code = status_code
         self.message = message
         self.details = details
+        try:
+            log_message = f"DSKEException raised: {message}"
+            if details is not None:
+                log_message += f" Details: {json.dumps(details)}"
+            LOGGER.error(log_message)
+        except Exception:  # pylint: disable=broad-except
+            pass
 
 
 class ClientNotRegisteredError(DSKEException):

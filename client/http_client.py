@@ -87,7 +87,6 @@ class HttpClient:
         try:
             response = await self._httpx_client.get(url, params=params, auth=auth)
         except httpx.HTTPError as exc:
-            LOGGER.error(f"Call GET {exc.request.url} exception {str(exc)}")
             raise exceptions.HTTPError(
                 method="GET",
                 url=url,
@@ -96,7 +95,6 @@ class HttpClient:
                 exception=str(exc),
             ) from exc
         if response.status_code != 200:
-            LOGGER.error(f"Call GET {response.request.url} {response.status_code}")
             raise exceptions.HTTPError(
                 method="GET",
                 url=url,
@@ -169,7 +167,6 @@ class HttpClient:
             try:
                 response = await httpx_client.request(method, url, json=json, auth=auth)
             except httpx.HTTPError as exc:
-                LOGGER.error(f"Call {method} {url} exception {str(exc)}")
                 raise exceptions.HTTPError(
                     method=method,
                     url=url,
@@ -178,12 +175,6 @@ class HttpClient:
                     exception=str(exc),
                 ) from exc
             if response.status_code != 200:
-                message = ""
-                try:
-                    message = " " + response.json().get("message")
-                except Exception:  # pylint: disable=broad-except
-                    pass
-                LOGGER.error(f"Call {method} {url} {response.status_code}{message}")
                 raise exceptions.HTTPError(
                     method=method,
                     url=url,

@@ -13,7 +13,6 @@ from common import utils
 from common.allocation import Allocation
 from common.block import Block
 from common.encryption_key import EncryptionKey
-from common.logging import LOGGER
 from common.owner import Owner
 from common.share import Share
 from common.share_api import APIGetShareResponse, APIPostShareRequest
@@ -119,7 +118,6 @@ class Hub:
         Lookup a peer client by name.
         """
         if client_name not in self._peer_clients:
-            LOGGER.warning(f"Peer client {client_name} not found")
             raise exceptions.ClientNotRegisteredError(client_name)
         return self._peer_clients[client_name]
 
@@ -160,7 +158,6 @@ class Hub:
         try:
             share = self._shares[key_id]
         except KeyError as exc:
-            LOGGER.warning(f"No share for key ID {key_id}")
             raise exceptions.UnknownKeyIDError(key_id) from exc
         return share
 

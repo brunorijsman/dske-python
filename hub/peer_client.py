@@ -7,7 +7,6 @@ import fastapi
 from common.allocation import Allocation
 from common.block import Block
 from common.exceptions import InvalidSignatureError, EncryptorNotConnectedToClientError
-from common.logging import LOGGER
 from common.owner import Owner
 from common.pool import Pool
 from common.signature import Signature
@@ -96,9 +95,6 @@ class PeerClient:
         Check whether a SAE is connected to a client. If not, raise an exception.
         """
         if sae_id not in self._encryptor_names:
-            LOGGER.warning(
-                f"Encryptor {sae_id} not connected to client {self._client_name}"
-            )
             raise EncryptorNotConnectedToClientError(self._client_name, sae_id)
 
     async def check_request_signature(self, raw_request: fastapi.Request):
@@ -119,9 +115,6 @@ class PeerClient:
             # back to the pool. This is to prevent an attacker exhausting the pool (denial of
             # service) by sending lots of badly signed messages.
             allocation.give_back()
-            LOGGER.warning(
-                f"Invalid signature received from peer client '{self._client_name}'"
-            )
             raise InvalidSignatureError()
 
     def delete_fully_used_blocks(self) -> None:

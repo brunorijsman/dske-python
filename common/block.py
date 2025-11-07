@@ -8,7 +8,6 @@ from typing import Tuple
 import pydantic
 from bitarray import bitarray
 from common.fragment import Fragment
-from common.logging import LOGGER
 from common.utils import bytes_to_str, str_to_bytes
 from common.exceptions import (
     InvalidBlockUUIDError,
@@ -149,13 +148,10 @@ class Block:
         """
         end = start + size
         if start < 0:
-            LOGGER.error(f"Take data from blocK: invalid start index {start}")
             raise InvalidPSRDIndex(self._block_uuid, start)
         if end > self._size:
-            LOGGER.error(f"Take data from block: invalid end index {end}")
             raise InvalidPSRDIndex(self._block_uuid, end)
         if self._used[start:end].any():
-            LOGGER.error(f"Take data from block: already in use {start}:{end}")
             raise PSRDDataAlreadyUsedError(self._block_uuid, start, size)
         self._used[start:end] = True
         data = self._data[start:end]
@@ -191,12 +187,10 @@ class Block:
         try:
             block_uuid = UUID(api_block.block_uuid)
         except ValueError as exc:
-            LOGGER.error(f"Invalid block UUID in API block: {api_block.block_uuid}")
             raise InvalidBlockUUIDError(api_block.block_uuid) from exc
         try:
             data = str_to_bytes(api_block.data)
         except Exception as exc:
-            LOGGER.error(f"Invalid block data in API block: {api_block.data}")
             raise InvalidPSRDDataError from exc
         return Block(block_uuid, data)
 
