@@ -26,12 +26,14 @@ class Hub:
     """
 
     _name: str
+    _share_timeout_secs: int
     _peer_clients: dict[str, PeerClient]  # Indexed by client name
     _shares: dict[UUID, Share]  # Indexed by key UUID
     _stop_task: asyncio.Task | None
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, share_timeout_secs: int):
         self._name = name
+        self._share_timeout_secs = share_timeout_secs
         self._peer_clients = {}
         self._shares = {}
         self._stop_task = None
@@ -49,6 +51,7 @@ class Hub:
         """
         return {
             "name": self._name,
+            "share_timeout_secs": self._share_timeout_secs,
             "peer_clients": [
                 peer_client.to_mgmt() for peer_client in self._peer_clients.values()
             ],

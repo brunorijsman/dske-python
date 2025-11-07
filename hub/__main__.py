@@ -19,7 +19,7 @@ from .hub import Hub
 
 
 _ARGS = parse_command_line_arguments()
-_HUB = Hub(_ARGS.name)
+_HUB = Hub(_ARGS.name, _ARGS.share_timeout_secs)
 _APP = fastapi.FastAPI()
 
 
