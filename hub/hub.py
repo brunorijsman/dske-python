@@ -13,9 +13,10 @@ from common import utils
 from common.allocation import Allocation
 from common.block import Block
 from common.encryption_key import EncryptionKey
-from common.owner import Owner
+from common.logging import LOGGER
 from common.share import Share
 from common.share_api import APIGetShareResponse, APIPostShareRequest
+from common.owner import Owner
 from common.utils import bytes_to_str, key_id_str_to_uuid, str_to_bytes
 from .peer_client import PeerClient
 
@@ -111,8 +112,7 @@ class Hub:
             share_index=api_post_share_request.share_index,
             value=share_value,
         )
-        # TODO: Check if the key UUID is already present, and if so, do something sensible
-        self._shares[share.user_key_id] = share
+        self.store_share(share)
         peer_client.add_dske_signing_key_header_to_response(headers_temp_response)
         peer_client.delete_fully_used_blocks()
 
@@ -143,7 +143,7 @@ class Hub:
         share = self.get_share(key_id)
         share.check_master_sae(master_sae_id)
         share.check_slave_sae(slave_sae_id)
-        del self._shares[key_id]
+        self.delete_share(key_id)
         encryption_key = EncryptionKey.from_pool(peer_client.local_pool, share.size)
         encrypted_share_value = encryption_key.encrypt(share.value)
         response = APIGetShareResponse(
@@ -155,6 +155,14 @@ class Hub:
         peer_client.delete_fully_used_blocks()
         return response
 
+    def store_share(self, share: Share):
+        """
+        Store a share.
+        """
+        if share.user_key_id in self._shares:
+            LOGGER.error(f"Overwriting existing share for key ID {share.user_key_id}")
+        self._shares[share.user_key_id] = share
+
     def get_share(self, key_id: UUID) -> Share:
         """
         Get a share by key ID. Raise an exception if the share is not found.
@@ -164,6 +172,15 @@ class Hub:
         except KeyError as exc:
             raise exceptions.UnknownKeyIDError(key_id) from exc
         return share
+
+    def delete_share(self, key_id: UUID):
+        """
+        Delete a share by key ID.
+        """
+        try:
+            del self._shares[key_id]
+        except KeyError as exc:
+            raise exceptions.UnknownKeyIDError(key_id) from exc
 
     def initiate_stop(self):
         """
