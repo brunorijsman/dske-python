@@ -163,7 +163,7 @@ def check_wait_for_all_nodes_started_output(output):
     )
 
 
-def status_topology():
+def status_topology() -> dict:
     """
     Get status for a topology.
     """
@@ -176,7 +176,7 @@ def status_topology():
     return status
 
 
-def status_node(node_type, node_name):
+def status_node(node_type: str, node_name: str) -> dict:
     """
     Get status for a node.
     """
