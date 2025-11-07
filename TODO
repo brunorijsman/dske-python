@@ -23,5 +23,3 @@ TODO: Testcase for invalid signature
       - Make sure bytes taken from pool are returned (to defend against DOS attack)
 
 TODO: Test case for: if signature validation fails, return fragment to pool
-
-TODO: Check SAE IDs on GET share, just as we do for POST share
