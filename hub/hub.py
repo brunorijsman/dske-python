@@ -38,6 +38,7 @@ class Hub:
         self._share_timeout_secs = share_timeout_secs
         self._peer_clients = {}
         self._shares = {}
+        self._share_timeout_tasks = {}
         self._stop_task = None
 
     @property
