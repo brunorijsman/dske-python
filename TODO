@@ -15,9 +15,6 @@ TODO: Forbid extra query parameters for API calls
 
 TODO: Time-out shares on hubs and remove them if they have not been retrieved after the time-out
 
-TODO: Have an option to use PSRD data as the key instead of a random number generator.
-      Explain pros and cons of each approach (forward secrecy if PSRD is compromised) in docs.
-
 TODO: nr_required_shares -> required_nr_shares or min_nr_shares
 
 TODO: I noticed that the response to a POST key-share is the string null; that's not right
