@@ -11,6 +11,7 @@ from common import shamir
 from common import utils
 from common.logging import LOGGER
 from common.user_key import UserKey
+from common.utils import key_id_str_to_uuid
 from .peer_hub import PeerHub
 
 
@@ -125,15 +126,12 @@ class Client:
         }
 
     async def etsi_get_key_with_key_ids(
-        self, master_sae_id: str, slave_sae_id: str, key_id: str
+        self, master_sae_id: str, slave_sae_id: str, key_id_str: str
     ):
         """
         ETSI QKD 014 V1.1.1 Get key with key IDs API.
         """
-        try:
-            key_id = UUID(key_id)
-        except ValueError as exc:
-            raise exceptions.InvalidKeyIDError(key_id) from exc
+        key_id = key_id_str_to_uuid(key_id_str)
         key = await self.gather_key_from_peer_hubs(master_sae_id, slave_sae_id, key_id)
         return {
             "keys": [

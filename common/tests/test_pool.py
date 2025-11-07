@@ -6,6 +6,7 @@ from uuid import uuid4
 import pytest
 from common.pool import Pool
 from common.exceptions import InvalidBlockUUIDError, OutOfPreSharedRandomDataError
+from common.owner import Owner
 from common.utils import bytes_to_str
 from .unit_test_common import create_test_pool_and_blocks
 
@@ -14,15 +15,15 @@ def test_init():
     """
     Initialize a pool.
     """
-    _pool = Pool(name="test_pool", owner=Pool.Owner.LOCAL)
+    _pool = Pool(name="test_pool", owner=Owner.LOCAL)
 
 
 def test_properties():
     """
     Properties of the pool.
     """
-    pool = Pool(name="test_pool", owner=Pool.Owner.LOCAL)
-    assert pool.owner == Pool.Owner.LOCAL
+    pool = Pool(name="test_pool", owner=Owner.LOCAL)
+    assert pool.owner == Owner.LOCAL
 
 
 def test_nr_used_and_unused_bytes():

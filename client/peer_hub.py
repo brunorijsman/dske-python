@@ -9,6 +9,7 @@ from common.allocation import Allocation
 from common.block import APIBlock, Block
 from common.encryption_key import EncryptionKey
 from common.logging import LOGGER
+from common.owner import Owner
 from common.pool import Pool
 from common.registration_api import (
     APIPutRegistrationRequest,
@@ -48,8 +49,8 @@ class PeerHub:
             self._base_url = self._base_url[:-1]
         self._registered = False
         hub_name = base_url.split("/")[-1]
-        self._local_pool = Pool(hub_name, Pool.Owner.LOCAL)
-        self._peer_pool = Pool(hub_name, Pool.Owner.PEER)
+        self._local_pool = Pool(hub_name, Owner.LOCAL)
+        self._peer_pool = Pool(hub_name, Owner.PEER)
         self._register_task = None
         self._local_pool_request_psrd_task = None
         self._peer_pool_request_psrd_task = None
@@ -165,9 +166,9 @@ class PeerHub:
             LOGGER.info(f"Finish {task_name}")
         finally:
             match pool.owner:
-                case Pool.Owner.LOCAL:
+                case Owner.LOCAL:
                     self._local_pool_request_psrd_task = None
-                case Pool.Owner.PEER:
+                case Owner.PEER:
                     self._peer_pool_request_psrd_task = None
 
     async def attempt_request_psrd(self, pool: Pool) -> bool:
@@ -177,11 +178,7 @@ class PeerHub:
         """
         assert self._registered
         url = f"{self._base_url}/dske/oob/v1/psrd"
-        match pool.owner:
-            case Pool.Owner.LOCAL:
-                owner_str = "client"
-            case Pool.Owner.PEER:
-                owner_str = "hub"
+        owner_str = pool.owner.to_str(local_name="client", peer_name="hub")
         params = {
             "client_name": self._client.name,
             "owner": owner_str,

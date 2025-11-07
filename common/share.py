@@ -3,6 +3,8 @@ A share of a key.
 """
 
 from uuid import UUID
+from .exceptions import WrongMasterSAEIDError, WrongSlaveSAEIDError
+from .logging import LOGGER
 from .utils import bytes_to_str
 
 
@@ -98,3 +100,29 @@ class Share:
             "share_index": self._share_index,
             "value": bytes_to_str(self._value, truncate=True),
         }
+
+    def check_master_sae(self, master_sae_id: str):
+        """
+        Check if the given master SAE ID matches the stored master SAE ID.
+        Raise an exception if not.
+        """
+        if self.master_sae_id != master_sae_id:
+            key_id_str = str(self.user_key_id)
+            LOGGER.warning(
+                f"Requested master SAE ID {master_sae_id} does not match master SAE ID "
+                f"{self.master_sae_id} for key ID {key_id_str}"
+            )
+            raise WrongMasterSAEIDError(master_sae_id, self.master_sae_id, key_id_str)
+
+    def check_slave_sae(self, slave_sae_id: str):
+        """
+        Check if the given slave SAE ID matches the stored slave SAE ID.
+        Raise an exception if not.
+        """
+        if self.slave_sae_id != slave_sae_id:
+            key_id_str = str(self.user_key_id)
+            LOGGER.warning(
+                f"Requested slave SAE ID {slave_sae_id} does not match slave SAE ID "
+                f"{self.slave_sae_id} for key ID {key_id_str}"
+            )
+            raise WrongSlaveSAEIDError(slave_sae_id, self.slave_sae_id, key_id_str)

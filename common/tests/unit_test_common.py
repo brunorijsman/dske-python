@@ -5,6 +5,7 @@ Common code for the unit tests in the common module.
 from uuid import uuid4
 from typing import List
 from common.block import Block
+from common.owner import Owner
 from common.pool import Pool
 
 
@@ -29,7 +30,7 @@ def create_test_pool_and_blocks(block_sizes: List[int]):
     """
     Create a test pool with blocks of the given sizes.
     """
-    pool = Pool(name="test_pool", owner=Pool.Owner.LOCAL)
+    pool = Pool(name="test_pool", owner=Owner.LOCAL)
     blocks = []
     for block_size in block_sizes:
         block = create_test_block(block_size)

@@ -67,10 +67,12 @@ def test_wrong_master_sae_id():
     """
     key_id = system_test_common.get_key("sam", "sofia")
     assert key_id is not None
+    # For Get Key with key IDs, we need to call the API directly using HTTPX instead of using
+    # the manager to set a wrong master SAE ID.
     connie_port = 8108
     url = (
         f"http://127.0.0.1:{connie_port}"
-        f"/client/connie/etsi/api/v1/keys/wrong_master_sae_id/dec_keys?"
+        f"/client/connie/etsi/api/v1/keys/serena/dec_keys?"  # Serena is wrong master SAE ID
         f"key_ID={key_id}"
     )
     result = httpx.get(url, headers={"Authorization": "sofia"})
@@ -78,18 +80,59 @@ def test_wrong_master_sae_id():
     assert "Master SAE ID does not match" in result.text
 
 
-# def test_wrong_slave_sae_id():
-#     """
-#     ETSI QKD Get ey with key IDs, using a master SAE ID that does not match the master SAE ID
-#     that was used in the Get key call (expect error).
-#     """
-#     key_id = system_test_common.get_key("sam", "sofia")
-#     assert key_id is not None
-#     connie_port = 8108
-#     url = (
-#         f"http://127.0.0.1:{connie_port}/client/connie/etsi/api/v1/keys/sunny/dec_keys?"
-#         f"key_ID={key_id}"
-#     )
-#     result = httpx.get(url)
-#     assert result.status_code == 400
-#     assert "Master SAE ID does not match" in result.text
+def test_wrong_slave_sae_id_correct_client():
+    """
+    ETSI QKD Get key with key IDs, using a slave SAE ID that does not match the slave SAE ID
+    that was used in the Get key call (expect error). The slave SAE ID is wrong, but connected to
+    the correct client.
+    """
+    key_id = system_test_common.get_key("sam", "sunny")
+    assert key_id is not None
+    # For Get Key with key IDs, we need to call the API directly using HTTPX instead of using
+    # the manager to set a wrong master SAE ID.
+    curtis_port = 8109
+    url = (
+        f"http://127.0.0.1:{curtis_port}"
+        f"/client/curtis/etsi/api/v1/keys/sam/dec_keys?"  # All correct
+        f"key_ID={key_id}"
+    )
+    # Susan is wrong slave SAE ID, but connected to correct client (KME), so the client will
+    # accept the request and attempt to gather the shares.
+    result = httpx.get(url, headers={"Authorization": "susan"})
+    assert result.status_code == 400
+    assert "Slave SAE ID does not match" in result.text
+
+
+def test_get_key_master_sae_not_connected_to_client():
+    """
+    Invoke ETSI QKD Get key with key IDs on the wrong client (KME) for the given master SAE ID
+    (expect error).
+    """
+    carol_port = 8105
+    url = (
+        f"http://127.0.0.1:{carol_port}"
+        f"/client/carol/etsi/api/v1/keys/sam/enc_keys"  # All correct
+    )
+    result = httpx.get(
+        url, headers={"Authorization": "sunny"}
+    )  # SAE sunny not connected to Carol
+    assert result.status_code == 400
+    assert "Encryptor is not connected to client" in result.text
+
+
+def test_get_key_with_key_ids_slave_sae_not_connected_to_client():
+    """
+    Invoke ETSI QKD Get key with key IDs on the wrong client (KME) for the given slave SAE ID
+    (expect error).
+    """
+    key_id = system_test_common.get_key("sam", "serena")
+    assert key_id is not None
+    curtis_port = 8109
+    url = (
+        f"http://127.0.0.1:{curtis_port}"
+        f"/client/curtis/etsi/api/v1/keys/sam/dec_keys?"  # Curtis is wrong client (KME) for Serena
+        f"key_ID={key_id}"
+    )
+    result = httpx.get(url, headers={"Authorization": "serena"})
+    assert result.status_code == 400
+    assert "Encryptor is not connected to client" in result.text

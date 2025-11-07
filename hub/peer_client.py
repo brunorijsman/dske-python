@@ -2,12 +2,13 @@
 A peer DSKE client.
 """
 
-from typing import assert_never, List
+from typing import List
 import fastapi
 from common.allocation import Allocation
 from common.block import Block
-from common.exceptions import InvalidSignatureError
+from common.exceptions import InvalidSignatureError, EncryptorNotConnectedToClientError
 from common.logging import LOGGER
+from common.owner import Owner
 from common.pool import Pool
 from common.signature import Signature
 from common.signing_key import SigningKey
@@ -26,8 +27,8 @@ class PeerClient:
     def __init__(self, client_name: str, encryptor_names: List[str]):
         self._client_name = client_name
         self._encryptor_names = encryptor_names
-        self._local_pool = Pool(client_name, Pool.Owner.LOCAL)
-        self._peer_pool = Pool(client_name, Pool.Owner.PEER)
+        self._local_pool = Pool(client_name, Owner.LOCAL)
+        self._peer_pool = Pool(client_name, Owner.PEER)
 
     @property
     def client_name(self) -> str:
@@ -68,18 +69,16 @@ class PeerClient:
             "peer_pool": self._peer_pool.to_mgmt(),
         }
 
-    def create_random_block(self, owner: Pool.Owner, size: int) -> Block:
+    def create_random_block(self, owner: Owner, size: int) -> Block:
         """
         Create a block filled ith random data and add it to the specified pool.
         """
         block = Block.new_with_random_data(size)
         match owner:
-            case Pool.Owner.LOCAL:
+            case Owner.LOCAL:
                 pool = self._local_pool
-            case Pool.Owner.PEER:
+            case Owner.PEER:
                 pool = self._peer_pool
-            case _:
-                assert_never("Invalid owner")
         pool.add_block(block)
         return block
 
@@ -91,6 +90,16 @@ class PeerClient:
         """
         signing_key = SigningKey.from_pool(self._local_pool)
         signing_key.add_to_headers(response.headers)
+
+    def check_sae_is_connected(self, sae_id: str):
+        """
+        Check whether a SAE is connected to a client. If not, raise an exception.
+        """
+        if sae_id not in self._encryptor_names:
+            LOGGER.warning(
+                f"Encryptor {sae_id} not connected to client {self._client_name}"
+            )
+            raise EncryptorNotConnectedToClientError(self._client_name, sae_id)
 
     async def check_request_signature(self, raw_request: fastapi.Request):
         """

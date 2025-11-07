@@ -5,6 +5,7 @@ A Pre-Shared Random Data (PSRD) fragment.
 from uuid import UUID
 import pydantic
 from common.exceptions import InvalidBlockUUIDError, InvalidEncodedFragmentError
+from common.logging import LOGGER
 from . import utils
 
 
@@ -106,6 +107,9 @@ class Fragment:
         try:
             block_uuid = UUID(api_fragment.block_uuid)
         except ValueError as exc:
+            LOGGER.error(
+                "Invalid block UUID in API fragment: %s", api_fragment.block_uuid
+            )
             raise InvalidBlockUUIDError(block_uuid=api_fragment.block_uuid) from exc
         block = pool.get_block(block_uuid)
         data = block.take_data(api_fragment.start, api_fragment.size)
@@ -135,20 +139,35 @@ class Fragment:
         """
         parts = enc_str.split(":")
         if len(parts) != 3:
+            LOGGER.error(
+                f"Invalid encoded fragment {enc_str} "
+                f"(expected three parts separated by :)"
+            )
             raise InvalidEncodedFragmentError(encoded_fragment=enc_str)
         block_uuid_str, start_byte_str, size_str = parts
         try:
             block_uuid = UUID(block_uuid_str)
         except ValueError as exc:
+            LOGGER.error(
+                f"Invalid encoded fragment {enc_str} "
+                f"(invalid block UUID {block_uuid_str})"
+            )
             raise InvalidBlockUUIDError(block_uuid=block_uuid_str) from exc
         block = pool.get_block(block_uuid)
         try:
             start = int(start_byte_str)
         except ValueError as exc:
+            LOGGER.error(
+                f"Invalid encoded fragment {enc_str} "
+                f"(invalid start byte {start_byte_str})"
+            )
             raise InvalidEncodedFragmentError(encoded_fragment=enc_str) from exc
         try:
             size = int(size_str)
         except ValueError as exc:
+            LOGGER.error(
+                f"Invalid encoded fragment {enc_str} " f"(invalid size {size_str})"
+            )
             raise InvalidEncodedFragmentError(encoded_fragment=enc_str) from exc
         data = block.take_data(start, size)
         return Fragment(block=block, start=start, size=size, data=data)

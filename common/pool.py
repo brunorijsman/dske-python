@@ -2,32 +2,19 @@
 A pool of blocks.
 """
 
-import enum
 from uuid import UUID
 from pydantic import PositiveInt
 from .allocation import Allocation
 from .block import Block
-from .logging import LOGGER
 from .exceptions import OutOfPreSharedRandomDataError, InvalidBlockUUIDError
+from .logging import LOGGER
+from .owner import Owner
 
 
 class Pool:
     """
     A pool of blocks.
     """
-
-    class Owner(enum.Enum):
-        """
-        Who owns the pool? The client node or the hub node? Only the owner is allowed to make
-        allocations out of the pool. The non-owner only takes data out of the pool, but the peer
-        decides which data is taken (i.e. the peer does the allocation).
-        """
-
-        LOCAL = 1
-        PEER = 2
-
-        def __str__(self):
-            return self.name.lower()
 
     _name: str
     _blocks: list[Block]
@@ -81,6 +68,7 @@ class Pool:
         for block in self._blocks:
             if block.uuid == block_uuid:
                 return block
+        LOGGER.error(f"Block UUID not found in {str(self.owner)} pool: {block_uuid}")
         raise InvalidBlockUUIDError(block_uuid=str(block_uuid))
 
     def allocate(self, size: PositiveInt, purpose: str) -> Allocation:

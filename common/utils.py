@@ -5,6 +5,8 @@ Common functions for the project.
 import base64
 import os
 import pathlib
+from uuid import UUID
+from .exceptions import InvalidKeyIDError
 from .logging import LOGGER
 
 
@@ -83,3 +85,14 @@ def pid_file_exists(node_type: str, node_name: str) -> bool:
     """
     path = pathlib.Path(pid_file_name(node_type, node_name))
     return path.exists()
+
+
+def key_id_str_to_uuid(key_id_str: str) -> "UUID":
+    """
+    Convert a key ID string to a UUID. Raise an exception if the string is not a valid UUID.
+    """
+    try:
+        key_id = UUID(key_id_str)
+    except ValueError as exc:
+        raise InvalidKeyIDError(key_id_str) from exc
+    return key_id

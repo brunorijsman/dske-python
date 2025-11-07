@@ -353,7 +353,7 @@ class InvalidEncodedSigningKeyError(DSKEException):
         )
 
 
-class EncryptorNotRegisteredForClientError(DSKEException):
+class EncryptorNotConnectedToClientError(DSKEException):
     """
     Exception raised when an encryptor is not registered for a client.
     """
@@ -361,7 +361,7 @@ class EncryptorNotRegisteredForClientError(DSKEException):
     def __init__(self, client_name: str, encryptor_name: str):
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
-            message="Encryptor is not registered for client.",
+            message="Encryptor is not connected to client.",
             details={
                 "client_name": client_name,
                 "encryptor_name": encryptor_name,
@@ -390,13 +390,13 @@ class WrongMasterSAEIDError(DSKEException):
     the master SAE ID used in the original Get key request.
     """
 
-    def __init__(self, client_name: str, master_sae_id: str, key_id: str):
+    def __init__(self, requested_master_sae_id: str, share_master_sae_id, key_id: str):
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
             message="Master SAE ID does not match the one used in the original Get key request.",
             details={
-                "client_name": client_name,
-                "master_sae_id": master_sae_id,
+                "requested_master_sae_id": requested_master_sae_id,
+                "share_master_sae_id": share_master_sae_id,
                 "key_id": key_id,
             },
         )
@@ -408,13 +408,13 @@ class WrongSlaveSAEIDError(DSKEException):
     the slave SAE ID used in the original Get key request.
     """
 
-    def __init__(self, client_name: str, slave_sae_id: str, key_id: str):
+    def __init__(self, requested_master_sae_id: str, share_master_sae_id, key_id: str):
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
             message="Slave SAE ID does not match the one used in the original Get key request.",
             details={
-                "client_name": client_name,
-                "slave_sae_id": slave_sae_id,
+                "requested_master_sae_id": requested_master_sae_id,
+                "share_master_sae_id": share_master_sae_id,
                 "key_id": key_id,
             },
         )
