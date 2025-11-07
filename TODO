@@ -13,8 +13,6 @@ TODO: Forbid extra query parameters for API calls
       curl 'http://127.0.0.1:8105/client/carol/etsi/api/v1/keys/curtis/enc_keys?foobar=256'
       See https://fastapi.tiangolo.com/tutorial/query-param-models/#forbid-extra-query-parameters
 
-TODO: Time-out shares on hubs and remove them if they have not been retrieved after the time-out
-
 TODO: nr_required_shares -> required_nr_shares or min_nr_shares
 
 TODO: I noticed that the response to a POST key-share is the string null; that's not right
