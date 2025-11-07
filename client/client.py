@@ -106,7 +106,6 @@ class Client:
         """
         ETSI QKD 014 V1.1.1 Get key API.
         """
-        # TODO: Make sure that this client is actually the initiator
         if size is None:
             size = self._DEFAULT_KEY_SIZE_IN_BITS
         if size % 8 != 0:
