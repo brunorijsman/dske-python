@@ -125,9 +125,6 @@ def test_allocate_success_empty_pool_first_block_full_second_block_full():
     assert pool.nr_used_bytes == 9
 
 
-# TODO: Also test re-allocation after giving back
-
-
 def test_allocate_failure_insufficient_space():
     """
     Attempt to allocate an allocation from a pool. There is not enough unused data in the pool.

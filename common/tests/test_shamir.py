@@ -39,5 +39,3 @@ def test_shamir_split_reconstruct_all_scenarios():
             (10, 3),
         ]:
             shamir_split_reconstruct_scenario(size, nr_shares, min_shares)
-
-    # TODO: Key length 3 (< MIN_KEY_LENGTH) raises exception

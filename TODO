@@ -1,27 +1,13 @@
-TODO: Stop all nodes after each test (to make sure they are stopped if test case fails)
+TODO: Stop all nodes after each test (to make sure they are stopped if test case fails).
 
-TODO: Type annotations everywhere
+TODO: Type annotations everywhere; check type annotations in check script.
 
-TODO: Check type annotations (in check script and in VSC)
+TODO: Better OpenAPI (Swagger) documentation:
+      - Better type information
+      - Better explanations
+      - All error responses
 
-TODO: OpenAPI (Swagger) documentation should show proper type for request and response data
-
-TODO: Add test case: start hub later than client (registration retry logic in client)
-
-TODO: Forbid extra query parameters for API calls
-      For example foobar in:
-      curl 'http://127.0.0.1:8105/client/carol/etsi/api/v1/keys/curtis/enc_keys?foobar=256'
-      See https://fastapi.tiangolo.com/tutorial/query-param-models/#forbid-extra-query-parameters
-
-TODO: nr_required_shares -> required_nr_shares or min_nr_shares
-
-TODO: I noticed that the response to a POST key-share is the string null; that's not right
-
-TODO: Testcase for invalid signature
-      - Bad allocation string
-      - Signature is incorrect
-      - Make sure bytes taken from pool are returned (to defend against DOS attack)
-
-TODO: Test case for: if signature validation fails, return fragment to pool
-
-TODO: Test cases for delete share after timeout
+TODO: Additional test cases (coverage closer to 100%):
+      - Start hub later than client
+      - Invalid signatures (also return allocation to pool)
+      - Pool allocations after give-backs
