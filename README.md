@@ -43,3 +43,5 @@ Documentation:
 
 * [Developer guide](/docs/developer-guide.md)
 
+* [Resources](/docs/resources.md)
+
